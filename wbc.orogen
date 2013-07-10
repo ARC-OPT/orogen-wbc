@@ -1,0 +1,22 @@
+name "wbc"
+
+import_types_from "wbcTypes.hpp"
+
+# using_library "wbc"
+# import_types_from "wbc/CustomType.hpp"
+import_types_from "base"
+
+
+task_context "Task" do
+    needs_configuration
+    property "priorities", "int"
+    property "cart_input", "std/vector<int>"
+    property "jnt_input", "std/vector<int>"
+
+    dynamic_input_port /.*/, "base/commands/Joints"
+    dynamic_input_port /.*/, "base/samples/RigidBodyState"
+    
+    output_port "output", "base/commands/Joints"
+    output_port "test", "int"
+end
+
