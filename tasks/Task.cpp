@@ -37,12 +37,23 @@ bool Task::configureHook()
     if (! TaskBase::configureHook())
         return false;
 
-    int priorities = _priorities.get();
-    std::vector<int> cart_input = _cart_input.get();
-    std::vector<int> jnt_input = _jnt_input.get();
+    std::string srdf = _srdf.get();
+    std::string wbc_config = _wbc_config.get();
 
-    if(priorities != cart_input.size() || priorities != jnt_input.size()){
-        LOG_ERROR("Configuration has an error. priorities != cart_input.size() || priorities != jnt_input.size()");
+    //TODO: Parse SRDF
+
+    //TODO: Parse wbc_config, replace dummy data below
+    int n_priorities = 5;
+    std::vector<int> cart_by_priority;
+    std::vector<int> cart_by_priority_chains;
+    std::vector<int> joint_by_priority;
+    std::vector<int> joint_by_priority_chains;
+
+    //TODO: Verify that srdf and chains defined in wbc_config match
+    bool ok = true;
+
+    if(!ok){
+        LOG_ERROR("SRDF configuration and wbc_config do not match.");
         return false;
     }
 
@@ -50,8 +61,8 @@ bool Task::configureHook()
     // Create dynamic ports
     //
     std::stringstream ss;
-    for(uint p=0; p<priorities; p++){
-        for(uint c=0; c<cart_input[p]; c++){
+    for(uint p=0; p<n_priorities; p++){
+        for(uint c=0; c<cart_by_priority[p]; c++){
             ss.str("");
             ss<<"cart_"<<p<<"_"<<c;
             RTT::InputPort<base::samples::RigidBodyState>* input_port =
@@ -59,7 +70,7 @@ bool Task::configureHook()
             ports()->addPort(ss.str(), *input_port);
             cart_ports.push_back(input_port);
         }
-        for(uint c=0; c<cart_input[p]; c++){
+        for(uint c=0; c<joint_by_priority[p]; c++){
             ss.str("");
             ss<<"jnt_"<<p<<"_"<<c;
             RTT::InputPort<base::commands::Joints>* input_port =

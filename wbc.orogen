@@ -9,14 +9,19 @@ import_types_from "base"
 
 task_context "Task" do
     needs_configuration
-    property "priorities", "int"
-    property "cart_input", "std/vector<int>"
-    property "jnt_input", "std/vector<int>"
+    property "srdf", "std/string" #joint groups are defined here. 
+                                  #See http://www.ros.org/wiki/srdf#Tags
+    property "wbc_config", "std/string" #Yaml file representing the setup of task 
+                                        #hierachy as a list of lists. Example:
+                                        #[
+                                        #[{type: Joint, group: "all"}, {type: Joint, group: "all"}],
+                                        #[{type: Cartesian, group: "right_arm"}],
+                                        #[{type: Joint, group: "right_hand"}]]
 
+    #These dynamic ports are created according to the 'wbc_config' file
     dynamic_input_port /.*/, "base/commands/Joints"
     dynamic_input_port /.*/, "base/samples/RigidBodyState"
     
     output_port "output", "base/commands/Joints"
-    output_port "test", "int"
 end
 
