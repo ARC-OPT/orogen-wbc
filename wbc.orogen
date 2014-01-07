@@ -2,26 +2,31 @@ name "wbc"
 
 import_types_from "wbcTypes.hpp"
 
-# using_library "wbc"
-# import_types_from "wbc/CustomType.hpp"
-import_types_from "base"
 
+import_types_from "wbc/WbcTypes.hpp"
+import_types_from "base"
+using_library "wbc"
+using_library "yaml-cpp"
+using_library "kdl_parser"
+using_library "srdfdom"
 
 task_context "Task" do
     needs_configuration
-    property "srdf", "std/string" #joint groups are defined here. 
-                                  #See http://www.ros.org/wiki/srdf#Tags
-    property "wbc_config", "std/string" #Yaml file representing the setup of task 
-                                        #hierachy as a list of lists. Example:
-                                        #[
-                                        #[{type: Joint, group: "all"}, {type: Joint, group: "all"}],
-                                        #[{type: Cartesian, group: "right_arm"}],
-                                        #[{type: Joint, group: "right_hand"}]]
+
+    property "wbc_mode", "wbc/mode" # Mode of wbc used. Right now only wbc/mode_velocity is supported
+    property "urdf", "std/string" # Robot model file
+    property "srdf", "std/string" # Semantic Robot description file
+    property "wbc_config", "std/string" # Whole body config as a hierachy as a list of lists. Example:
+                                        #[{type: wbc/wbc_joint, group: "right_hand"}, {type: wbc_joint, group: "all"}],
+                                        #[{type: wbc/wbc_cartesian, group: "right_arm"}],
+                                        #[{type: wbc/wbc_joint, group: "left_hand"}]
 
     #These dynamic ports are created according to the 'wbc_config' file
-    dynamic_input_port /.*/, "base/commands/Joints"
-    dynamic_input_port /.*/, "base/samples/RigidBodyState"
+    dynamic_input_port /.*/, "/base/VectorXd"
     
-    output_port "output", "base/commands/Joints"
+    input_port "joint_weights", "/base/VectorXd"
+    input_port "joint_status", "/base/samples/Joints"
+
+    output_port "command", "base/commands/Joints"
 end
 
