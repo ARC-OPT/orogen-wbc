@@ -23,10 +23,16 @@ task_context "Task" do
 
     #These dynamic ports are created according to the 'wbc_config' file
     dynamic_input_port /.*/, "/base/VectorXd"
+
+    #Debug ports
+    dynamic_output_port /.*/, "/base/VectorXd"
+    dynamic_output_port /.*/, "/base/MatrixXd"
     
     input_port "joint_weights", "/base/VectorXd"
     input_port "joint_status", "/base/samples/Joints"
 
     output_port "command", "base/commands/Joints"
+
+    periodic 0.01
 end
 

@@ -20,6 +20,12 @@ protected:
 
     std::vector< RTT::InputPort<base::VectorXd>* > ref_ports_, weight_ports_;
 
+    //Debug Ports:
+    std::vector< RTT::OutputPort<base::MatrixXd>* > A_ports_;
+    std::vector< RTT::OutputPort<base::VectorXd>* > Wy_ports_;
+    std::vector< RTT::OutputPort<base::VectorXd>* > y_ref_ports_;
+    std::vector< RTT::OutputPort<base::VectorXd>* > y_ports_;
+
     WbcInput reference_, task_weights_;
     base::samples::Joints status_;
     base::commands::Joints solver_output_;
