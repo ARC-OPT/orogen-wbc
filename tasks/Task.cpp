@@ -110,8 +110,7 @@ bool Task::configureHook()
     //
     // Create and configure wbc lib
     //
-    mode wbc_mode = _wbc_mode.get();
-    wbc_ = new Wbc(robot_tree, wbc_mode);
+    wbc_ = new Wbc(robot_tree);
     if(!wbc_->configure(wbc_config_))
         return false;
 
@@ -182,6 +181,8 @@ bool Task::configureHook()
     solver_output_.resize(wbc_->robot_->no_of_joints_);
     joint_weights_.resize(wbc_->robot_->no_of_joints_);
     joint_weights_.setConstant(1);
+
+    wbc_->solver_.setNormMax(_norm_max.get());
 
     return true;
 }

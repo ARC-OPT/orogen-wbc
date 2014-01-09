@@ -13,7 +13,10 @@ using_library "srdfdom"
 task_context "Task" do
     needs_configuration
 
-    property "wbc_mode", "wbc/mode" # Mode of wbc used. Right now only wbc/mode_velocity is supported
+    # Defines the maximum norm of joint velocites. Effects damping in matrix inversion. 
+    # A High value means accurate inverse solution, low damping, high velocities in joint space
+    # A very high value e.g. 1e10 means that the solution will be undamped
+    property "norm_max", "double", 5
     property "urdf", "std/string" # Robot model file
     property "srdf", "std/string" # Semantic Robot description file
     property "wbc_config", "std/string" # Whole body config as a hierachy as a list of lists. Example:
