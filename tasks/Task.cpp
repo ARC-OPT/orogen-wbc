@@ -24,7 +24,7 @@ bool Task::configureHook()
     if (! TaskBase::configureHook())
         return false;
 
-    std::string urdf_file = _urdf.get();
+    /*std::string urdf_file = _urdf.get();
     std::string srdf_file = _srdf.get();
     std::string wbc_config_file = _wbc_config.get();
 
@@ -184,7 +184,7 @@ bool Task::configureHook()
 
     wbc_->solver_.setNormMax(_norm_max.get());
 
-    return true;
+    return true;*/
 }
 bool Task::startHook()
 {
@@ -202,7 +202,7 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
 
-    if(_joint_status.read(status_) == RTT::NoData){
+    /*if(_joint_status.read(status_) == RTT::NoData){
         LOG_DEBUG("No data on joint status port");
         return;
     }
@@ -234,7 +234,7 @@ void Task::updateHook()
         Wy_ports_[prio]->write(wbc_->Wy_[prio]);
         y_ref_ports_[prio]->write(wbc_->y_ref_[prio]);
         y_ports_[prio]->write(wbc_->y_[prio]);
-    }
+    }*/
 }
 
 void Task::cleanupHook()

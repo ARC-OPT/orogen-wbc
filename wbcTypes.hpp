@@ -8,7 +8,20 @@
  * which case you do not need this file
  */
 
+#include <wbc/WbcTypes.hpp>
+
 namespace wbc {
+
+struct SubTaskConfigSRDF{
+    /** Whole body task type, can be joint space or Cartesian for now */
+    task_type type;
+
+    /** Joint group that is associated with the task as defined in srdf file */
+    std::string joint_group;
+
+    /** Priority of this subtask. 0-based. 0 ^= highest priority */
+    uint priority;
+};	
 }
 
 #endif
