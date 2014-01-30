@@ -9,7 +9,7 @@ using_library "wbc"
 using_library "kdl_parser"
 using_library "srdfdom"
 
-task_context "WbcVelocity" do
+task_context "WbcVelocityTask" do
     needs_configuration
 
     property("urdf", "std/string").doc("Robot model file")
@@ -24,7 +24,7 @@ task_context "WbcVelocity" do
     input_port "joint_weights", "/base/VectorXd"
     input_port "joint_status", "/base/samples/Joints"
 
-    output_port "command", "base/commands/Joints"
+    output_port "ctrl_out", "base/commands/Joints"
 
     periodic 0.01
 end
