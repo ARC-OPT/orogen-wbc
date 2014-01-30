@@ -1,0 +1,19 @@
+--- name:default
+
+# Semantic Robot description file
+srdf: ''
+
+# Robot model file
+urdf: ''
+
+# Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, 
+# but also high joint velocities in singular configurations. A very low value will provide a strongly damped, but inaccurate behavior.
+# E.g. if you have 7 joints with dot_q_max=2.0 rad/sec, then norm_max = sqrt(7 * 2*2) = 5.29.
+# TODO: Use joint limits instead and compute norm_max during task execution
+norm_max: 100.0
+
+# Configuration of subtasks
+wbc_config: 
+   - type: task_type_cartesian
+     joint_group: right_arm
+     priority: 0

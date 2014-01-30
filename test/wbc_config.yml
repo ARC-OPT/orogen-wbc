@@ -1,4 +1,0 @@
----
-- [{type: joint, group: torso}, {type: cartesian, group: right_arm}]
-- [{type: cartesian, group: left_arm}]
-

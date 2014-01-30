@@ -10,6 +10,7 @@
 #include <fstream>
 
 using namespace wbc;
+using namespace std;
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name)
     : WbcVelocityTaskBase(name)
@@ -95,24 +96,26 @@ bool WbcVelocityTask::configureHook()
             conf.tip = joint_group.chains_[0].second;
 
             std::stringstream ss;
-            ss<<"Cart_"<<conf.priority<<" "<<cart_idx++;
+            ss<<"Cart_"<<conf.priority<<"_"<<cart_idx++;
             conf.name = ss.str().c_str();
 
             //Add cartesian port
             RTT::InputPort<base::samples::RigidBodyState> *ref_port = new RTT::InputPort<base::samples::RigidBodyState>("/Ref_" + conf.name);
-            ports()->addPort("/Ref_" + conf.name, *ref_port);
+            ports()->addPort("Ref_" + conf.name, *ref_port);
             cart_ref_ports_[conf.name] = ref_port;
             cart_ref_in_[conf.name] = base::samples::RigidBodyState();
+            cart_ref_in_[conf.name].velocity = base::Vector3d::Zero();
+            cart_ref_in_[conf.name].angular_velocity = base::Vector3d::Zero();
 
             //Add weight port
-            RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("/Weight_" + conf.name);
-            ports()->addPort("/Weight_" + conf.name, *weight_port);
+            RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("Weight_" + conf.name);
+            ports()->addPort("Weight_" + conf.name, *weight_port);
             weight_ports_[conf.name] = weight_port;
             weight_in_[conf.name] = base::VectorXd::Ones(6);
 
             //Add Debug port
-            RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("/Act_" + conf.name);
-            ports()->addPort("/Act_" + conf.name, *y_out_port);
+            RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
+            ports()->addPort("Act_" + conf.name, *y_out_port);
             y_out_ports_[conf.name] = y_out_port;
 
             break;
@@ -131,24 +134,26 @@ bool WbcVelocityTask::configureHook()
             conf.name = ss.str().c_str();
 
             //Add joint port
-            RTT::InputPort<base::samples::Joints> *ref_port = new RTT::InputPort<base::samples::Joints>("/Ref_" + conf.name);
-            ports()->addPort("/Ref_" + conf.name, *ref_port);
+            RTT::InputPort<base::samples::Joints> *ref_port = new RTT::InputPort<base::samples::Joints>("Ref_" + conf.name);
+            ports()->addPort("Ref_" + conf.name, *ref_port);
             jnt_ref_ports_[conf.name] = ref_port;
 
             base::samples::Joints ref;
             ref.resize(conf.joints.size());
             ref.names = conf.joints;
+            for(uint i = 0; i < conf.joints.size(); i++)
+                ref[i].speed = 0;
             jnt_ref_in_[conf.name] = ref;
 
             //Add weight port
-            RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("/Weight_" + conf.name);
-            ports()->addPort("/Weight_" + conf.name, *weight_port);
+            RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("Weight_" + conf.name);
+            ports()->addPort("Weight_" + conf.name, *weight_port);
             weight_ports_[conf.name] = weight_port;
             weight_in_[conf.name] = base::VectorXd::Ones(conf.joints.size());
 
             //Add Debug port
-            RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("/Act_" + conf.name);
-            ports()->addPort("/Act_" + conf.name, *y_out_port);
+            RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
+            ports()->addPort("Act_" + conf.name, *y_out_port);
             y_out_ports_[conf.name] = y_out_port;
 
             break;
@@ -168,7 +173,7 @@ bool WbcVelocityTask::configureHook()
         LOG_DEBUG("Task %i", i);
         LOG_DEBUG("Name: %s", wbc_config[i].name.c_str());
         LOG_DEBUG("Type: %i", wbc_config[i].type);
-        LOG_DEBUG("Priority: %s", wbc_config[i].priority);
+        LOG_DEBUG("Priority: %i", wbc_config[i].priority);
         if(wbc_config[i].type == wbc::task_type_cartesian){
             LOG_DEBUG("Root: %s", wbc_config[i].root.c_str());
             LOG_DEBUG("Tip: %s", wbc_config[i].tip.c_str());
@@ -194,16 +199,16 @@ bool WbcVelocityTask::configureHook()
     //
     // Configure Solver
     //
-    std::vector<uint> no_task_vars_per_prio;
-    for(uint i = 0; i < wbc_.y_ref_.size(); i++)
-        no_task_vars_per_prio.push_back(wbc_.y_ref_[i].size());
-    if(!solver_.configure(no_task_vars_per_prio, wbc_.no_robot_joints_))
+    solver_.setNormMax(_norm_max.get());
+    if(!solver_.configure(wbc_.no_task_vars_pp_, wbc_.no_robot_joints_))
         return false;
 
     joint_status_.resize(wbc_.no_robot_joints_);
     solver_output_.resize(wbc_.no_robot_joints_);
+    solver_output_.setZero();
     ctrl_out_.resize(wbc_.no_robot_joints_);
     joint_weights_.resize(wbc_.no_robot_joints_);
+    joint_weights_.setConstant(1);
 
     return true;
 }
@@ -217,9 +222,13 @@ bool WbcVelocityTask::startHook()
 
 void WbcVelocityTask::updateHook()
 {
+
     WbcVelocityTaskBase::updateHook();
 
-    _joint_status.read(joint_status_);
+    if(_joint_status.read(joint_status_) == RTT::NoData){
+        LOG_DEBUG("No data on joint status port");
+        return;
+    }
     for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++){
         it->second->read(cart_ref_in_[it->first]);
 
@@ -250,12 +259,15 @@ void WbcVelocityTask::updateHook()
     solver_.setJointWeights(joint_weights_);
     for(uint i = 0; i < wbc_.Wy_.size(); i++)
         solver_.setTaskWeights(wbc_.Wy_[i], i);
+    base::Time start = base::Time::now();
     solver_.solve(wbc_.A_, wbc_.y_ref_, (Eigen::VectorXd& )solver_output_);
+    _sample_time.write((base::Time::now() - start).toSeconds());
 
     //Write output
     ctrl_out_.names = joint_status_.names;
     for(uint i = 0; i < ctrl_out_.size(); i++)
         ctrl_out_[i].speed = solver_output_(i);
+    ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
 
     //write Debug Data
@@ -263,6 +275,7 @@ void WbcVelocityTask::updateHook()
         SubTask* task = wbc_.subTask(it->first);
         it->second->write(task->A_ * solver_output_);
     }
+    _damping.write(solver_.getCurDamping());
 }
 
 void WbcVelocityTask::cleanupHook()
@@ -276,6 +289,9 @@ void WbcVelocityTask::cleanupHook()
         delete it->second;
 
     for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
+        delete it->second;
+
+    for(DebugPortMap::iterator it = y_out_ports_.begin(); it != y_out_ports_.end(); it++)
         delete it->second;
 
     cart_ref_ports_.clear();

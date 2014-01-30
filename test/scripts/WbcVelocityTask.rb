@@ -1,23 +1,23 @@
 require 'orocos'
+require 'pry'
 require 'vizkit'
-require 'readline'
 
-if !ARGV[0] or !ARGV[1] or !ARGV[2]
-    STDERR.puts "usage: test_wbc.rb <urdf_file> <srdf_file> <wbc_config_file>"
+if !ARGV[0] or !ARGV[1] 
+    STDERR.puts "usage: test_wbc.rb <urdf_file> <srdf_file>"
     exit 1
 end
 
 include Orocos
 
 Orocos.initialize
+Orocos.conf.load_dir('../config')
 
 urdf_file = ARGV[0] if ARGV[0]
 srdf_file = ARGV[1] if ARGV[1]
-wbc_config_file = ARGV[2] if ARGV[2]
 
-Orocos.run 'wbc::Task' => 'wbc',
+Orocos.run 'wbc::WbcVelocityTask' => 'wbc',
            'joint_control::FakeJointDriverTask' => 'driver',
-           'robot_model_tools::Task' => 'robot_model'  do
+           'robot_model_tools::Task' => 'robot_model' do
     
    robot_model = Orocos.name_service.get 'robot_model'
    robot_model.urdf_file = urdf_file
@@ -38,11 +38,10 @@ Orocos.run 'wbc::Task' => 'wbc',
    driver.initial_joint_state = initial_joint_state
    driver.meas_noise_std_dev = 1e-5
 
-   wbc = Orocos.name_service.get 'wbc'
+   wbc = Orocos::TaskContext.get 'wbc'
+   Orocos.conf.apply(wbc, ['default'])
    wbc.urdf = urdf_file
    wbc.srdf = srdf_file
-   wbc.wbc_config = wbc_config_file
-   wbc.wbc_mode = 0
 
    driver.joint_status.connect_to wbc.joint_status
 
@@ -51,6 +50,11 @@ Orocos.run 'wbc::Task' => 'wbc',
     
    driver.start
    wbc.start
+  
+   cart_in = Types::Base::Samples::RigidBodyState.new
+   cart_in.velocity = Types::Base::Vector3d.new(0.1,0,0)
+   cart_in.angular_velocity  = Types::Base::Vector3d.new(0,0,0)
+   wbc.port("Ref_Cart_0_0").write(cart_in)
    Vizkit.exec
     
 end
