@@ -24,9 +24,10 @@ task_context "WbcVelocityTask" do
     #These dynamic ports are created according to the 'wbc_config'
     dynamic_input_port /.*/, "/base/samples/Joints"
     dynamic_input_port /.*/, "/base/samples/RigidBodyState"
+    dynamic_input_port /.*/, "/base/MatrixXd"
     dynamic_input_port /.*/, "/base/VectorXd"
     
-    input_port "joint_weights", "/base/VectorXd"
+    input_port "joint_weights", "/base/MatrixXd"
     input_port "joint_status", "/base/samples/Joints"
 
     output_port "ctrl_out", "base/commands/Joints"

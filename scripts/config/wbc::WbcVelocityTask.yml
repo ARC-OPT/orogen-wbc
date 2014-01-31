@@ -17,3 +17,15 @@ wbc_config:
    - type: task_type_cartesian
      joint_group: right_arm
      priority: 0
+   - type: task_type_joint
+     joint_group: all
+     priority: 1
+   - type: task_type_joint
+     joint_group: all
+     priority: 2
+   - type: task_type_cartesian
+     joint_group: right_arm
+     priority: 3
+   - type: task_type_cartesian
+     joint_group: right_arm
+     priority: 4

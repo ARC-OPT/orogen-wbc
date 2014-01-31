@@ -108,10 +108,10 @@ bool WbcVelocityTask::configureHook()
             cart_ref_in_[conf.name].angular_velocity = base::Vector3d::Zero();
 
             //Add weight port
-            RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("Weight_" + conf.name);
+            RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("Weight_" + conf.name);
             ports()->addPort("Weight_" + conf.name, *weight_port);
             weight_ports_[conf.name] = weight_port;
-            weight_in_[conf.name] = base::VectorXd::Ones(6);
+            weight_in_[conf.name] = base::MatrixXd::Identity(6, 6);
 
             //Add Debug port
             RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
@@ -146,10 +146,10 @@ bool WbcVelocityTask::configureHook()
             jnt_ref_in_[conf.name] = ref;
 
             //Add weight port
-            RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("Weight_" + conf.name);
+            RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("Weight_" + conf.name);
             ports()->addPort("Weight_" + conf.name, *weight_port);
             weight_ports_[conf.name] = weight_port;
-            weight_in_[conf.name] = base::VectorXd::Ones(conf.joints.size());
+            weight_in_[conf.name] = base::MatrixXd::Identity(conf.joints.size(), conf.joints.size());
 
             //Add Debug port
             RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
@@ -186,7 +186,7 @@ bool WbcVelocityTask::configureHook()
     }
 
     //
-    // Configure wbc
+    // Configure wbc lib
     //
     KDL::Tree tree;
     if(!kdl_parser::treeFromFile(urdf_file, tree)){
@@ -196,6 +196,8 @@ bool WbcVelocityTask::configureHook()
     if(!wbc_.configure(tree, wbc_config))
         return false;
 
+    LOG_DEBUG("Configuring WBC Config done");
+
     //
     // Configure Solver
     //
@@ -203,12 +205,14 @@ bool WbcVelocityTask::configureHook()
     if(!solver_.configure(wbc_.no_task_vars_pp_, wbc_.no_robot_joints_))
         return false;
 
+    LOG_DEBUG("Configuring Solver Config done");
+
     joint_status_.resize(wbc_.no_robot_joints_);
     solver_output_.resize(wbc_.no_robot_joints_);
     solver_output_.setZero();
     ctrl_out_.resize(wbc_.no_robot_joints_);
-    joint_weights_.resize(wbc_.no_robot_joints_);
-    joint_weights_.setConstant(1);
+    joint_weights_.resize(wbc_.no_robot_joints_, wbc_.no_robot_joints_);
+    joint_weights_.setIdentity();
 
     return true;
 }
@@ -222,60 +226,78 @@ bool WbcVelocityTask::startHook()
 
 void WbcVelocityTask::updateHook()
 {
-
     WbcVelocityTaskBase::updateHook();
 
+    base::Time start = base::Time::now();
+
+    //
+    // Read inputs
+    //
     if(_joint_status.read(joint_status_) == RTT::NoData){
         LOG_DEBUG("No data on joint status port");
         return;
     }
-    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++){
-        it->second->read(cart_ref_in_[it->first]);
 
-        SubTask* sub_task = wbc_.subTask(it->first);
-        sub_task->y_des_.segment(0,3) = cart_ref_in_[it->first].velocity;
-        sub_task->y_des_.segment(3,3) = cart_ref_in_[it->first].angular_velocity;
+    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++){
+
+        if(it->second->read(cart_ref_in_[it->first]) == RTT::NewData){
+            SubTask* sub_task = wbc_.subTask(it->first);
+            sub_task->y_des_.segment(0,3) = cart_ref_in_[it->first].velocity;
+            sub_task->y_des_.segment(3,3) = cart_ref_in_[it->first].angular_velocity;
+        }
     }
     for(JntPortMap::iterator it = jnt_ref_ports_.begin(); it != jnt_ref_ports_.end(); it++){
-        it->second->read(jnt_ref_in_[it->first]);
 
-        SubTask* sub_task = wbc_.subTask(it->first);
-        for(uint i = 0; i < jnt_ref_in_[it->first].size(); i++)
-            sub_task->y_des_(i) = jnt_ref_in_[it->first][i].speed;
+        if(it->second->read(jnt_ref_in_[it->first]) == RTT::NewData){
+            SubTask* sub_task = wbc_.subTask(it->first);
+            for(uint i = 0; i < jnt_ref_in_[it->first].size(); i++)
+                sub_task->y_des_(i) = jnt_ref_in_[it->first][i].speed;
+        }
 
     }
+    bool has_new_weights = false;
     for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++){
-        it->second->read(weight_in_[it->first]);
-
-        SubTask* sub_task = wbc_.subTask(it->first);
-        sub_task->task_weights_ = weight_in_[it->first];
+        if(it->second->read(weight_in_[it->first]) ==  RTT::NewData){
+            SubTask* sub_task = wbc_.subTask(it->first);
+            sub_task->task_weights_ = weight_in_[it->first];
+            has_new_weights = true;
+        }
     }
-    _joint_weights.read(joint_weights_);
+    if(_joint_weights.read(joint_weights_) == RTT::NewData)
+        solver_.setJointWeights((Eigen::MatrixXd& )joint_weights_);
 
-    // Update wbc
+    //
+    // Update equation system
+    //
     wbc_.update(joint_status_);
 
-    // Solve
-    solver_.setJointWeights(joint_weights_);
-    for(uint i = 0; i < wbc_.Wy_.size(); i++)
-        solver_.setTaskWeights(wbc_.Wy_[i], i);
-    base::Time start = base::Time::now();
+    //
+    // Compute control solution
+    //
+    if(has_new_weights){
+        for(uint i = 0; i < wbc_.Wy_.size(); i++)
+            solver_.setTaskWeights(wbc_.Wy_[i], i);
+    }
     solver_.solve(wbc_.A_, wbc_.y_ref_, (Eigen::VectorXd& )solver_output_);
-    _sample_time.write((base::Time::now() - start).toSeconds());
 
-    //Write output
+    //
+    // Write output
+    //
     ctrl_out_.names = joint_status_.names;
     for(uint i = 0; i < ctrl_out_.size(); i++)
         ctrl_out_[i].speed = solver_output_(i);
     ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
 
-    //write Debug Data
+    //
+    // write Debug Data
+    //
     for(DebugPortMap::iterator it = y_out_ports_.begin(); it != y_out_ports_.end(); it++){
         SubTask* task = wbc_.subTask(it->first);
         it->second->write(task->A_ * solver_output_);
     }
     _damping.write(solver_.getCurDamping());
+    _sample_time.write((base::Time::now() - start).toSeconds());
 }
 
 void WbcVelocityTask::cleanupHook()
