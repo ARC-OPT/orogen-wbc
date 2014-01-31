@@ -27,9 +27,9 @@ protected:
     JntPortMap jnt_ref_ports_;
     WeightPortMap weight_ports_;
 
-    std::map<std::string, base::samples::RigidBodyState> cart_ref_in_;
-    std::map<std::string, base::samples::Joints> jnt_ref_in_;
-    std::map<std::string, base::MatrixXd> weight_in_;
+    std::map<std::string, base::samples::RigidBodyState> cart_ref_in_; /** Cart Reference values */
+    std::map<std::string, base::samples::Joints> jnt_ref_in_; /** Jnt reference values */
+    std::map<std::string, base::MatrixXd> weight_in_; /** Task weights */
     base::MatrixXd joint_weights_;
     base::VectorXd solver_output_;
     base::samples::Joints ctrl_out_;
@@ -40,7 +40,7 @@ protected:
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
     WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine);
-    ~WbcVelocityTask();
+    ~WbcVelocityTask(){}
 
     bool configureHook();
     bool startHook();

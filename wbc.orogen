@@ -14,23 +14,26 @@ task_context "WbcVelocityTask" do
 
     property("urdf", "std/string").doc("Robot model file")
     property("srdf", "std/string").doc("Semantic Robot description file")
-    property("wbc_config", "std/vector<wbc/SubTaskConfigSRDF>").doc("Configuration of subtasks")
+    property("wbc_config", "std/vector<wbc/SubTaskConfigSRDF>").
+        doc("Configuration of subtasks. The WbcVelocityTask will dynamically create the following input ports for each subtasks:
+             Cartesian Task: Cart_Ref_<prio>_<idx>, Weight_Ref_<prio>_<idx>
+             Joint Space Task: Jnt_Ref_<prio>_<idx>, Weight_Ref_<prio>_<idx>")
     property("norm_max", "double").
         doc("Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, 
-             but also high joint velocities in singular configurations. A very low value will provide a strongly damped, but inaccurate behavior.
-             E.g. if you have 7 joints with dot_q_max=2.0 rad/sec, then norm_max = sqrt(7 * 2*2) = 5.29.
-             TODO: Use joint limits instead and compute norm_max during task execution")
+             but also high joint velocities in singular configurations.  E.g. if you have 7 joints with dot_q_max=2.0 rad/sec, 
+             then norm_max = sqrt(7 * 2*2) = 5.29. TODO: Use joint limits instead and compute norm_max during task execution")
     
     #These dynamic ports are created according to the 'wbc_config'
     dynamic_input_port /.*/, "/base/samples/Joints"
     dynamic_input_port /.*/, "/base/samples/RigidBodyState"
     dynamic_input_port /.*/, "/base/MatrixXd"
-    dynamic_input_port /.*/, "/base/VectorXd"
     
-    input_port "joint_weights", "/base/MatrixXd"
-    input_port "joint_status", "/base/samples/Joints"
-
-    output_port "ctrl_out", "base/commands/Joints"
+    input_port("joint_weights", "/base/MatrixXd").
+         doc("Input size must be no_joints x no_joints. Matrix must symmetric and positive definit. 
+              If matrix is diagonal, entries must be > 0. In that case a higher value means that
+              the corresponding joint is used less")
+    input_port("joint_status", "/base/samples/Joints")
+    output_port("ctrl_out", "base/commands/Joints")
 
     #Debug ports
     output_port "sample_time", "double"

@@ -10,7 +10,7 @@ end
 include Orocos
 
 Orocos.initialize
-Orocos.conf.load_dir('../config')
+Orocos.conf.load_dir('config')
 
 urdf_file = ARGV[0] if ARGV[0]
 srdf_file = ARGV[1] if ARGV[1]

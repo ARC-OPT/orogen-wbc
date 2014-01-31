@@ -22,10 +22,6 @@ WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* 
 {
 }
 
-WbcVelocityTask::~WbcVelocityTask()
-{
-}
-
 bool WbcVelocityTask::configureHook()
 {
     if (! WbcVelocityTaskBase::configureHook())
@@ -33,7 +29,7 @@ bool WbcVelocityTask::configureHook()
 
     std::string urdf_file= _urdf.get();
     std::string srdf_file = _srdf.get();
-    std::vector<wbc::SubTaskConfigSRDF> wbc_configsrdf = _wbc_config.get();
+    std::vector<wbc::SubTaskConfigSRDF> wbc_config_srdf = _wbc_config.get();
 
     //
     // Load urdf model: Kinematics of the robot
@@ -60,27 +56,37 @@ bool WbcVelocityTask::configureHook()
     //
     // Extend the wbc config by the information from srdf
     //
+
+    //Put joint groups in a map for easier search
     std::vector<srdf::Model::Group> groups = srdf_model.getGroups();
     std::map<std::string, srdf::Model::Group> group_map;
     for(uint i = 0; i < groups.size(); i++)
         group_map[groups[i].name_] = groups[i];
 
-    uint cart_idx = 0, jnt_idx = 0;
-    std::vector<SubTaskConfig> wbc_config;
-    for(uint i = 0; i < wbc_configsrdf.size(); i++){
+    //Check which is the highest priority
+    uint max_prio = 0;
+    for(uint i = 0; i < wbc_config_srdf.size(); i++){
+        if(wbc_config_srdf[i].priority > max_prio)
+            max_prio = wbc_config_srdf[i].priority;
+    }
 
-        std::string group_name = wbc_configsrdf[i].joint_group;
+    std::vector<uint> cart_idx(max_prio + 1,0), jnt_idx(max_prio + 1, 0);
+    std::vector<SubTaskConfig> wbc_config;
+    for(uint i = 0; i < wbc_config_srdf.size(); i++){
+
+        std::string group_name = wbc_config_srdf[i].joint_group;
         if(group_map.count(group_name) == 0){
             LOG_ERROR("Joint group %s does not exist in srdf file", group_name.c_str());
             return false;
         }
 
         SubTaskConfig conf;
-        conf.type = wbc_configsrdf[i].type;
-        conf.priority = wbc_configsrdf[i].priority;
+        conf.type = wbc_config_srdf[i].type;
+        conf.priority = wbc_config_srdf[i].priority;
 
         srdf::Model::Group joint_group = group_map[group_name];
 
+        uint no_task_vars;
         switch(conf.type){
         case wbc::task_type_cartesian:{
 
@@ -92,31 +98,22 @@ bool WbcVelocityTask::configureHook()
             if(joint_group.chains_.size() > 1)
                 LOG_WARN("No of chains in joint group %s is bigger than 1. Using the first one");
 
+            no_task_vars = 6;
             conf.root = joint_group.chains_[0].first;
             conf.tip = joint_group.chains_[0].second;
 
             std::stringstream ss;
-            ss<<"Cart_"<<conf.priority<<"_"<<cart_idx++;
+            ss<<"Cart_"<<conf.priority<<"_"<<cart_idx[conf.priority]++;
             conf.name = ss.str().c_str();
 
             //Add cartesian port
             RTT::InputPort<base::samples::RigidBodyState> *ref_port = new RTT::InputPort<base::samples::RigidBodyState>("/Ref_" + conf.name);
             ports()->addPort("Ref_" + conf.name, *ref_port);
             cart_ref_ports_[conf.name] = ref_port;
+
             cart_ref_in_[conf.name] = base::samples::RigidBodyState();
             cart_ref_in_[conf.name].velocity = base::Vector3d::Zero();
             cart_ref_in_[conf.name].angular_velocity = base::Vector3d::Zero();
-
-            //Add weight port
-            RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("Weight_" + conf.name);
-            ports()->addPort("Weight_" + conf.name, *weight_port);
-            weight_ports_[conf.name] = weight_port;
-            weight_in_[conf.name] = base::MatrixXd::Identity(6, 6);
-
-            //Add Debug port
-            RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
-            ports()->addPort("Act_" + conf.name, *y_out_port);
-            y_out_ports_[conf.name] = y_out_port;
 
             break;
         }
@@ -129,8 +126,10 @@ bool WbcVelocityTask::configureHook()
             }
 
             conf.joints = joint_group.joints_;
+            no_task_vars = joint_group.joints_.size();
+
             std::stringstream ss;
-            ss<<"Jnt_"<<conf.priority<<" "<<jnt_idx++;
+            ss<<"Jnt_"<<conf.priority<<" "<<jnt_idx[conf.priority]++;
             conf.name = ss.str().c_str();
 
             //Add joint port
@@ -145,17 +144,6 @@ bool WbcVelocityTask::configureHook()
                 ref[i].speed = 0;
             jnt_ref_in_[conf.name] = ref;
 
-            //Add weight port
-            RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("Weight_" + conf.name);
-            ports()->addPort("Weight_" + conf.name, *weight_port);
-            weight_ports_[conf.name] = weight_port;
-            weight_in_[conf.name] = base::MatrixXd::Identity(conf.joints.size(), conf.joints.size());
-
-            //Add Debug port
-            RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
-            ports()->addPort("Act_" + conf.name, *y_out_port);
-            y_out_ports_[conf.name] = y_out_port;
-
             break;
         }
         default:{
@@ -163,6 +151,17 @@ bool WbcVelocityTask::configureHook()
             return false;
         }
         }//switch
+
+        //Add weight port
+        RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("Weight_" + conf.name);
+        ports()->addPort("Weight_" + conf.name, *weight_port);
+        weight_ports_[conf.name] = weight_port;
+        weight_in_[conf.name] = base::MatrixXd::Identity(no_task_vars, no_task_vars);
+
+        //Add Debug port
+        RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
+        ports()->addPort("Act_" + conf.name, *y_out_port);
+        y_out_ports_[conf.name] = y_out_port;
 
         wbc_config.push_back(conf);
     }
