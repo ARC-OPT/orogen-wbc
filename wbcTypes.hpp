@@ -8,7 +8,7 @@
  * which case you do not need this file
  */
 
-#include <wbc/WbcTypes.hpp>
+#include <wbc/SubTaskConfig.hpp>
 
 namespace wbc {
 
@@ -20,7 +20,7 @@ struct SubTaskConfigSRDF{
     std::string joint_group;
 
     /** Priority of this subtask. 0-based. 0 ^= highest priority */
-    uint priority;
+    unsigned int  priority;
 };	
 }
 

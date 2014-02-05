@@ -3,7 +3,7 @@ name "wbc"
 import_types_from "wbcTypes.hpp"
 
 
-import_types_from "wbc/WbcTypes.hpp"
+import_types_from "wbc/wbcTypes.hpp"
 import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"

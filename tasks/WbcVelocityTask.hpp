@@ -4,7 +4,7 @@
 #define WBC_WBCVELOCITYTASK_TASK_HPP
 
 #include "wbc/WbcVelocityTaskBase.hpp"
-#include <wbc/WbcTypes.hpp>
+#include <wbc/wbcTypes.hpp>
 #include <wbc/HierarchicalWDLSSolver.hpp>
 #include <wbc/WbcVelocity.hpp>
 
