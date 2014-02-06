@@ -11,9 +11,11 @@
 namespace wbc {
 
 typedef std::map< std::string, RTT::InputPort<base::samples::RigidBodyState>* > CartPortMap;
+typedef std::map< std::string, RTT::OutputPort<base::samples::RigidBodyState>* > CartOutPortMap;
 typedef std::map< std::string, RTT::InputPort<base::samples::Joints>* > JntPortMap;
 typedef std::map< std::string, RTT::InputPort<base::MatrixXd>* > WeightPortMap;
-typedef std::map< std::string, RTT::OutputPort<base::VectorXd>* > DebugPortMap;
+typedef std::map< std::string, RTT::OutputPort<base::VectorXd>* > YOutPortMap;
+typedef std::map< std::string, RTT::OutputPort<base::MatrixXd>* > AOutPortMap;
 
 class WbcVelocityTask : public WbcVelocityTaskBase
 {
@@ -35,7 +37,9 @@ protected:
     base::samples::Joints ctrl_out_;
 
     //Debug Ports
-    DebugPortMap y_out_ports_;
+    YOutPortMap y_task_out_ports_;
+    AOutPortMap A_task_out_ports_;
+    CartOutPortMap pose_out_ports_;
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");

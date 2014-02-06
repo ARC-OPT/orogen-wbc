@@ -10,4 +10,5 @@
   <depend package="control/srdfdom"/>
   <depend package="control/urdfdom"/>
   <depend package="external/yaml-cpp"/>
+  <depend package="control/kdl_conversions"/>
 </package>

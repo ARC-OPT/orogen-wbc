@@ -7,6 +7,7 @@
 #include <urdf_parser/urdf_parser.h>
 #include <srdfdom/model.h>
 #include <kdl_parser/kdl_parser.hpp>
+#include <kdl_conversions/KDLConversions.hpp>
 #include <fstream>
 
 using namespace wbc;
@@ -103,18 +104,15 @@ bool WbcVelocityTask::configureHook()
             conf.tip = joint_group.chains_[0].second;
 
             std::stringstream ss;
-            ss<<"Cart_"<<conf.priority<<"_"<<cart_idx[conf.priority]++;
+            ss<<"cart_"<<conf.priority<<"_"<<cart_idx[conf.priority]++;
             conf.name = ss.str().c_str();
 
             //Add cartesian port
-            RTT::InputPort<base::samples::RigidBodyState> *ref_port = new RTT::InputPort<base::samples::RigidBodyState>("/Ref_" + conf.name);
-            ports()->addPort("Ref_" + conf.name, *ref_port);
+            RTT::InputPort<base::samples::RigidBodyState> *ref_port = new RTT::InputPort<base::samples::RigidBodyState>("/ref_" + conf.name);
+            ports()->addPort("ref_" + conf.name, *ref_port);
             cart_ref_ports_[conf.name] = ref_port;
 
-            cart_ref_in_[conf.name] = base::samples::RigidBodyState();
-            cart_ref_in_[conf.name].velocity = base::Vector3d::Zero();
-            cart_ref_in_[conf.name].angular_velocity = base::Vector3d::Zero();
-
+            kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref_in_[conf.name]);
             break;
         }
         case wbc::task_type_joint:{
@@ -133,8 +131,8 @@ bool WbcVelocityTask::configureHook()
             conf.name = ss.str().c_str();
 
             //Add joint port
-            RTT::InputPort<base::samples::Joints> *ref_port = new RTT::InputPort<base::samples::Joints>("Ref_" + conf.name);
-            ports()->addPort("Ref_" + conf.name, *ref_port);
+            RTT::InputPort<base::samples::Joints> *ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + conf.name);
+            ports()->addPort("ref_" + conf.name, *ref_port);
             jnt_ref_ports_[conf.name] = ref_port;
 
             base::samples::Joints ref;
@@ -152,16 +150,26 @@ bool WbcVelocityTask::configureHook()
         }
         }//switch
 
-        //Add weight port
-        RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("Weight_" + conf.name);
-        ports()->addPort("Weight_" + conf.name, *weight_port);
+        //Add task weight port
+        RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("weight_" + conf.name);
+        ports()->addPort("weight_" + conf.name, *weight_port);
         weight_ports_[conf.name] = weight_port;
         weight_in_[conf.name] = base::MatrixXd::Identity(no_task_vars, no_task_vars);
 
-        //Add Debug port
-        RTT::OutputPort<base::VectorXd>* y_out_port = new RTT::OutputPort<base::VectorXd>("Act_" + conf.name);
-        ports()->addPort("Act_" + conf.name, *y_out_port);
-        y_out_ports_[conf.name] = y_out_port;
+        //Add Debug port: Actual Task output from ctrl solution
+        RTT::OutputPort<base::VectorXd>* y_task_out_port = new RTT::OutputPort<base::VectorXd>("act_" + conf.name);
+        ports()->addPort("act_" + conf.name, *y_task_out_port);
+        y_task_out_ports_[conf.name] = y_task_out_port;
+
+        //Add Debug port: Task Jacobian
+        RTT::OutputPort<base::MatrixXd>* A_task_out_port = new RTT::OutputPort<base::MatrixXd>("task_mat_" + conf.name);
+        ports()->addPort("task_mat_" + conf.name, *A_task_out_port);
+        A_task_out_ports_[conf.name] = A_task_out_port;
+
+        //Add Debug port: Task Poses
+        RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + conf.name);
+        ports()->addPort("pose_" + conf.name, *pose_out_port);
+        pose_out_ports_[conf.name] = pose_out_port;
 
         wbc_config.push_back(conf);
     }
@@ -291,10 +299,20 @@ void WbcVelocityTask::updateHook()
     //
     // write Debug Data
     //
-    for(DebugPortMap::iterator it = y_out_ports_.begin(); it != y_out_ports_.end(); it++){
+    for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++)
+        it->second->write(wbc_.subTask(it->first)->A_);
+    for(YOutPortMap::iterator it = y_task_out_ports_.begin(); it != y_task_out_ports_.end(); it++)
+        it->second->write(wbc_.subTask(it->first)->A_ * solver_output_);
+    for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++){
+        base::samples::RigidBodyState rbs;
         SubTask* task = wbc_.subTask(it->first);
-        it->second->write(task->A_ * solver_output_);
+        kdl_conversions::KDL2RigidBodyState(task->pose_, rbs);
+        rbs.time = base::Time::now();
+        rbs.sourceFrame = task->tf_root_->tip_name_;
+        rbs.targetFrame = task->tf_tip_->tip_name_;
+        it->second->write(rbs);
     }
+
     _damping.write(solver_.getCurDamping());
     _sample_time.write((base::Time::now() - start).toSeconds());
 }
@@ -312,7 +330,10 @@ void WbcVelocityTask::cleanupHook()
     for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
         delete it->second;
 
-    for(DebugPortMap::iterator it = y_out_ports_.begin(); it != y_out_ports_.end(); it++)
+    for(YOutPortMap::iterator it = y_task_out_ports_.begin(); it != y_task_out_ports_.end(); it++)
+        delete it->second;
+
+    for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++)
         delete it->second;
 
     cart_ref_ports_.clear();
