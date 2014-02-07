@@ -112,6 +112,11 @@ bool WbcVelocityTask::configureHook()
             ports()->addPort("ref_" + conf.name, *ref_port);
             cart_ref_ports_[conf.name] = ref_port;
 
+            //Add Debug port: Task Poses
+            RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + conf.name);
+            ports()->addPort("pose_" + conf.name, *pose_out_port);
+            pose_out_ports_[conf.name] = pose_out_port;
+
             kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref_in_[conf.name]);
             break;
         }
@@ -127,7 +132,7 @@ bool WbcVelocityTask::configureHook()
             no_task_vars = joint_group.joints_.size();
 
             std::stringstream ss;
-            ss<<"Jnt_"<<conf.priority<<" "<<jnt_idx[conf.priority]++;
+            ss<<"jnt_"<<conf.priority<<"_"<<jnt_idx[conf.priority]++;
             conf.name = ss.str().c_str();
 
             //Add joint port
@@ -165,11 +170,6 @@ bool WbcVelocityTask::configureHook()
         RTT::OutputPort<base::MatrixXd>* A_task_out_port = new RTT::OutputPort<base::MatrixXd>("task_mat_" + conf.name);
         ports()->addPort("task_mat_" + conf.name, *A_task_out_port);
         A_task_out_ports_[conf.name] = A_task_out_port;
-
-        //Add Debug port: Task Poses
-        RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + conf.name);
-        ports()->addPort("pose_" + conf.name, *pose_out_port);
-        pose_out_ports_[conf.name] = pose_out_port;
 
         wbc_config.push_back(conf);
     }
@@ -245,31 +245,61 @@ void WbcVelocityTask::updateHook()
         return;
     }
 
-    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++){
-
-        if(it->second->read(cart_ref_in_[it->first]) == RTT::NewData){
+    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++)
+    {
+        if(it->second->read(cart_ref_in_[it->first]) == RTT::NewData)
+        {
+            if(!cart_ref_in_[it->first].hasValidVelocity() ||
+               !cart_ref_in_[it->first].hasValidAngularVelocity())
+            {
+                LOG_ERROR("Reference input of task %s has invalid velocity and/or angular velocity", it->first.c_str());
+                throw std::invalid_argument("Invalid Cartesian reference input");
+            }
             SubTask* sub_task = wbc_.subTask(it->first);
             sub_task->y_des_.segment(0,3) = cart_ref_in_[it->first].velocity;
             sub_task->y_des_.segment(3,3) = cart_ref_in_[it->first].angular_velocity;
         }
     }
-    for(JntPortMap::iterator it = jnt_ref_ports_.begin(); it != jnt_ref_ports_.end(); it++){
 
-        if(it->second->read(jnt_ref_in_[it->first]) == RTT::NewData){
+    for(JntPortMap::iterator it = jnt_ref_ports_.begin(); it != jnt_ref_ports_.end(); it++)
+    {
+        if(it->second->read(jnt_ref_in_[it->first]) == RTT::NewData)
+        {
             SubTask* sub_task = wbc_.subTask(it->first);
-            for(uint i = 0; i < jnt_ref_in_[it->first].size(); i++)
+            if(jnt_ref_in_[it->first].size() != sub_task->no_task_vars_)
+            {
+                LOG_ERROR("Size for input reference of task %s should be %i but is %i", it->first.c_str(), sub_task->no_task_vars_, jnt_ref_in_[it->first].size());
+                throw std::invalid_argument("Invalid joint reference input");
+            }
+
+            for(uint i = 0; i < sub_task->no_task_vars_; i++)
+            {
+                if(!jnt_ref_in_[it->first][i].hasSpeed())
+                {
+                    LOG_ERROR("Reference input for joint %s of task %s has invalid speed value(s)", jnt_ref_in_[it->first].names[i].c_str(), it->first.c_str());
+                    throw std::invalid_argument("Invalid joint reference input");
+                }
                 sub_task->y_des_(i) = jnt_ref_in_[it->first][i].speed;
+            }
         }
 
     }
     bool has_new_weights = false;
-    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++){
-        if(it->second->read(weight_in_[it->first]) ==  RTT::NewData){
+    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
+    {
+        if(it->second->read(weight_in_[it->first]) ==  RTT::NewData)
+        {
             SubTask* sub_task = wbc_.subTask(it->first);
+            if(weight_in_[it->first].size() != sub_task->no_task_vars_)
+            {
+                LOG_ERROR("Input size for joint weights of task %s should be %i but is %i", it->first.c_str(), sub_task->no_task_vars_, jnt_ref_in_[it->first].size());
+                throw std::invalid_argument("Invalid weight input size");
+            }
             sub_task->task_weights_ = weight_in_[it->first];
             has_new_weights = true;
         }
     }
+
     if(_joint_weights.read(joint_weights_) == RTT::NewData)
         solver_.setJointWeights((Eigen::MatrixXd& )joint_weights_);
 
@@ -306,10 +336,13 @@ void WbcVelocityTask::updateHook()
     for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++){
         base::samples::RigidBodyState rbs;
         SubTask* task = wbc_.subTask(it->first);
+        double x,y,w,z;
+        task->pose_.M.GetQuaternion(x,y,z,w);
+        //cout<<x<<" "<<y<<" "<<z<<" "<<w<<endl<<endl;
         kdl_conversions::KDL2RigidBodyState(task->pose_, rbs);
         rbs.time = base::Time::now();
-        rbs.sourceFrame = task->tf_root_->tip_name_;
-        rbs.targetFrame = task->tf_tip_->tip_name_;
+        rbs.sourceFrame = task->tf_root_->tf_name_;
+        rbs.targetFrame = task->tf_tip_->tf_name_;
         it->second->write(rbs);
     }
 
