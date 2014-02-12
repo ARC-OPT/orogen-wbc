@@ -13,6 +13,7 @@ using_library "kdl_conversions"
 task_context "WbcVelocityTask" do
     needs_configuration
 
+    property("robot_root", "std/string").doc("Root frame of the robot in URDF")
     property("urdf", "std/string").doc("Robot model file")
     property("srdf", "std/string").doc("Semantic Robot description file")
     property("wbc_config", "std/vector<wbc/SubTaskConfigSRDF>").
@@ -33,7 +34,7 @@ task_context "WbcVelocityTask" do
          doc("Input size must be no_joints x no_joints. Matrix must symmetric and positive definit. 
               If matrix is diagonal, entries must be > 0. In that case a higher value means that
               the corresponding joint is used less")
-    input_port("joint_status", "/base/samples/Joints")
+    input_port("joint_state", "/base/samples/Joints")
     output_port("ctrl_out", "base/commands/Joints")
 
     #Debug ports

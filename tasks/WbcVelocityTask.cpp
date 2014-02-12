@@ -200,7 +200,7 @@ bool WbcVelocityTask::configureHook()
         LOG_ERROR("Unable to load KDL Tree from urdf file: %s", urdf_file.c_str());
         return false;
     }
-    if(!wbc_.configure(tree, wbc_config))
+    if(!wbc_.configure(tree, wbc_config, _robot_root.get()))
         return false;
 
     LOG_DEBUG("Configuring WBC Config done");
@@ -240,7 +240,7 @@ void WbcVelocityTask::updateHook()
     //
     // Read inputs
     //
-    if(_joint_status.read(joint_status_) == RTT::NoData){
+    if(_joint_state.read(joint_status_) == RTT::NoData){
         LOG_DEBUG("No data on joint status port");
         return;
     }

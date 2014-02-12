@@ -24,7 +24,7 @@ Orocos.run 'wbc::WbcVelocityTask' => 'wbc' do
    wbc.urdf = urdf_file
    wbc.srdf = srdf_file
 
-   driver.joint_status.connect_to wbc.joint_status
+   driver.joint_state.connect_to wbc.joint_state
 
    wbc.configure
    wbc.start
