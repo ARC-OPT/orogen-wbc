@@ -214,10 +214,8 @@ bool WbcVelocityTask::configureHook()
 
     LOG_DEBUG("Configuring Solver Config done");
 
-    joint_status_.resize(wbc_.no_robot_joints_);
     solver_output_.resize(wbc_.no_robot_joints_);
     solver_output_.setZero();
-    ctrl_out_.resize(wbc_.no_robot_joints_);
     joint_weights_.resize(wbc_.no_robot_joints_, wbc_.no_robot_joints_);
     joint_weights_.setIdentity();
 
@@ -282,8 +280,8 @@ void WbcVelocityTask::updateHook()
                 sub_task->y_des_(i) = jnt_ref_in_[it->first][i].speed;
             }
         }
-
     }
+
     bool has_new_weights = false;
     for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
     {
@@ -320,9 +318,14 @@ void WbcVelocityTask::updateHook()
     //
     // Write output
     //
-    ctrl_out_.names = joint_status_.names;
-    for(uint i = 0; i < ctrl_out_.size(); i++)
-        ctrl_out_[i].speed = solver_output_(i);
+    if(ctrl_out_.empty()){
+        ctrl_out_.resize(joint_status_.size());
+        ctrl_out_.names = joint_status_.names;
+    }
+    for(uint i = 0; i < ctrl_out_.size(); i++){
+        uint idx = wbc_.joint_index_map_[ctrl_out_.names[i]];
+        ctrl_out_[i].speed = solver_output_(idx);
+    }
     ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
 
@@ -336,9 +339,6 @@ void WbcVelocityTask::updateHook()
     for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++){
         base::samples::RigidBodyState rbs;
         SubTask* task = wbc_.subTask(it->first);
-        double x,y,w,z;
-        task->pose_.M.GetQuaternion(x,y,z,w);
-        //cout<<x<<" "<<y<<" "<<z<<" "<<w<<endl<<endl;
         kdl_conversions::KDL2RigidBodyState(task->pose_, rbs);
         rbs.time = base::Time::now();
         rbs.sourceFrame = task->tf_root_->tf_name_;
