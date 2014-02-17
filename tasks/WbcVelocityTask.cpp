@@ -156,10 +156,10 @@ bool WbcVelocityTask::configureHook()
         }//switch
 
         //Add task weight port
-        RTT::InputPort<base::MatrixXd>* weight_port = new RTT::InputPort<base::MatrixXd>("weight_" + conf.name);
+        RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("weight_" + conf.name);
         ports()->addPort("weight_" + conf.name, *weight_port);
         weight_ports_[conf.name] = weight_port;
-        weight_in_[conf.name] = base::MatrixXd::Identity(no_task_vars, no_task_vars);
+        weight_in_[conf.name] = base::VectorXd::Ones(no_task_vars);
 
         //Add Debug port: Actual Task output from ctrl solution
         RTT::OutputPort<base::VectorXd>* y_task_out_port = new RTT::OutputPort<base::VectorXd>("act_" + conf.name);
@@ -216,8 +216,9 @@ bool WbcVelocityTask::configureHook()
 
     solver_output_.resize(wbc_.no_robot_joints_);
     solver_output_.setZero();
-    joint_weights_.resize(wbc_.no_robot_joints_, wbc_.no_robot_joints_);
-    joint_weights_.setIdentity();
+    joint_weights_ = base::VectorXd::Ones(wbc_.no_robot_joints_);
+    joint_weight_mat_.resize(wbc_.no_robot_joints_, wbc_.no_robot_joints_);
+    joint_weight_mat_.setIdentity();
 
     return true;
 }
@@ -293,13 +294,15 @@ void WbcVelocityTask::updateHook()
                 LOG_ERROR("Input size for joint weights of task %s should be %i but is %i", it->first.c_str(), sub_task->no_task_vars_, jnt_ref_in_[it->first].size());
                 throw std::invalid_argument("Invalid weight input size");
             }
-            sub_task->task_weights_ = weight_in_[it->first];
+            sub_task->task_weights_.diagonal() = weight_in_[it->first];
             has_new_weights = true;
         }
     }
 
-    if(_joint_weights.read(joint_weights_) == RTT::NewData)
-        solver_.setJointWeights((Eigen::MatrixXd& )joint_weights_);
+    if(_joint_weights.read(joint_weights_) == RTT::NewData){
+        joint_weight_mat_.diagonal() = joint_weights_;
+        solver_.setJointWeights((Eigen::MatrixXd& )joint_weight_mat_);
+    }
 
     //
     // Update equation system
