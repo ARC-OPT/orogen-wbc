@@ -195,12 +195,32 @@ bool WbcVelocityTask::configureHook()
     //
     // Configure wbc lib
     //
-    KDL::Tree tree;
-    if(!kdl_parser::treeFromFile(urdf_file, tree)){
+    KDL::Tree full_tree, tree;
+    if(!kdl_parser::treeFromFile(urdf_file, full_tree)){
         LOG_ERROR("Unable to load KDL Tree from urdf file: %s", urdf_file.c_str());
         return false;
     }
-    if(!wbc_.configure(tree, wbc_config, _robot_root.get()))
+    std::vector<wbc::SubChainConfig> reduced_tree = _reduced_tree.get();
+    if(reduced_tree.empty())
+        tree = full_tree;
+    else
+    {
+        for(uint i = 0; i < reduced_tree.size(); i++)
+        {
+            KDL::Chain chain;
+            if(!full_tree.getChain(reduced_tree[i].root, reduced_tree[i].tip, chain))
+            {
+                LOG_ERROR("Could not extract sub chain between %s and %s from KDL tree", reduced_tree[i].root.c_str(), reduced_tree[i].tip.c_str());
+                return false;
+            }
+            //Root of first subchain will be root of whole KDL tree
+            if(i == 0)
+                tree.addSegment(KDL::Segment(reduced_tree[i].root, KDL::Joint(reduced_tree[i].root,KDL::Joint::None),KDL::Frame::Identity()), "root");
+            tree.addChain(chain, reduced_tree[i].root);
+        }
+    }
+
+    if(!wbc_.configure(tree, wbc_config, _joint_names.get()))
         return false;
 
     LOG_DEBUG("Configuring WBC Config done");
@@ -211,6 +231,15 @@ bool WbcVelocityTask::configureHook()
     solver_.setNormMax(_norm_max.get());
     if(!solver_.configure(wbc_.no_task_vars_pp_, wbc_.no_robot_joints_))
         return false;
+
+    base::VectorXd joint_weight_vect = _initial_joint_weights.get();
+    if(joint_weight_vect.size() != 0)
+    {
+        base::MatrixXd joint_weights(joint_weight_vect.size(), joint_weight_vect.size());
+        joint_weights.setIdentity();
+        joint_weights.diagonal() = joint_weight_vect;
+        solver_.setJointWeights(joint_weights);
+    }
 
     LOG_DEBUG("Configuring Solver Config done");
 

@@ -12,6 +12,11 @@
 
 namespace wbc {
 
+struct SubChainConfig{
+    std::string root;
+    std::string tip;
+};
+
 struct SubTaskConfigSRDF{
     /** Whole body task type, can be joint space or Cartesian for now */
     task_type type;
