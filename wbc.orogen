@@ -62,4 +62,3 @@ task_context "WbcVelocityTask" do
 
     periodic 0.01
 end
-

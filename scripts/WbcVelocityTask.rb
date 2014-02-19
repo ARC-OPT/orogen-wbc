@@ -26,8 +26,9 @@ Orocos.run 'wbc::WbcVelocityTask' => 'wbc' do
 
    driver.joint_state.connect_to wbc.joint_state
 
+
    wbc.configure
    wbc.start
-   Vizkit.exec
+   sleep(10)
     
 end
