@@ -1,12 +1,7 @@
 --- name:default
 
-# Semantic Robot description file
-srdf: ''
-
 # Robot model file
 urdf: ''
-
-
 
 # Define sub chains if not the complete KDL tree shall be used
 reduced_tree: 
@@ -25,28 +20,18 @@ joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist",
 # but also high joint velocities in singular configurations. A very low value will provide a strongly damped, but inaccurate behavior.
 # E.g. if you have 7 joints with dot_q_max=2.0 rad/sec, then norm_max = sqrt(7 * 2*2) = 5.29.
 # TODO: Use joint limits instead and compute norm_max during task execution
-norm_max: 100.0
+norm_max: 6.0
 
 # Configuration of subtasks
 wbc_config: 
-   - type: task_type_cartesian
-     joint_group: right_arm_torso
+   - name: pos_ctrl_r
+     type: task_type_cartesian
      priority: 0
-   - type: task_type_cartesian
-     joint_group: right_arm_torso
-     priority: 0
-   - type: task_type_cartesian
-     joint_group: right_arm_torso
+     root: "Rover_base"
+     tip: "Hand_r"
+   - name: joint_pos_ctrl
+     type: task_type_joint
      priority: 1
-   - type: task_type_cartesian
-     joint_group: right_arm_torso
-     priority: 2
-   - type: task_type_joint
-     joint_group: no_hands_no_head
-     priority: 2
-   - type: task_type_joint
-     joint_group: no_hands_no_head
-     priority: 2
-   - type: task_type_cartesian
-     joint_group: torso
-     priority: 3
+     joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
+                   "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
+                   "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l"]

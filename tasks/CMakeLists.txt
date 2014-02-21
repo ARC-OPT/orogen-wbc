@@ -1,5 +1,7 @@
 # Generated from orogen/lib/orogen/templates/tasks/CMakeLists.txt
 
+add_definitions(-DBASE_LOG_NAMESPACE=${PROJECT_NAME})
+
 include(wbcTaskLib)
 ADD_LIBRARY(${WBC_TASKLIB_NAME} SHARED 
     ${WBC_TASKLIB_SOURCES})

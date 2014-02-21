@@ -5,7 +5,6 @@
 #include <base/logging.h>
 #include <wbc/TaskFrame.hpp>
 #include <urdf_parser/urdf_parser.h>
-#include <srdfdom/model.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl_conversions/KDLConversions.hpp>
 #include <fstream>
@@ -29,8 +28,7 @@ bool WbcVelocityTask::configureHook()
         return false;
 
     std::string urdf_file= _urdf.get();
-    std::string srdf_file = _srdf.get();
-    std::vector<wbc::SubTaskConfigSRDF> wbc_config_srdf = _wbc_config.get();
+    std::vector<wbc::SubTaskConfig> wbc_config = _wbc_config.get();
 
     //
     // Load urdf model: Kinematics of the robot
@@ -44,106 +42,54 @@ bool WbcVelocityTask::configureHook()
     boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF(xml);
     LOG_DEBUG("Parsing URDF file done");
 
-    //
-    // Load SRDF model: Semantic information about joint groups, chains and end effectors
-    //
-    srdf::Model srdf_model;
-    if(!srdf_model.initFile(*urdf_model.get(), srdf_file)){
-        LOG_ERROR("Error opening srdf file %s", srdf_file.c_str());
-        return false;
-    }
-    LOG_DEBUG("Parsing SRDF file done");
+    for(uint i = 0; i < wbc_config.size(); i++){
 
-    //
-    // Extend the wbc config by the information from srdf
-    //
+        SubTaskConfig conf = wbc_config[i];
 
-    //Put joint groups in a map for easier search
-    std::vector<srdf::Model::Group> groups = srdf_model.getGroups();
-    std::map<std::string, srdf::Model::Group> group_map;
-    for(uint i = 0; i < groups.size(); i++)
-        group_map[groups[i].name_] = groups[i];
-
-    //Check which is the highest priority
-    uint max_prio = 0;
-    for(uint i = 0; i < wbc_config_srdf.size(); i++){
-        if(wbc_config_srdf[i].priority > max_prio)
-            max_prio = wbc_config_srdf[i].priority;
-    }
-
-    std::vector<uint> cart_idx(max_prio + 1,0), jnt_idx(max_prio + 1, 0);
-    std::vector<SubTaskConfig> wbc_config;
-    for(uint i = 0; i < wbc_config_srdf.size(); i++){
-
-        std::string group_name = wbc_config_srdf[i].joint_group;
-        if(group_map.count(group_name) == 0){
-            LOG_ERROR("Joint group %s does not exist in srdf file", group_name.c_str());
-            return false;
-        }
-
-        SubTaskConfig conf;
-        conf.type = wbc_config_srdf[i].type;
-        conf.priority = wbc_config_srdf[i].priority;
-
-        srdf::Model::Group joint_group = group_map[group_name];
-
+        std::string port_namespace;
         uint no_task_vars;
+
         switch(conf.type){
         case wbc::task_type_cartesian:{
 
-            if(joint_group.chains_.empty()){
-                LOG_ERROR("Task is Cartesian but joint group %s has no chains", group_name.c_str());
-                return false;
-            }
-
-            if(joint_group.chains_.size() > 1)
-                LOG_WARN("No of chains in joint group %s is bigger than 1. Using the first one");
-
             no_task_vars = 6;
-            conf.root = joint_group.chains_[0].first;
-            conf.tip = joint_group.chains_[0].second;
 
+            //Port naming
             std::stringstream ss;
-            ss<<"cart_"<<conf.priority<<"_"<<cart_idx[conf.priority]++;
-            conf.name = ss.str().c_str();
+            ss<<"p"<<conf.priority<<"_cart_"<<conf.name;
+            port_namespace = ss.str();
 
-            //Add cartesian port
-            RTT::InputPort<base::samples::RigidBodyState> *ref_port = new RTT::InputPort<base::samples::RigidBodyState>("/ref_" + conf.name);
-            ports()->addPort("ref_" + conf.name, *ref_port);
+            //Add cartesian reference port
+            RTT::InputPort<base::samples::RigidBodyState> *ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + port_namespace);
+            ports()->addPort("ref_" + port_namespace, *ref_port);
             cart_ref_ports_[conf.name] = ref_port;
 
-            //Add Debug port: Task Poses
-            RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + conf.name);
-            ports()->addPort("pose_" + conf.name, *pose_out_port);
+            //Add Debug port: Task Pose
+            RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + port_namespace);
+            ports()->addPort("pose_" + port_namespace, *pose_out_port);
             pose_out_ports_[conf.name] = pose_out_port;
 
             kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref_in_[conf.name]);
             break;
         }
         case wbc::task_type_joint:{
-            //Only accept joints from srdf as input for joint space task
-            if(joint_group.joints_.empty()){
-                std::stringstream ss;
-                LOG_ERROR("Task is in joint space but joint group  %s has no joints", group_name.c_str());
-                return false;
-            }
 
-            conf.joints = joint_group.joints_;
-            no_task_vars = joint_group.joints_.size();
+            no_task_vars = conf.joint_names.size();
 
+            //Port naming
             std::stringstream ss;
-            ss<<"jnt_"<<conf.priority<<"_"<<jnt_idx[conf.priority]++;
-            conf.name = ss.str().c_str();
+            ss<<"p"<<conf.priority<<"_jnt_"<<conf.name;
+            port_namespace = ss.str();
 
-            //Add joint port
-            RTT::InputPort<base::samples::Joints> *ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + conf.name);
-            ports()->addPort("ref_" + conf.name, *ref_port);
+            //Add joint reference port
+            RTT::InputPort<base::samples::Joints> *ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + port_namespace);
+            ports()->addPort("ref_" + port_namespace, *ref_port);
             jnt_ref_ports_[conf.name] = ref_port;
 
             base::samples::Joints ref;
-            ref.resize(conf.joints.size());
-            ref.names = conf.joints;
-            for(uint i = 0; i < conf.joints.size(); i++)
+            ref.resize(conf.joint_names.size());
+            ref.names = conf.joint_names;
+            for(uint i = 0; i < conf.joint_names.size(); i++)
                 ref[i].speed = 0;
             jnt_ref_in_[conf.name] = ref;
 
@@ -156,22 +102,21 @@ bool WbcVelocityTask::configureHook()
         }//switch
 
         //Add task weight port
-        RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("weight_" + conf.name);
-        ports()->addPort("weight_" + conf.name, *weight_port);
+        RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("weight_" + port_namespace);
+        ports()->addPort("weight_" + port_namespace, *weight_port);
         weight_ports_[conf.name] = weight_port;
         weight_in_[conf.name] = base::VectorXd::Ones(no_task_vars);
 
         //Add Debug port: Actual Task output from ctrl solution
-        RTT::OutputPort<base::VectorXd>* y_task_out_port = new RTT::OutputPort<base::VectorXd>("act_" + conf.name);
-        ports()->addPort("act_" + conf.name, *y_task_out_port);
+        RTT::OutputPort<base::VectorXd>* y_task_out_port = new RTT::OutputPort<base::VectorXd>("act_" + port_namespace);
+        ports()->addPort("act_" + port_namespace, *y_task_out_port);
         y_task_out_ports_[conf.name] = y_task_out_port;
 
         //Add Debug port: Task Jacobian
-        RTT::OutputPort<base::MatrixXd>* A_task_out_port = new RTT::OutputPort<base::MatrixXd>("task_mat_" + conf.name);
-        ports()->addPort("task_mat_" + conf.name, *A_task_out_port);
+        RTT::OutputPort<base::MatrixXd>* A_task_out_port = new RTT::OutputPort<base::MatrixXd>("task_mat_" + port_namespace);
+        ports()->addPort("task_mat_" + port_namespace, *A_task_out_port);
         A_task_out_ports_[conf.name] = A_task_out_port;
 
-        wbc_config.push_back(conf);
     }
 
     LOG_DEBUG("Parsing WBC Config done");
@@ -186,8 +131,8 @@ bool WbcVelocityTask::configureHook()
             LOG_DEBUG("Tip: %s", wbc_config[i].tip.c_str());
         }else{
             LOG_DEBUG("Joints: ");
-            for(uint j = 0; j < wbc_config[i].joints.size(); j++)
-                LOG_DEBUG("%s", wbc_config[i].joints[j].c_str());
+            for(uint j = 0; j < wbc_config[i].joint_names.size(); j++)
+                LOG_DEBUG("%s", wbc_config[i].joint_names[j].c_str());
         }
         LOG_DEBUG("\n");
     }
@@ -222,6 +167,13 @@ bool WbcVelocityTask::configureHook()
 
     if(!wbc_.configure(tree, wbc_config, _joint_names.get()))
         return false;
+
+    //In wbc, tasks are active by default (all task weights are 1). Deactivate them if desired by user
+    if(!_tasks_active.get())
+    {
+        for(SubTaskMap::iterator it = wbc_.sub_task_map_.begin(); it != wbc_.sub_task_map_.end(); it++)
+            it->second->task_weights_.setZero();
+    }
 
     LOG_DEBUG("Configuring WBC Config done");
 

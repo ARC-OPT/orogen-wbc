@@ -1,20 +1,16 @@
 name "wbc"
 
 import_types_from "wbcTypes.hpp"
-
-
-import_types_from "wbc/wbcTypes.hpp"
+import_types_from "wbc/SubTaskConfig.hpp"
 import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"
-using_library "srdfdom"
 using_library "kdl_conversions"
 
 task_context "WbcVelocityTask" do
     needs_configuration
 
     property("urdf", "std/string").doc("Robot model file")
-    property("srdf", "std/string").doc("Semantic Robot description file")
 
     property("joint_names", "std/vector<std/string>").
         doc("Define order of Joints that is used internally (for easier debugging)")
@@ -22,20 +18,22 @@ task_context "WbcVelocityTask" do
     property("reduced_tree", "std/vector<wbc/SubChainConfig>").
         doc("Define sub chains if not the complete KDL tree shall be used")
 
-    property("wbc_config", "std/vector<wbc/SubTaskConfigSRDF>").
+    property("wbc_config", "std/vector<wbc/SubTaskConfig>").
         doc("Configuration of subtasks. The WbcVelocityTask will dynamically create the following input ports for each subtasks:
-             Cartesian Task: Cart_Ref_<prio>_<idx>, Weight_Ref_<prio>_<idx>
-             Joint Space Task: Jnt_Ref_<prio>_<idx>, Weight_Ref_<prio>_<idx>")
+             Cartesian Task: ref_p<prio>_cart_<task_name>, weight_p<prio>_cart_<task_name>
+             Joint Space Task: ref_p<prio>_jnt_<task_name>, weight_p<prio>_jnt_<task_name>")
 
     property("norm_max", "double").
         doc("Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, 
-             but also high joint velocities in singular configurations.  E.g. if you have 7 joints with dot_q_max=2.0 rad/sec, 
-             then norm_max = sqrt(7 * 2*2) = 5.29. TODO: Use joint limits instead and compute norm_max during task execution")
+             but also high joint velocities in singular configurations.")
 
     property("initial_joint_weights", "/base/VectorXd").
         doc("Initial values for the joint weights. If not set here, all values will be one. If not empty,
              size has to be same as no of joints: Note: A high value here, means that the corresponding
              joint will be used less")
+
+    property("tasks_active", "bool", true).
+        doc("Defines the initial task state. If true, all task weights will be 1 at startup (tasks active), otherwise 0 (tasks inactive)")
     
     #These dynamic ports are created according to the 'wbc_config'
     dynamic_input_port /.*/, "/base/samples/Joints"
@@ -53,12 +51,6 @@ task_context "WbcVelocityTask" do
     dynamic_output_port /.*/, "/base/VectorXd"
     dynamic_output_port /.*/, "/base/MatrixXd"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
-
-    transformer do
-      transform 'controlled_in', 'setpoint'
-      transform 'controlled_in', 'controlled_frame'
-      max_latency 0.1
-    end
 
     periodic 0.01
 end
