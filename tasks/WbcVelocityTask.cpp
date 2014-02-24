@@ -107,10 +107,24 @@ bool WbcVelocityTask::configureHook()
         weight_ports_[conf.name] = weight_port;
         weight_in_[conf.name] = base::VectorXd::Ones(no_task_vars);
 
+        //Add activation port
+        RTT::InputPort<double>* activation_port = new RTT::InputPort<double>("activation_" + port_namespace);
+        ports()->addPort("activation_" + port_namespace, *activation_port);
+        activation_ports_[conf.name] = activation_port;
+        if(_tasks_active)
+            activation_[conf.name] = 1;
+        else
+            activation_[conf.name] = 0;
+
         //Add Debug port: Actual Task output from ctrl solution
-        RTT::OutputPort<base::VectorXd>* y_task_out_port = new RTT::OutputPort<base::VectorXd>("act_" + port_namespace);
-        ports()->addPort("act_" + port_namespace, *y_task_out_port);
-        y_task_out_ports_[conf.name] = y_task_out_port;
+        RTT::OutputPort<base::VectorXd>* y_solution_out_port = new RTT::OutputPort<base::VectorXd>("act_" + port_namespace);
+        ports()->addPort("solution_" + port_namespace, *y_solution_out_port);
+        y_solution_out_ports_[conf.name] = y_solution_out_port;
+
+        //Add Debug port: Actual Task status from robot joint velocity
+        RTT::OutputPort<base::VectorXd>* y_act_out_port = new RTT::OutputPort<base::VectorXd>("act_" + port_namespace);
+        ports()->addPort("act_" + port_namespace, *y_act_out_port);
+        y_act_out_ports[conf.name] = y_act_out_port;
 
         //Add Debug port: Task Jacobian
         RTT::OutputPort<base::MatrixXd>* A_task_out_port = new RTT::OutputPort<base::MatrixXd>("task_mat_" + port_namespace);
@@ -168,13 +182,6 @@ bool WbcVelocityTask::configureHook()
     if(!wbc_.configure(tree, wbc_config, _joint_names.get()))
         return false;
 
-    //In wbc, tasks are active by default (all task weights are 1). Deactivate them if desired by user
-    if(!_tasks_active.get())
-    {
-        for(SubTaskMap::iterator it = wbc_.sub_task_map_.begin(); it != wbc_.sub_task_map_.end(); it++)
-            it->second->task_weights_.setZero();
-    }
-
     LOG_DEBUG("Configuring WBC Config done");
 
     //
@@ -197,9 +204,13 @@ bool WbcVelocityTask::configureHook()
 
     solver_output_.resize(wbc_.no_robot_joints_);
     solver_output_.setZero();
+    act_robot_velocity_.resize(wbc_.no_robot_joints_);
+    act_robot_velocity_.setZero();
     joint_weights_ = base::VectorXd::Ones(wbc_.no_robot_joints_);
     joint_weight_mat_.resize(wbc_.no_robot_joints_, wbc_.no_robot_joints_);
     joint_weight_mat_.setIdentity();
+    ctrl_out_.resize(wbc_.no_robot_joints_);
+    ctrl_out_.names = wbc_.jointNames();
 
     return true;
 }
@@ -230,7 +241,7 @@ void WbcVelocityTask::updateHook()
         if(it->second->read(cart_ref_in_[it->first]) == RTT::NewData)
         {
             if(!cart_ref_in_[it->first].hasValidVelocity() ||
-               !cart_ref_in_[it->first].hasValidAngularVelocity())
+                    !cart_ref_in_[it->first].hasValidAngularVelocity())
             {
                 LOG_ERROR("Reference input of task %s has invalid velocity and/or angular velocity", it->first.c_str());
                 throw std::invalid_argument("Invalid Cartesian reference input");
@@ -263,21 +274,20 @@ void WbcVelocityTask::updateHook()
             }
         }
     }
+    for(ActivationPortMap::iterator it = activation_ports_.begin(); it != activation_ports_.end(); it++)
+        it->second->read(activation_[it->first]);
 
-    bool has_new_weights = false;
     for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
-    {
-        if(it->second->read(weight_in_[it->first]) ==  RTT::NewData)
+        it->second->read(weight_in_[it->first]);
+
+    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++){
+        SubTask* sub_task = wbc_.subTask(it->first);
+        if(weight_in_[it->first].size() != sub_task->no_task_vars_)
         {
-            SubTask* sub_task = wbc_.subTask(it->first);
-            if(weight_in_[it->first].size() != sub_task->no_task_vars_)
-            {
-                LOG_ERROR("Input size for joint weights of task %s should be %i but is %i", it->first.c_str(), sub_task->no_task_vars_, jnt_ref_in_[it->first].size());
-                throw std::invalid_argument("Invalid weight input size");
-            }
-            sub_task->task_weights_.diagonal() = weight_in_[it->first];
-            has_new_weights = true;
+            LOG_ERROR("Input size for joint weights of task %s should be %i but is %i", it->first.c_str(), sub_task->no_task_vars_, weight_in_[it->first].size());
+            throw std::invalid_argument("Invalid weight input size");
         }
+        sub_task->task_weights_.diagonal() = weight_in_[it->first] *  activation_[it->first];
     }
 
     if(_joint_weights.read(joint_weights_) == RTT::NewData){
@@ -293,10 +303,9 @@ void WbcVelocityTask::updateHook()
     //
     // Compute control solution
     //
-    if(has_new_weights){
-        for(uint i = 0; i < wbc_.Wy_.size(); i++)
-            solver_.setTaskWeights(wbc_.Wy_[i], i);
-    }
+    for(uint i = 0; i < wbc_.Wy_.size(); i++)
+        solver_.setTaskWeights(wbc_.Wy_[i], i);
+
     solver_.solve(wbc_.A_, wbc_.y_ref_, (Eigen::VectorXd& )solver_output_);
 
     //
@@ -318,9 +327,19 @@ void WbcVelocityTask::updateHook()
     //
     for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++)
         it->second->write(wbc_.subTask(it->first)->A_);
-    for(YOutPortMap::iterator it = y_task_out_ports_.begin(); it != y_task_out_ports_.end(); it++)
+    for(YOutPortMap::iterator it = y_solution_out_ports_.begin(); it != y_solution_out_ports_.end(); it++)
         it->second->write(wbc_.subTask(it->first)->A_ * solver_output_);
-    for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++){
+    for(YOutPortMap::iterator it = y_act_out_ports.begin(); it != y_act_out_ports.end(); it++)
+    {
+        for(size_t i = 0; i < ctrl_out_.size(); i++)
+        {
+            size_t idx = joint_status_.mapNameToIndex(ctrl_out_.names[i]);
+            act_robot_velocity_[i] = joint_status_[idx].speed;
+        }
+        it->second->write(wbc_.subTask(it->first)->A_ * act_robot_velocity_);
+    }
+    for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++)
+    {
         base::samples::RigidBodyState rbs;
         SubTask* task = wbc_.subTask(it->first);
         kdl_conversions::KDL2RigidBodyState(task->pose_, rbs);
@@ -347,7 +366,10 @@ void WbcVelocityTask::cleanupHook()
     for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
         delete it->second;
 
-    for(YOutPortMap::iterator it = y_task_out_ports_.begin(); it != y_task_out_ports_.end(); it++)
+    for(YOutPortMap::iterator it = y_solution_out_ports_.begin(); it != y_solution_out_ports_.end(); it++)
+        delete it->second;
+
+    for(YOutPortMap::iterator it = y_act_out_ports.begin(); it != y_act_out_ports.end(); it++)
         delete it->second;
 
     for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++)
@@ -359,4 +381,5 @@ void WbcVelocityTask::cleanupHook()
     jnt_ref_in_.clear();
     weight_ports_.clear();
     weight_in_.clear();
+    activation_ports_.clear();
 }

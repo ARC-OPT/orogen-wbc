@@ -39,6 +39,7 @@ task_context "WbcVelocityTask" do
     dynamic_input_port /.*/, "/base/samples/Joints"
     dynamic_input_port /.*/, "/base/samples/RigidBodyState"
     dynamic_input_port /.*/, "/base/VectorXd"
+    dynamic_input_port /.*/, "/double"
 
     input_port("joint_weights", "/base/VectorXd").
          doc("Input size must be no_joints. Entries must be > 0. A higher value means that the corresponding joint is used less")
