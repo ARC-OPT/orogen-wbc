@@ -27,7 +27,9 @@ bool WbcVelocityTask::configureHook()
     if (! WbcVelocityTaskBase::configureHook())
         return false;
 
-    std::string urdf_file= _urdf.get();
+    clearPorts();
+
+    std::string urdf_file = _urdf.get();
     std::vector<wbc::SubTaskConfig> wbc_config = _wbc_config.get();
 
     //
@@ -356,30 +358,57 @@ void WbcVelocityTask::updateHook()
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
+}
 
-    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++)
-        delete it->second;
 
-    for(JntPortMap::iterator it = jnt_ref_ports_.begin(); it != jnt_ref_ports_.end(); it++)
-        delete it->second;
+void  WbcVelocityTask::clearPorts(){
 
-    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
+    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++){
+        ports()->removePort(it->second->getName());
         delete it->second;
-
-    for(YOutPortMap::iterator it = y_solution_out_ports_.begin(); it != y_solution_out_ports_.end(); it++)
+    }
+    for(JntPortMap::iterator it = jnt_ref_ports_.begin(); it != jnt_ref_ports_.end(); it++){
+        ports()->removePort(it->second->getName());
         delete it->second;
-
-    for(YOutPortMap::iterator it = y_act_out_ports.begin(); it != y_act_out_ports.end(); it++)
+    }
+    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++){
+        ports()->removePort(it->second->getName());
         delete it->second;
-
-    for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++)
+    }
+    for(ActivationPortMap::iterator it = activation_ports_.begin(); it != activation_ports_.end(); it++){
+        ports()->removePort(it->second->getName());
         delete it->second;
+    }
+    for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++){
+        ports()->removePort(it->second->getName());
+        delete it->second;
+    }
+    for(YOutPortMap::iterator it = y_solution_out_ports_.begin(); it != y_solution_out_ports_.end(); it++){
+        ports()->removePort(it->second->getName());
+        delete it->second;
+    }
+    for(YOutPortMap::iterator it = y_act_out_ports.begin(); it != y_act_out_ports.end(); it++){
+        ports()->removePort(it->second->getName());
+        delete it->second;
+    }
+    for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++){
+        ports()->removePort(it->second->getName());
+        delete it->second;
+    }
 
     cart_ref_ports_.clear();
-    cart_ref_in_.clear();
     jnt_ref_ports_.clear();
-    jnt_ref_in_.clear();
     weight_ports_.clear();
-    weight_in_.clear();
     activation_ports_.clear();
+    pose_out_ports_.clear();
+    y_solution_out_ports_.clear();
+    y_act_out_ports.clear();
+    A_task_out_ports_.clear();
+
+    cart_ref_in_.clear();
+    jnt_ref_in_.clear();
+    weight_in_.clear();
+    activation_.clear();
+    ctrl_out_.clear();
+    joint_status_.clear();
 }

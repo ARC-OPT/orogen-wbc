@@ -25,7 +25,6 @@ protected:
     HierarchicalWDLSSolver solver_;
     WbcVelocity wbc_;
 
-    base::samples::Joints joint_status_;
     CartPortMap cart_ref_ports_;
     JntPortMap jnt_ref_ports_;
     WeightPortMap weight_ports_;
@@ -39,11 +38,14 @@ protected:
     base::MatrixXd joint_weight_mat_;
     base::VectorXd solver_output_, act_robot_velocity_;
     base::samples::Joints ctrl_out_;
+    base::samples::Joints joint_status_;
 
     //Debug Ports
+    CartOutPortMap pose_out_ports_;
     YOutPortMap y_solution_out_ports_, y_act_out_ports;
     AOutPortMap A_task_out_ports_;
-    CartOutPortMap pose_out_ports_;
+
+    void clearPorts();
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
