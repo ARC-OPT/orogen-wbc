@@ -2,35 +2,30 @@
 
 #include <wbc/SubTask.hpp>
 #include "WbcVelocityTask.hpp"
-#include <base/logging.h>
 #include <wbc/TaskFrame.hpp>
 #include <urdf_parser/urdf_parser.h>
 #include <kdl_parser/kdl_parser.hpp>
-#include <kdl_conversions/KDLConversions.hpp>
 #include <fstream>
 
 using namespace wbc;
 using namespace std;
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name)
-    : WbcVelocityTaskBase(name)
-{
+    : WbcVelocityTaskBase(name){
 }
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine)
-    : WbcVelocityTaskBase(name, engine)
-{
+    : WbcVelocityTaskBase(name, engine){
 }
 
-bool WbcVelocityTask::configureHook()
-{
+bool WbcVelocityTask::configureHook(){
     if (! WbcVelocityTaskBase::configureHook())
         return false;
 
-    clearPorts();
-
     std::string urdf_file = _urdf.get();
     std::vector<wbc::SubTaskConfig> wbc_config = _wbc_config.get();
+    task_timeout_ = _task_timeout.get();
+    write_debug_ = _write_debug.get();
 
     //
     // Load urdf model: Kinematics of the robot
@@ -44,113 +39,20 @@ bool WbcVelocityTask::configureHook()
     boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF(xml);
     LOG_DEBUG("Parsing URDF file done");
 
-    for(uint i = 0; i < wbc_config.size(); i++){
-
+    //
+    // Create one SubTaskInterface per Task. Add ports of that task to port interface.
+    //
+    for(uint i = 0; i < wbc_config.size(); i++)
+    {
         SubTaskConfig conf = wbc_config[i];
-
-        std::string port_namespace;
-        uint no_task_vars;
-
-        switch(conf.type){
-        case wbc::task_type_cartesian:{
-
-            no_task_vars = 6;
-
-            //Port naming
-            std::stringstream ss;
-            ss<<"p"<<conf.priority<<"_cart_"<<conf.name;
-            port_namespace = ss.str();
-
-            //Add cartesian reference port
-            RTT::InputPort<base::samples::RigidBodyState> *ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + port_namespace);
-            ports()->addPort("ref_" + port_namespace, *ref_port);
-            cart_ref_ports_[conf.name] = ref_port;
-
-            //Add Debug port: Task Pose
-            RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + port_namespace);
-            ports()->addPort("pose_" + port_namespace, *pose_out_port);
-            pose_out_ports_[conf.name] = pose_out_port;
-
-            kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref_in_[conf.name]);
-            break;
-        }
-        case wbc::task_type_joint:{
-
-            no_task_vars = conf.joint_names.size();
-
-            //Port naming
-            std::stringstream ss;
-            ss<<"p"<<conf.priority<<"_jnt_"<<conf.name;
-            port_namespace = ss.str();
-
-            //Add joint reference port
-            RTT::InputPort<base::samples::Joints> *ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + port_namespace);
-            ports()->addPort("ref_" + port_namespace, *ref_port);
-            jnt_ref_ports_[conf.name] = ref_port;
-
-            base::samples::Joints ref;
-            ref.resize(conf.joint_names.size());
-            ref.names = conf.joint_names;
-            for(uint i = 0; i < conf.joint_names.size(); i++)
-                ref[i].speed = 0;
-            jnt_ref_in_[conf.name] = ref;
-
-            break;
-        }
-        default:{
-            LOG_ERROR("Invalid task type of task %i: %i", i, conf.type);
-            return false;
-        }
-        }//switch
-
-        //Add task weight port
-        RTT::InputPort<base::VectorXd>* weight_port = new RTT::InputPort<base::VectorXd>("weight_" + port_namespace);
-        ports()->addPort("weight_" + port_namespace, *weight_port);
-        weight_ports_[conf.name] = weight_port;
-        weight_in_[conf.name] = base::VectorXd::Ones(no_task_vars);
-
-        //Add activation port
-        RTT::InputPort<double>* activation_port = new RTT::InputPort<double>("activation_" + port_namespace);
-        ports()->addPort("activation_" + port_namespace, *activation_port);
-        activation_ports_[conf.name] = activation_port;
-        if(_tasks_active)
-            activation_[conf.name] = 1;
+        SubTaskInterface* sti = new SubTaskInterface(conf);
+        if(_tasks_active.value())
+            sti->activation = 1;
         else
-            activation_[conf.name] = 0;
+            sti->activation = 0;
 
-        //Add Debug port: Actual Task output from ctrl solution
-        RTT::OutputPort<base::VectorXd>* y_solution_out_port = new RTT::OutputPort<base::VectorXd>("act_" + port_namespace);
-        ports()->addPort("solution_" + port_namespace, *y_solution_out_port);
-        y_solution_out_ports_[conf.name] = y_solution_out_port;
-
-        //Add Debug port: Actual Task status from robot joint velocity
-        RTT::OutputPort<base::VectorXd>* y_act_out_port = new RTT::OutputPort<base::VectorXd>("act_" + port_namespace);
-        ports()->addPort("act_" + port_namespace, *y_act_out_port);
-        y_act_out_ports[conf.name] = y_act_out_port;
-
-        //Add Debug port: Task Jacobian
-        RTT::OutputPort<base::MatrixXd>* A_task_out_port = new RTT::OutputPort<base::MatrixXd>("task_mat_" + port_namespace);
-        ports()->addPort("task_mat_" + port_namespace, *A_task_out_port);
-        A_task_out_ports_[conf.name] = A_task_out_port;
-
-    }
-
-    LOG_DEBUG("Parsing WBC Config done");
-    LOG_DEBUG("WBC Config is: ");
-    for(uint i = 0; i < wbc_config.size(); i++){
-        LOG_DEBUG("Task %i", i);
-        LOG_DEBUG("Name: %s", wbc_config[i].name.c_str());
-        LOG_DEBUG("Type: %i", wbc_config[i].type);
-        LOG_DEBUG("Priority: %i", wbc_config[i].priority);
-        if(wbc_config[i].type == wbc::task_type_cartesian){
-            LOG_DEBUG("Root: %s", wbc_config[i].root.c_str());
-            LOG_DEBUG("Tip: %s", wbc_config[i].tip.c_str());
-        }else{
-            LOG_DEBUG("Joints: ");
-            for(uint j = 0; j < wbc_config[i].joint_names.size(); j++)
-                LOG_DEBUG("%s", wbc_config[i].joint_names[j].c_str());
-        }
-        LOG_DEBUG("\n");
+        addPortsForSubTask(sti);
+        sub_task_interface_map_[conf.name] = sti;
     }
 
     //
@@ -180,7 +82,6 @@ bool WbcVelocityTask::configureHook()
             tree.addChain(chain, reduced_tree[i].root);
         }
     }
-
     if(!wbc_.configure(tree, wbc_config, _joint_names.get()))
         return false;
 
@@ -201,6 +102,7 @@ bool WbcVelocityTask::configureHook()
         joint_weights.diagonal() = joint_weight_vect;
         solver_.setJointWeights(joint_weights);
     }
+    solver_.setSVDMethod(_svd_method.get());
 
     LOG_DEBUG("Configuring Solver Config done");
 
@@ -217,18 +119,22 @@ bool WbcVelocityTask::configureHook()
     return true;
 }
 
-bool WbcVelocityTask::startHook()
-{
+bool WbcVelocityTask::startHook(){
     if (! WbcVelocityTaskBase::startHook())
         return false;
+
+    //Reset task timeout data
+    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++){
+        it->second->resetTimeout();
+    }
     return true;
 }
 
-void WbcVelocityTask::updateHook()
-{
+void WbcVelocityTask::updateHook(){
     WbcVelocityTaskBase::updateHook();
 
     base::Time start = base::Time::now();
+    base::Time sstart = base::Time::now();
 
     //
     // Read inputs
@@ -238,69 +144,53 @@ void WbcVelocityTask::updateHook()
         return;
     }
 
-    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++)
+    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+        it->second->update();
+
+    if(_joint_weights.read(joint_weights_) == RTT::NewData)
     {
-        if(it->second->read(cart_ref_in_[it->first]) == RTT::NewData)
-        {
-            if(!cart_ref_in_[it->first].hasValidVelocity() ||
-                    !cart_ref_in_[it->first].hasValidAngularVelocity())
-            {
-                LOG_ERROR("Reference input of task %s has invalid velocity and/or angular velocity", it->first.c_str());
-                throw std::invalid_argument("Invalid Cartesian reference input");
-            }
-            SubTask* sub_task = wbc_.subTask(it->first);
-            sub_task->y_des_.segment(0,3) = cart_ref_in_[it->first].velocity;
-            sub_task->y_des_.segment(3,3) = cart_ref_in_[it->first].angular_velocity;
-        }
-    }
-
-    for(JntPortMap::iterator it = jnt_ref_ports_.begin(); it != jnt_ref_ports_.end(); it++)
-    {
-        if(it->second->read(jnt_ref_in_[it->first]) == RTT::NewData)
-        {
-            SubTask* sub_task = wbc_.subTask(it->first);
-            if(jnt_ref_in_[it->first].size() != sub_task->no_task_vars_)
-            {
-                LOG_ERROR("Size for input reference of task %s should be %i but is %i", it->first.c_str(), sub_task->no_task_vars_, jnt_ref_in_[it->first].size());
-                throw std::invalid_argument("Invalid joint reference input");
-            }
-
-            for(uint i = 0; i < sub_task->no_task_vars_; i++)
-            {
-                if(!jnt_ref_in_[it->first][i].hasSpeed())
-                {
-                    LOG_ERROR("Reference input for joint %s of task %s has invalid speed value(s)", jnt_ref_in_[it->first].names[i].c_str(), it->first.c_str());
-                    throw std::invalid_argument("Invalid joint reference input");
-                }
-                sub_task->y_des_(i) = jnt_ref_in_[it->first][i].speed;
-            }
-        }
-    }
-    for(ActivationPortMap::iterator it = activation_ports_.begin(); it != activation_ports_.end(); it++)
-        it->second->read(activation_[it->first]);
-
-    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++)
-        it->second->read(weight_in_[it->first]);
-
-    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++){
-        SubTask* sub_task = wbc_.subTask(it->first);
-        if(weight_in_[it->first].size() != sub_task->no_task_vars_)
-        {
-            LOG_ERROR("Input size for joint weights of task %s should be %i but is %i", it->first.c_str(), sub_task->no_task_vars_, weight_in_[it->first].size());
-            throw std::invalid_argument("Invalid weight input size");
-        }
-        sub_task->task_weights_.diagonal() = weight_in_[it->first] *  activation_[it->first];
-    }
-
-    if(_joint_weights.read(joint_weights_) == RTT::NewData){
         joint_weight_mat_.diagonal() = joint_weights_;
         solver_.setJointWeights((Eigen::MatrixXd& )joint_weight_mat_);
     }
+
+    LOG_DEBUG("Read ports: %f", (base::Time::now() - start).toSeconds());
+    start = base::Time::now();
+
+    //
+    // Set task weights and reference values
+    //
+    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+    {
+        SubTask* sub_task = wbc_.subTask(it->first);
+        SubTaskInterface *iface = it->second;
+
+        if(!base::isUnset(task_timeout_))
+        {
+            double diff = (base::Time::now() - iface->last_task_input).toSeconds();
+
+            if( (diff > task_timeout_) &&
+               !(iface->task_timed_out_))
+                LOG_DEBUG("Task %s has timed out! No new reference has been received for %f seconds. Timeout is %f seconds", iface->config.name.c_str(), diff, task_timeout_);
+
+            if(diff > task_timeout_)
+                iface->task_timed_out_ = 1;
+            else
+                iface->task_timed_out_ = 0;
+        }
+        sub_task->task_weights_.diagonal() = iface->weights * iface->activation * (!iface->task_timed_out_);
+        sub_task->y_des_ = iface->y_des * (!iface->task_timed_out_);
+    }
+
+    LOG_DEBUG("Set task weights: %f", (base::Time::now() - start).toSeconds());
+    start = base::Time::now();
 
     //
     // Update equation system
     //
     wbc_.update(joint_status_);
+
+    LOG_DEBUG("Update equation system: %f", (base::Time::now() - start).toSeconds());
+    start = base::Time::now();
 
     //
     // Compute control solution
@@ -308,7 +198,13 @@ void WbcVelocityTask::updateHook()
     for(uint i = 0; i < wbc_.Wy_.size(); i++)
         solver_.setTaskWeights(wbc_.Wy_[i], i);
 
+    LOG_DEBUG("Set task weights: %f", (base::Time::now() - start).toSeconds());
+    start = base::Time::now();
+
     solver_.solve(wbc_.A_, wbc_.y_ref_, (Eigen::VectorXd& )solver_output_);
+
+    LOG_DEBUG("Solve: %f", (base::Time::now() - start).toSeconds());
+    start = base::Time::now();
 
     //
     // Write output
@@ -324,91 +220,199 @@ void WbcVelocityTask::updateHook()
     ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
 
+
+    LOG_DEBUG("Write Output: %f", (base::Time::now() - start).toSeconds());
+    start = base::Time::now();
+
     //
     // write Debug Data
     //
-    for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++)
-        it->second->write(wbc_.subTask(it->first)->A_);
-    for(YOutPortMap::iterator it = y_solution_out_ports_.begin(); it != y_solution_out_ports_.end(); it++)
-        it->second->write(wbc_.subTask(it->first)->A_ * solver_output_);
-    for(YOutPortMap::iterator it = y_act_out_ports.begin(); it != y_act_out_ports.end(); it++)
+    _damping.write(solver_.getCurDamping());
+    _sample_time.write((base::Time::now() - sstart).toSeconds());
+    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
     {
-        for(size_t i = 0; i < ctrl_out_.size(); i++)
-        {
-            size_t idx = joint_status_.mapNameToIndex(ctrl_out_.names[i]);
-            act_robot_velocity_[i] = joint_status_[idx].speed;
-        }
-        it->second->write(wbc_.subTask(it->first)->A_ * act_robot_velocity_);
-    }
-    for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++)
-    {
-        base::samples::RigidBodyState rbs;
         SubTask* task = wbc_.subTask(it->first);
-        kdl_conversions::KDL2RigidBodyState(task->pose_, rbs);
-        rbs.time = base::Time::now();
-        rbs.sourceFrame = task->tf_root_->tf_name_;
-        rbs.targetFrame = task->tf_tip_->tf_name_;
-        it->second->write(rbs);
+        SubTaskInterface *iface = it->second;
+        if(task->config_.type == wbc::task_type_cartesian)
+        {
+            base::samples::RigidBodyState rbs;
+            kdl_conversions::KDL2RigidBodyState(task->pose_, rbs);
+            rbs.time = base::Time::now();
+            rbs.sourceFrame = task->tf_root_->tf_name_;
+            rbs.targetFrame = task->tf_tip_->tf_name_;
+
+            iface->pose_out_port->write(rbs);
+        }
+    }
+    if(write_debug_)
+    {
+        for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+        {
+            SubTask* task = wbc_.subTask(it->first);
+            SubTaskInterface *iface = it->second;
+            for(size_t i = 0; i < ctrl_out_.size(); i++)
+            {
+                size_t idx = joint_status_.mapNameToIndex(ctrl_out_.names[i]);
+                act_robot_velocity_[i] = joint_status_[idx].speed;
+            }
+
+            iface->A_task_out_port->write(wbc_.subTask(it->first)->A_);
+            iface->y_solution_out_port->write(wbc_.subTask(it->first)->A_ * solver_output_);
+            iface->y_act_out_port->write(wbc_.subTask(it->first)->A_ * act_robot_velocity_);
+        }
     }
 
-    _damping.write(solver_.getCurDamping());
-    _sample_time.write((base::Time::now() - start).toSeconds());
+    LOG_DEBUG("Write all Debug: %f", (base::Time::now() - start).toSeconds());
+    LOG_DEBUG("Total: %f\n", (base::Time::now() - sstart).toSeconds());
 }
 
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
+
+    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+    {
+        removePortsOfSubTask(it->second);
+        delete it->second;
+    }
+    sub_task_interface_map_.clear();
 }
 
 
-void  WbcVelocityTask::clearPorts(){
+SubTaskInterface::SubTaskInterface(const SubTaskConfig& conf)
+{
+    std::string port_namespace;
+    uint no_task_vars;
+    config = conf;
+    task_timed_out_ = 0;
 
-    for(CartPortMap::iterator it = cart_ref_ports_.begin(); it != cart_ref_ports_.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
+    if(config.type == wbc::task_type_cartesian)
+    {
+        no_task_vars = 6;
+        std::stringstream ss;
+        ss<<"p"<<config.priority<<"_cart_"<<config.name;
+        port_namespace = ss.str();
+
+        cart_ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + port_namespace);
+        jnt_ref_port = 0;
+        kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref);
+
+        pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + port_namespace);
     }
-    for(JntPortMap::iterator it = jnt_ref_ports_.begin(); it != jnt_ref_ports_.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
-    }
-    for(WeightPortMap::iterator it = weight_ports_.begin(); it != weight_ports_.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
-    }
-    for(ActivationPortMap::iterator it = activation_ports_.begin(); it != activation_ports_.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
-    }
-    for(CartOutPortMap::iterator it = pose_out_ports_.begin(); it != pose_out_ports_.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
-    }
-    for(YOutPortMap::iterator it = y_solution_out_ports_.begin(); it != y_solution_out_ports_.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
-    }
-    for(YOutPortMap::iterator it = y_act_out_ports.begin(); it != y_act_out_ports.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
-    }
-    for(AOutPortMap::iterator it = A_task_out_ports_.begin(); it != A_task_out_ports_.end(); it++){
-        ports()->removePort(it->second->getName());
-        delete it->second;
+    else
+    {
+        no_task_vars = config.joint_names.size();
+
+        std::stringstream ss;
+        ss<<"p"<<config.priority<<"_jnt_"<<config.name;
+        port_namespace = ss.str();
+
+        jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + port_namespace);
+
+        cart_ref_port = 0;
+        pose_out_port = 0;
+        jnt_ref.resize(config.joint_names.size());
+        jnt_ref.names = config.joint_names;
+        for(uint i = 0; i < config.joint_names.size(); i++)
+            jnt_ref[i].speed = 0;
     }
 
-    cart_ref_ports_.clear();
-    jnt_ref_ports_.clear();
-    weight_ports_.clear();
-    activation_ports_.clear();
-    pose_out_ports_.clear();
-    y_solution_out_ports_.clear();
-    y_act_out_ports.clear();
-    A_task_out_ports_.clear();
+    y_des.resize(no_task_vars);
+    y_des.setZero();
 
-    cart_ref_in_.clear();
-    jnt_ref_in_.clear();
-    weight_in_.clear();
-    activation_.clear();
-    ctrl_out_.clear();
-    joint_status_.clear();
+    weight_port = new RTT::InputPort<base::VectorXd>("weight_" + port_namespace);
+    weights = base::VectorXd::Ones(no_task_vars);
+
+    activation_port = new RTT::InputPort<double>("activation_" + port_namespace);
+
+    last_task_input = base::Time::now();
+
+    y_solution_out_port = new RTT::OutputPort<base::VectorXd>("y_solution_" + port_namespace);
+    y_act_out_port = new RTT::OutputPort<base::VectorXd>("y_act_" + port_namespace);
+    A_task_out_port = new RTT::OutputPort<base::MatrixXd>("task_mat_" + port_namespace);
+}
+
+SubTaskInterface::~SubTaskInterface()
+{
+    delete weight_port;
+    delete activation_port;
+    delete y_solution_out_port;
+    delete y_act_out_port;
+    delete A_task_out_port;
+    if(pose_out_port)
+        delete pose_out_port;
+    if(cart_ref_port)
+        delete cart_ref_port;
+    if(jnt_ref_port)
+        delete jnt_ref_port;
+}
+
+void SubTaskInterface::resetTimeout(){
+    last_task_input = base::Time::now();
+}
+
+void SubTaskInterface::update(){
+
+    //
+    // Read
+    //
+    activation_port->read(activation);
+    weight_port->read(weights);
+
+    if(cart_ref_port)
+    {
+        if(cart_ref_port->read(cart_ref) == RTT::NewData)
+            last_task_input = base::Time::now();
+    }
+    else
+    {
+        if(jnt_ref_port->read(jnt_ref) == RTT::NewData)
+            last_task_input = base::Time::now();
+    }
+
+    //
+    // Validate
+    //
+    if(config.type == wbc::task_type_cartesian)
+    {
+        if(!cart_ref.hasValidVelocity() ||
+                !cart_ref.hasValidAngularVelocity())
+        {
+            LOG_ERROR("Reference input of task %s has invalid velocity and/or angular velocity", config.name.c_str());
+            throw std::invalid_argument("Invalid Cartesian reference input");
+        }
+
+        y_des.segment(0,3) = cart_ref.velocity;
+        y_des.segment(3,3) = cart_ref.angular_velocity;
+
+        if(weights.size() !=6)
+        {
+            LOG_ERROR("Input size for joint weights of task %s should be %i but is %i", config.name.c_str(), 6, weights.size());
+            throw std::invalid_argument("Invalid weight input size");
+        }
+    }
+    else
+    {
+        if(jnt_ref.size() != config.joint_names.size())
+        {
+            LOG_ERROR("Size for input reference of task %s should be %i but is %i", config.name.c_str(), config.joint_names.size(), jnt_ref.size());
+            throw std::invalid_argument("Invalid joint reference input");
+        }
+
+        for(uint i = 0; i < config.joint_names.size(); i++)
+        {
+            if(!jnt_ref[i].hasSpeed())
+            {
+                LOG_ERROR("Reference input for joint %s of task %s has invalid speed value(s)", jnt_ref.names[i].c_str(), config.name.c_str());
+                throw std::invalid_argument("Invalid joint reference input");
+            }
+            y_des(i) = jnt_ref[i].speed;
+        }
+
+        if(weights.size() != config.joint_names.size())
+        {
+            LOG_ERROR("Input size for joint weights of task %s should be %i but is %i", config.name.c_str(), config.joint_names.size(), weights.size());
+            throw std::invalid_argument("Invalid weight input size");
+        }
+    }
 }

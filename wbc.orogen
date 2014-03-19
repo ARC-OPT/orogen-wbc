@@ -2,6 +2,7 @@ name "wbc"
 
 import_types_from "wbcTypes.hpp"
 import_types_from "wbc/SubTaskConfig.hpp"
+import_types_from "wbc/HierarchicalWDLSSolver.hpp"
 import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"
@@ -29,8 +30,18 @@ task_context "WbcVelocityTask" do
 
     property("initial_joint_weights", "/base/VectorXd").
         doc("Initial values for the joint weights. If not set here, all values will be one. If not empty,
-             size has to be same as no of joints: Note: A high value here, means that the corresponding
+             size has to be same as no of joints: Note: A high value here means that the corresponding
              joint will be used less")
+
+    property("task_timeout", "double", 1.0).
+        doc("Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds.
+             In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.")
+
+    property("write_debug", "bool", false).
+        doc("Write Debug data to ports. Set to false to avoid higher computation time.")
+
+    property("svd_method", "wbc/svd_method").
+        doc("Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)")
 
     property("tasks_active", "bool", true).
         doc("Defines the initial task state. If true, all task weights will be 1 at startup (tasks active), otherwise 0 (tasks inactive)")

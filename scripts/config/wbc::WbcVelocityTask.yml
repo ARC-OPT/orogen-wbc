@@ -27,7 +27,7 @@ wbc_config:
    - name: pos_ctrl_r
      type: task_type_cartesian
      priority: 0
-     root: "Rover_base"
+     root: "Chest"
      tip: "Hand_r"
    - name: joint_pos_ctrl
      type: task_type_joint
