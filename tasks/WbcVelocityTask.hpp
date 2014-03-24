@@ -5,24 +5,23 @@
 
 #include "wbc/WbcVelocityTaskBase.hpp"
 #include <wbc/wbcTypes.hpp>
-#include <wbc/HierarchicalWDLSSolver.hpp>
 #include <kdl_conversions/KDLConversions.hpp>
 #include <wbc/WbcVelocity.hpp>
 #include <base/logging.h>
+#include <wbc/SubTask.hpp>
 
 namespace wbc {
 
 class SubTaskInterface
 {
 public:
-    SubTaskInterface(const SubTaskConfig& conf);
+    SubTaskInterface(SubTask* config);
     ~SubTaskInterface();
 
     void resetTimeout();
     void update();
 
-    std::string task_name;
-    SubTaskConfig config;
+    SubTask *sub_task;
 
     RTT::InputPort<base::samples::RigidBodyState>* cart_ref_port;
     RTT::InputPort<base::samples::Joints>* jnt_ref_port;
@@ -30,27 +29,20 @@ public:
     RTT::InputPort<double>* activation_port;
 
     //Debug Ports
-    RTT::OutputPort<base::VectorXd>* y_solution_out_port;
-    RTT::OutputPort<base::VectorXd>* y_act_out_port;
-    RTT::OutputPort<base::MatrixXd>* A_task_out_port;
     RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port;
+    RTT::OutputPort<SubTask>* sub_task_out_port;
 
     base::samples::RigidBodyState cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
-    base::VectorXd y_des;                   /** Generic joint reference */
-    base::VectorXd weights;                 /** Task weights */
-    double activation;                      /** Activation function. Will be pre-multiplied with the task weights */
-    base::Time last_task_input;             /** Last time new reference values arrived */
-    int task_timed_out_;                    /** Is this task timed out?*/
 };
 typedef std::map< std::string, SubTaskInterface* > SubTaskInterfaceMap;
+
 
 
 class WbcVelocityTask : public WbcVelocityTaskBase
 {
     friend class WbcVelocityTaskBase;
 protected:
-    HierarchicalWDLSSolver solver_;
     WbcVelocity wbc_;
 
     SubTaskInterfaceMap sub_task_interface_map_;
@@ -61,11 +53,11 @@ protected:
     base::samples::Joints ctrl_out_;
     base::samples::Joints joint_status_;
     bool write_debug_;
-    double task_timeout_;
+    base::Time stamp_;
 
     void addPortsForSubTask(const SubTaskInterface* sti)
     {
-        if(sti->config.type == wbc::task_type_cartesian){
+        if(sti->sub_task->config.type == wbc::task_type_cartesian){
             ports()->addPort(sti->cart_ref_port->getName(), *(sti->cart_ref_port));
             ports()->addPort(sti->pose_out_port->getName(), *(sti->pose_out_port));
         }
@@ -75,11 +67,8 @@ protected:
         ports()->addPort(sti->weight_port->getName(), *(sti->weight_port));
         ports()->addPort(sti->activation_port->getName(), *(sti->activation_port));
 
-        if(write_debug_){
-            ports()->addPort(sti->y_solution_out_port->getName(), *(sti->y_solution_out_port));
-            ports()->addPort(sti->y_act_out_port->getName(), *(sti->y_act_out_port));
-            ports()->addPort(sti->A_task_out_port->getName(), *(sti->A_task_out_port));
-        }
+        if(write_debug_)
+            ports()->addPort(sti->sub_task_out_port->getName(), *(sti->sub_task_out_port));
     }
 
     void removePortsOfSubTask(const SubTaskInterface* sti)
@@ -87,23 +76,25 @@ protected:
         ports()->removePort(sti->weight_port->getName());
         ports()->removePort(sti->activation_port->getName());
 
-        if(ports()->getPort(sti->y_solution_out_port->getName())){
-            ports()->removePort(sti->y_solution_out_port->getName());
+        if(write_debug_)
+        {
+            if(ports()->getPort(sti->sub_task_out_port->getName())){
+                ports()->removePort(sti->sub_task_out_port->getName());
+            }
         }
-        if(ports()->getPort(sti->y_act_out_port->getName())){
-            ports()->removePort(sti->y_act_out_port->getName());
+        if(sti->sub_task->config.type == task_type_cartesian)
+        {
+            if(ports()->getPort(sti->pose_out_port->getName())){
+                ports()->removePort(sti->pose_out_port->getName());
+            }
+            if(ports()->getPort(sti->cart_ref_port->getName())){
+                ports()->removePort(sti->cart_ref_port->getName());
+            }
         }
-        if(ports()->getPort(sti->A_task_out_port->getName())){
-            ports()->removePort(sti->A_task_out_port->getName());
-        }
-        if(ports()->getPort(sti->pose_out_port->getName())){
-            ports()->removePort(sti->pose_out_port->getName());
-        }
-        if(ports()->getPort(sti->cart_ref_port->getName())){
-            ports()->removePort(sti->cart_ref_port->getName());
-        }
-        if(ports()->getPort(sti->jnt_ref_port->getName())){
-            ports()->removePort(sti->jnt_ref_port->getName());
+        else{
+            if(ports()->getPort(sti->jnt_ref_port->getName())){
+                ports()->removePort(sti->jnt_ref_port->getName());
+            }
         }
     }
 

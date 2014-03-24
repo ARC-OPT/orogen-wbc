@@ -9,6 +9,9 @@
  */
 
 #include <string>
+#include <wbc/HierarchicalWDLSSolver.hpp>
+#include <base/time.h>
+#include <base/Types.hpp>
 
 namespace wbc {
 

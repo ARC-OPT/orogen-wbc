@@ -2,6 +2,7 @@ name "wbc"
 
 import_types_from "wbcTypes.hpp"
 import_types_from "wbc/SubTaskConfig.hpp"
+import_types_from "wbc/SubTask.hpp"
 import_types_from "wbc/HierarchicalWDLSSolver.hpp"
 import_types_from "base"
 using_library "wbc"
@@ -58,10 +59,9 @@ task_context "WbcVelocityTask" do
     output_port("ctrl_out", "base/commands/Joints")
 
     #Debug ports
-    output_port "sample_time", "double"
+    output_port "sample_time", "double" 
     output_port "damping", "double"
-    dynamic_output_port /.*/, "/base/VectorXd"
-    dynamic_output_port /.*/, "/base/MatrixXd"
+    dynamic_output_port /.*/, "wbc/SubTask"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
     periodic 0.01
