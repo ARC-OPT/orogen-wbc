@@ -22,11 +22,11 @@ WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* 
 bool WbcVelocityTask::configureHook(){
     if (! WbcVelocityTaskBase::configureHook())
         return false;
-
+    
     std::string urdf_file = _urdf.get();
     std::vector<wbc::SubTaskConfig> wbc_config = _wbc_config.get();
     write_debug_ = _write_debug.get();
-
+    
     //
     // Load urdf model: Kinematics of the robot
     //
@@ -38,7 +38,7 @@ bool WbcVelocityTask::configureHook(){
     std::string xml((std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>());
     boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF(xml);
     LOG_DEBUG("Parsing URDF file done");
-
+    
     //
     // Configure wbc lib
     //
@@ -78,9 +78,9 @@ bool WbcVelocityTask::configureHook(){
         joint_weight_mat_.diagonal() = joint_weights_;
         wbc_.solver()->setJointWeights(joint_weight_mat_);
     }
-
+    
     LOG_DEBUG("Configuring WBC Config done");
-
+    
     //
     // Create ports
     //
@@ -88,13 +88,13 @@ bool WbcVelocityTask::configureHook(){
     {
         SubTask* sub_task = wbc_.subTask(wbc_config[i].name);
         SubTaskInterface* sti = new SubTaskInterface(sub_task);
-
+        
         addPortsForSubTask(sti);
         sub_task_interface_map_[wbc_config[i].name] = sti;
     }
-
+    
     LOG_DEBUG("Created ports");
-
+    
     solver_output_.resize(wbc_.noOfJoints());
     solver_output_.setZero();
     act_robot_velocity_.resize(wbc_.noOfJoints());
@@ -104,7 +104,7 @@ bool WbcVelocityTask::configureHook(){
     joint_weight_mat_.setIdentity();
     ctrl_out_.resize(wbc_.noOfJoints());
     ctrl_out_.names = wbc_.jointNames();
-
+    
     return true;
 }
 
@@ -116,9 +116,9 @@ bool WbcVelocityTask::startHook(){
 
 void WbcVelocityTask::updateHook(){
     WbcVelocityTaskBase::updateHook();
-
+    
     base::Time start = base::Time::now();
-
+    
     //
     // Read inputs
     //
@@ -128,18 +128,18 @@ void WbcVelocityTask::updateHook(){
     }
     for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
         it->second->update();
-
+    
     if(_joint_weights.read(joint_weights_) == RTT::NewData)
     {
         joint_weight_mat_.diagonal() = joint_weights_;
         wbc_.solver()->setJointWeights((Eigen::MatrixXd& )joint_weight_mat_);
     }
-
+    
     //
     // Compute control solution
     //
     wbc_.solve(joint_status_, (Eigen::VectorXd& )solver_output_);
-
+    
     //
     // Write output
     //
@@ -153,7 +153,7 @@ void WbcVelocityTask::updateHook(){
     }
     ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
-
+    
     //
     // write Debug Data
     //
@@ -169,14 +169,14 @@ void WbcVelocityTask::updateHook(){
             rbs.time = base::Time::now();
             rbs.sourceFrame = task->config.root;
             rbs.targetFrame = task->config.tip;
-
+            
             iface->pose_out_port->write(rbs);
-
+            
             if((base::Time::now() - stamp_).toSeconds() > 3){
-                LOG_DEBUG_S<<"TF: ", task->config.name.c_str();
-                LOG_DEBUG_S<<"SourceFrame: "<<rbs.sourceFrame<<", TargetFrame: "<<rbs.targetFrame;
-                LOG_DEBUG_S<<"Position: "<<rbs.position;
-                LOG_DEBUG_S<<"Ori Euler XYZ: "<<base::getEuler(rbs.orientation)<<endl;
+                LOG_DEBUG("TF: ", task->config.name.c_str());
+                LOG_DEBUG("SourceFrame: %s, Target Frame: %s", rbs.sourceFrame.c_str(), rbs.targetFrame.c_str());
+                LOG_DEBUG("Position: %f %f %f", rbs.position(0), rbs.position(1), rbs.position(2));
+                LOG_DEBUG("Ori Euler ZYX: %f %f %f", base::getEuler(rbs.orientation)(0), base::getEuler(rbs.orientation)(1), base::getEuler(rbs.orientation)(2));
             }
         }
     }
@@ -193,20 +193,20 @@ void WbcVelocityTask::updateHook(){
                 size_t idx = joint_status_.mapNameToIndex(ctrl_out_.names[i]);
                 act_robot_velocity_[i] = joint_status_[idx].speed;
             }
-
+            
             task->y_solution = task->A * solver_output_;
             task->y = task->A * act_robot_velocity_;
             iface->sub_task_out_port->write(*task);
         }
     }
-
+    
     _sample_time.write((base::Time::now() - start).toSeconds());
 }
 
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
-
+    
     for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
     {
         removePortsOfSubTask(it->second);
@@ -222,13 +222,13 @@ SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
     uint no_task_vars;
     sub_task = _sub_task;
     SubTaskConfig config = sub_task->config;
-
+    
     if(config.type == wbc::task_type_cartesian){
         no_task_vars = 6;
         std::stringstream ss;
         ss<<"p"<<config.priority<<"_cart_"<<config.name;
         port_namespace = ss.str();
-
+        
         pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + port_namespace);
         cart_ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + port_namespace);
         jnt_ref_port = 0;
@@ -239,7 +239,7 @@ SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
         std::stringstream ss;
         ss<<"p"<<config.priority<<"_jnt_"<<config.name;
         port_namespace = ss.str();
-
+        
         jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + port_namespace);
         cart_ref_port = 0;
         pose_out_port = 0;
@@ -248,7 +248,7 @@ SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
         for(uint i = 0; i < config.joint_names.size(); i++)
             jnt_ref[i].speed = 0;
     }
-
+    
     activation_port = new RTT::InputPort<double>("activation_" + port_namespace);
     weight_port = new RTT::InputPort<base::VectorXd>("weight_" + port_namespace);
     sub_task_out_port = new RTT::OutputPort<SubTask>("sub_task_" + port_namespace);
@@ -268,11 +268,11 @@ SubTaskInterface::~SubTaskInterface()
 }
 
 void SubTaskInterface::update(){
-
+    
     // Read
     activation_port->read(sub_task->activation);
     weight_port->read(sub_task->weights);
-
+    
     if(cart_ref_port){
         if(cart_ref_port->read(cart_ref) == RTT::NewData){
             sub_task->last_task_input = base::Time::now();
@@ -282,7 +282,7 @@ void SubTaskInterface::update(){
         if(jnt_ref_port->read(jnt_ref) == RTT::NewData)
             sub_task->last_task_input = base::Time::now();
     }
-
+    
     // Validate
     if(sub_task->config.type == wbc::task_type_cartesian){
         if(!cart_ref.hasValidVelocity() ||
@@ -290,7 +290,7 @@ void SubTaskInterface::update(){
             LOG_ERROR("Reference input of task %s has invalid velocity and/or angular velocity", sub_task->config.name.c_str());
             throw std::invalid_argument("Invalid Cartesian reference input");
         }
-
+        
         sub_task->y_des.segment(0,3) = cart_ref.velocity;
         sub_task->y_des.segment(3,3) = cart_ref.angular_velocity;
     }
@@ -299,7 +299,7 @@ void SubTaskInterface::update(){
             LOG_ERROR("Size for input reference of task %s should be %i but is %i", sub_task->config.name.c_str(), sub_task->no_task_vars, jnt_ref.size());
             throw std::invalid_argument("Invalid joint reference input");
         }
-
+        
         for(uint i = 0; i < sub_task->config.joint_names.size(); i++){
             if(!jnt_ref[i].hasSpeed()){
                 LOG_ERROR("Reference input for joint %s of task %s has invalid speed value(s)", jnt_ref.names[i].c_str(), sub_task->config.name.c_str());
@@ -308,7 +308,7 @@ void SubTaskInterface::update(){
             sub_task->y_des(i) = jnt_ref[i].speed;
         }
     }
-
+    
     if(sub_task->activation < 0 || sub_task->activation > 1){
         LOG_ERROR("Sub Task: %s. Activation must be >= 0 and <= 1, but is %f", sub_task->config.name.c_str(), sub_task->activation);
         throw std::invalid_argument("Invalid activation value");
