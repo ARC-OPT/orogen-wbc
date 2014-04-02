@@ -66,3 +66,7 @@ task_context "WbcVelocityTask" do
 
     periodic 0.01
 end
+
+typekit do
+   export_types "wbc/SubTask"
+end

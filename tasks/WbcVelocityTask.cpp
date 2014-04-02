@@ -171,17 +171,8 @@ void WbcVelocityTask::updateHook(){
             rbs.targetFrame = task->config.tip;
             
             iface->pose_out_port->write(rbs);
-            
-            if((base::Time::now() - stamp_).toSeconds() > 3){
-                LOG_DEBUG("TF: ", task->config.name.c_str());
-                LOG_DEBUG("SourceFrame: %s, Target Frame: %s", rbs.sourceFrame.c_str(), rbs.targetFrame.c_str());
-                LOG_DEBUG("Position: %f %f %f", rbs.position(0), rbs.position(1), rbs.position(2));
-                LOG_DEBUG("Ori Euler ZYX: %f %f %f", base::getEuler(rbs.orientation)(0), base::getEuler(rbs.orientation)(1), base::getEuler(rbs.orientation)(2));
-            }
         }
     }
-    if((base::Time::now() - stamp_).toSeconds() > 3)
-        stamp_ = base::Time::now();
     if(write_debug_)
     {
         for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)

@@ -53,7 +53,6 @@ protected:
     base::samples::Joints ctrl_out_;
     base::samples::Joints joint_status_;
     bool write_debug_;
-    base::Time stamp_;
 
     void addPortsForSubTask(const SubTaskInterface* sti)
     {
