@@ -167,8 +167,8 @@ void WbcVelocityTask::updateHook(){
             base::samples::RigidBodyState rbs;
             kdl_conversions::KDL2RigidBodyState(((ExtendedSubTask*)task)->pose, rbs);
             rbs.time = base::Time::now();
-            rbs.sourceFrame = task->config.root;
-            rbs.targetFrame = task->config.tip;
+            rbs.sourceFrame = task->config.tip;
+            rbs.targetFrame = task->config.root;
             
             iface->pose_out_port->write(rbs);
         }
