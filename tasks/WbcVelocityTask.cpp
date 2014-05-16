@@ -25,7 +25,7 @@ bool WbcVelocityTask::configureHook(){
     
     std::string urdf_file = _urdf.get();
     std::vector<wbc::SubTaskConfig> wbc_config = _wbc_config.get();
-    write_debug_ = _write_debug.get();
+    debug_ = _debug.get();
     
     //
     // Load urdf model: Kinematics of the robot
@@ -66,10 +66,13 @@ bool WbcVelocityTask::configureHook(){
             tree.addChain(chain, reduced_tree[i].root);
         }
     }
+
     if(!wbc_.configure(tree, wbc_config, _joint_names.get(), _tasks_active.get(), _task_timeout.get()))
         return false;
+
     wbc_.solver()->setNormMax(_norm_max.get());
     wbc_.solver()->setSVDMethod(_svd_method.get());
+    wbc_.solver()->setComputeDebug(_debug.get());
     joint_weights_ = _initial_joint_weights.get();
     if(joint_weights_.size() != 0)
     {
@@ -92,6 +95,15 @@ bool WbcVelocityTask::configureHook(){
         addPortsForSubTask(sti);
         sub_task_interface_map_[wbc_config[i].name] = sti;
     }
+    for(uint i = 0; i < wbc_.solver()->getNoPriorities(); i++)
+    {
+        std::stringstream s;
+        s <<  "prio_data_p" << i;
+        RTT::OutputPort<PriorityData> *port = new RTT::OutputPort<PriorityData>(s.str());
+        prio_data_ports_.push_back(port);
+        ports()->addPort(port->getName(), *port);
+    }
+
     
     LOG_DEBUG("Created ports");
     
@@ -111,6 +123,11 @@ bool WbcVelocityTask::configureHook(){
 bool WbcVelocityTask::startHook(){
     if (! WbcVelocityTaskBase::startHook())
         return false;
+
+    //Clear all task references, weights etc. to have to secure initial state
+    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+        it->second->resetTask();
+
     return true;
 }
 
@@ -157,9 +174,9 @@ void WbcVelocityTask::updateHook(){
     //
     // write Debug Data
     //
-    _damping.write(wbc_.solver()->getCurDamping());
     for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
     {
+        //TODO: This should be done somewhere else (tasks should get current poses from transformer!?)
         SubTask* task = wbc_.subTask(it->first);
         SubTaskInterface *iface = it->second;
         if(task->config.type == wbc::task_type_cartesian)
@@ -173,7 +190,7 @@ void WbcVelocityTask::updateHook(){
             iface->pose_out_port->write(rbs);
         }
     }
-    if(write_debug_)
+    if(debug_)
     {
         for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
         {
@@ -185,10 +202,14 @@ void WbcVelocityTask::updateHook(){
                 act_robot_velocity_[i] = joint_status_[idx].speed;
             }
             
-            task->y_solution = task->A * solver_output_;
-            task->y = task->A * act_robot_velocity_;
+            task->computeDebug(solver_output_, act_robot_velocity_);
             iface->sub_task_out_port->write(*task);
         }
+
+        wbc_.solver()->getPrioDebugData(prio_data_);
+        for(uint i = 0; i < prio_data_.size(); i++)
+            prio_data_ports_[i]->write(prio_data_[i]);
+
     }
     
     _sample_time.write((base::Time::now() - start).toSeconds());
@@ -203,19 +224,22 @@ void WbcVelocityTask::cleanupHook()
         removePortsOfSubTask(it->second);
         delete it->second;
     }
+    for(uint i = 0; i < prio_data_ports_.size(); i++)
+    {
+        ports()->removePort(prio_data_ports_[i]->getName());
+        delete prio_data_ports_[i];
+    }
     sub_task_interface_map_.clear();
+    prio_data_ports_.clear();
 }
-
 
 SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
 {
     std::string port_namespace;
-    uint no_task_vars;
     sub_task = _sub_task;
     SubTaskConfig config = sub_task->config;
     
     if(config.type == wbc::task_type_cartesian){
-        no_task_vars = 6;
         std::stringstream ss;
         ss<<"p"<<config.priority<<"_cart_"<<config.name;
         port_namespace = ss.str();
@@ -226,7 +250,6 @@ SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
         kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref);
     }
     else{
-        no_task_vars = config.joint_names.size();
         std::stringstream ss;
         ss<<"p"<<config.priority<<"_jnt_"<<config.name;
         port_namespace = ss.str();
@@ -234,9 +257,9 @@ SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
         jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + port_namespace);
         cart_ref_port = 0;
         pose_out_port = 0;
-        jnt_ref.resize(config.joint_names.size());
-        jnt_ref.names = config.joint_names;
-        for(uint i = 0; i < config.joint_names.size(); i++)
+        jnt_ref.resize(config.task_var_names.size());
+        jnt_ref.names = config.task_var_names;
+        for(uint i = 0; i < config.task_var_names.size(); i++)
             jnt_ref[i].speed = 0;
     }
     
@@ -265,47 +288,17 @@ void SubTaskInterface::update(){
     weight_port->read(sub_task->weights);
     
     if(cart_ref_port){
-        if(cart_ref_port->read(cart_ref) == RTT::NewData){
-            sub_task->last_task_input = base::Time::now();
-        }
+        if(cart_ref_port->read(cart_ref) == RTT::NewData)
+            sub_task->setReference(cart_ref);
     }
     else{
         if(jnt_ref_port->read(jnt_ref) == RTT::NewData)
-            sub_task->last_task_input = base::Time::now();
+            sub_task->setReference(jnt_ref);
     }
-    
-    // Validate
-    if(sub_task->config.type == wbc::task_type_cartesian){
-        if(!cart_ref.hasValidVelocity() ||
-                !cart_ref.hasValidAngularVelocity()){
-            LOG_ERROR("Reference input of task %s has invalid velocity and/or angular velocity", sub_task->config.name.c_str());
-            throw std::invalid_argument("Invalid Cartesian reference input");
-        }
-        
-        sub_task->y_des.segment(0,3) = cart_ref.velocity;
-        sub_task->y_des.segment(3,3) = cart_ref.angular_velocity;
-    }
-    else{
-        if(jnt_ref.size() != sub_task->no_task_vars){
-            LOG_ERROR("Size for input reference of task %s should be %i but is %i", sub_task->config.name.c_str(), sub_task->no_task_vars, jnt_ref.size());
-            throw std::invalid_argument("Invalid joint reference input");
-        }
-        
-        for(uint i = 0; i < sub_task->config.joint_names.size(); i++){
-            if(!jnt_ref[i].hasSpeed()){
-                LOG_ERROR("Reference input for joint %s of task %s has invalid speed value(s)", jnt_ref.names[i].c_str(), sub_task->config.name.c_str());
-                throw std::invalid_argument("Invalid joint reference input");
-            }
-            sub_task->y_des(i) = jnt_ref[i].speed;
-        }
-    }
-    
-    if(sub_task->activation < 0 || sub_task->activation > 1){
-        LOG_ERROR("Sub Task: %s. Activation must be >= 0 and <= 1, but is %f", sub_task->config.name.c_str(), sub_task->activation);
-        throw std::invalid_argument("Invalid activation value");
-    }
-    if(sub_task->weights.size() !=  sub_task->no_task_vars){
-        LOG_ERROR("Size of weight vector is %f, but task %s has %f task variables", sub_task->weights.size(), sub_task->config.name.c_str(), sub_task->no_task_vars);
-        throw std::invalid_argument("Invalid no of task weights");
-    }
+    sub_task->validate();
+}
+
+void SubTaskInterface::resetTask()
+{
+    sub_task->reset();
 }

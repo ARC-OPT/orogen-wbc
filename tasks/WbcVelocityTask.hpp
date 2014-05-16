@@ -9,6 +9,7 @@
 #include <wbc/WbcVelocity.hpp>
 #include <base/logging.h>
 #include <wbc/SubTask.hpp>
+#include <wbc/PriorityData.hpp>
 
 namespace wbc {
 
@@ -18,8 +19,8 @@ public:
     SubTaskInterface(SubTask* config);
     ~SubTaskInterface();
 
-    void resetTimeout();
     void update();
+    void resetTask();
 
     SubTask *sub_task;
 
@@ -38,7 +39,6 @@ public:
 typedef std::map< std::string, SubTaskInterface* > SubTaskInterfaceMap;
 
 
-
 class WbcVelocityTask : public WbcVelocityTaskBase
 {
     friend class WbcVelocityTaskBase;
@@ -52,7 +52,9 @@ protected:
     base::VectorXd solver_output_, act_robot_velocity_;
     base::samples::Joints ctrl_out_;
     base::samples::Joints joint_status_;
-    bool write_debug_;
+    bool debug_;
+    std::vector<PriorityData> prio_data_;
+    std::vector<RTT::OutputPort<PriorityData>*> prio_data_ports_;
 
     void addPortsForSubTask(const SubTaskInterface* sti)
     {
@@ -66,7 +68,7 @@ protected:
         ports()->addPort(sti->weight_port->getName(), *(sti->weight_port));
         ports()->addPort(sti->activation_port->getName(), *(sti->activation_port));
 
-        if(write_debug_)
+        if(debug_)
             ports()->addPort(sti->sub_task_out_port->getName(), *(sti->sub_task_out_port));
     }
 
@@ -75,7 +77,7 @@ protected:
         ports()->removePort(sti->weight_port->getName());
         ports()->removePort(sti->activation_port->getName());
 
-        if(write_debug_)
+        if(debug_)
         {
             if(ports()->getPort(sti->sub_task_out_port->getName())){
                 ports()->removePort(sti->sub_task_out_port->getName());
