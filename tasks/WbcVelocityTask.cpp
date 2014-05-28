@@ -67,7 +67,7 @@ bool WbcVelocityTask::configureHook(){
         }
     }
 
-    if(!wbc_.configure(tree, wbc_config, _joint_names.get(), _tasks_active.get(), _task_timeout.get()))
+    if(!wbc_.configure(tree, wbc_config, _joint_names.get(), _tasks_active.get(), _task_timeout.get(), _debug.get()))
         return false;
 
     wbc_.solver()->setNormMax(_norm_max.get());
@@ -179,7 +179,7 @@ void WbcVelocityTask::updateHook(){
         //TODO: This should be done somewhere else (tasks should get current poses from transformer!?)
         SubTask* task = wbc_.subTask(it->first);
         SubTaskInterface *iface = it->second;
-        if(task->config.type == wbc::task_type_cartesian)
+        if(task->config.type == wbc::cart)
         {
             base::samples::RigidBodyState rbs;
             kdl_conversions::KDL2RigidBodyState(((ExtendedSubTask*)task)->pose, rbs);
@@ -239,7 +239,7 @@ SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
     sub_task = _sub_task;
     SubTaskConfig config = sub_task->config;
     
-    if(config.type == wbc::task_type_cartesian){
+    if(config.type == wbc::cart){
         std::stringstream ss;
         ss<<"p"<<config.priority<<"_cart_"<<config.name;
         port_namespace = ss.str();

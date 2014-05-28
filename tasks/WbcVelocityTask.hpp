@@ -58,7 +58,7 @@ protected:
 
     void addPortsForSubTask(const SubTaskInterface* sti)
     {
-        if(sti->sub_task->config.type == wbc::task_type_cartesian){
+        if(sti->sub_task->config.type == wbc::cart){
             ports()->addPort(sti->cart_ref_port->getName(), *(sti->cart_ref_port));
             ports()->addPort(sti->pose_out_port->getName(), *(sti->pose_out_port));
         }
@@ -83,7 +83,7 @@ protected:
                 ports()->removePort(sti->sub_task_out_port->getName());
             }
         }
-        if(sti->sub_task->config.type == task_type_cartesian)
+        if(sti->sub_task->config.type == cart)
         {
             if(ports()->getPort(sti->pose_out_port->getName())){
                 ports()->removePort(sti->pose_out_port->getName());
