@@ -56,6 +56,8 @@ task_context "WbcVelocityTask" do
 
     input_port("joint_weights", "/base/VectorXd").
          doc("Input size must be no_joints. Entries must be > 0. A higher value means that the corresponding joint is used less")
+    output_port("current_joint_weights", "/base/VectorXd").
+         doc("Currently used joint weights")
     input_port("joint_state", "/base/samples/Joints")
     output_port("ctrl_out", "base/commands/Joints")
 

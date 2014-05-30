@@ -74,14 +74,7 @@ bool WbcVelocityTask::configureHook(){
     wbc_.solver()->setSVDMethod(_svd_method.get());
     wbc_.solver()->setComputeDebug(_debug.get());
     joint_weights_ = _initial_joint_weights.get();
-    if(joint_weights_.size() != 0)
-    {
-        joint_weight_mat_ = base::MatrixXd(joint_weights_.size(), joint_weights_.size());
-        joint_weight_mat_.setIdentity();
-        joint_weight_mat_.diagonal() = joint_weights_;
-        wbc_.solver()->setJointWeights(joint_weight_mat_);
-    }
-    
+    wbc_.solver()->setJointWeights(joint_weights_);
     LOG_DEBUG("Configuring WBC Config done");
     
     //
@@ -111,9 +104,6 @@ bool WbcVelocityTask::configureHook(){
     solver_output_.setZero();
     act_robot_velocity_.resize(wbc_.noOfJoints());
     act_robot_velocity_.setZero();
-    joint_weights_ = base::VectorXd::Ones(wbc_.noOfJoints());
-    joint_weight_mat_.resize(wbc_.noOfJoints(), wbc_.noOfJoints());
-    joint_weight_mat_.setIdentity();
     ctrl_out_.resize(wbc_.noOfJoints());
     ctrl_out_.names = wbc_.jointNames();
     
@@ -147,10 +137,8 @@ void WbcVelocityTask::updateHook(){
         it->second->update();
     
     if(_joint_weights.read(joint_weights_) == RTT::NewData)
-    {
-        joint_weight_mat_.diagonal() = joint_weights_;
-        wbc_.solver()->setJointWeights((Eigen::MatrixXd& )joint_weight_mat_);
-    }
+        wbc_.solver()->setJointWeights((Eigen::VectorXd& )joint_weights_);
+    _current_joint_weights.write(joint_weights_);
     
     //
     // Compute control solution

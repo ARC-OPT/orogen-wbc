@@ -48,7 +48,6 @@ protected:
     SubTaskInterfaceMap sub_task_interface_map_;
 
     base::VectorXd joint_weights_;
-    base::MatrixXd joint_weight_mat_;
     base::VectorXd solver_output_, act_robot_velocity_;
     base::samples::Joints ctrl_out_;
     base::samples::Joints joint_status_;
