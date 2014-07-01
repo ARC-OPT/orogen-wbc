@@ -8,21 +8,21 @@
 #include <kdl_conversions/KDLConversions.hpp>
 #include <wbc/WbcVelocity.hpp>
 #include <base/logging.h>
-#include <wbc/SubTask.hpp>
+#include <wbc/Constraint.hpp>
 #include <wbc/PriorityData.hpp>
 
 namespace wbc {
 
-class SubTaskInterface
+class ConstraintInterface
 {
 public:
-    SubTaskInterface(SubTask* config);
-    ~SubTaskInterface();
+    ConstraintInterface(Constraint* config);
+    ~ConstraintInterface();
 
     void update();
-    void resetTask();
+    void reset();
 
-    SubTask *sub_task;
+    Constraint *constraint;
 
     RTT::InputPort<base::samples::RigidBodyState>* cart_ref_port;
     RTT::InputPort<base::samples::Joints>* jnt_ref_port;
@@ -31,12 +31,12 @@ public:
 
     //Debug Ports
     RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port;
-    RTT::OutputPort<SubTask>* sub_task_out_port;
+    RTT::OutputPort<Constraint>* constraint_out_port;
 
     base::samples::RigidBodyState cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
 };
-typedef std::map< std::string, SubTaskInterface* > SubTaskInterfaceMap;
+typedef std::map< std::string, ConstraintInterface* > ConstraintInterfaceMap;
 
 
 class WbcVelocityTask : public WbcVelocityTaskBase
@@ -45,7 +45,7 @@ class WbcVelocityTask : public WbcVelocityTaskBase
 protected:
     WbcVelocity wbc_;
 
-    SubTaskInterfaceMap sub_task_interface_map_;
+    ConstraintInterfaceMap constraint_interface_map_;
 
     base::VectorXd joint_weights_;
     base::VectorXd solver_output_, act_robot_velocity_;
@@ -55,9 +55,9 @@ protected:
     std::vector<PriorityData> prio_data_;
     std::vector<RTT::OutputPort<PriorityData>*> prio_data_ports_;
 
-    void addPortsForSubTask(const SubTaskInterface* sti)
+    void addPortsForConstraint(const ConstraintInterface* sti)
     {
-        if(sti->sub_task->config.type == wbc::cart){
+        if(sti->constraint->config.type == wbc::cart){
             ports()->addPort(sti->cart_ref_port->getName(), *(sti->cart_ref_port));
             ports()->addPort(sti->pose_out_port->getName(), *(sti->pose_out_port));
         }
@@ -68,21 +68,21 @@ protected:
         ports()->addPort(sti->activation_port->getName(), *(sti->activation_port));
 
         if(debug_)
-            ports()->addPort(sti->sub_task_out_port->getName(), *(sti->sub_task_out_port));
+            ports()->addPort(sti->constraint_out_port->getName(), *(sti->constraint_out_port));
     }
 
-    void removePortsOfSubTask(const SubTaskInterface* sti)
+    void removePortsOfConstraint(const ConstraintInterface* sti)
     {
         ports()->removePort(sti->weight_port->getName());
         ports()->removePort(sti->activation_port->getName());
 
         if(debug_)
         {
-            if(ports()->getPort(sti->sub_task_out_port->getName())){
-                ports()->removePort(sti->sub_task_out_port->getName());
+            if(ports()->getPort(sti->constraint_out_port->getName())){
+                ports()->removePort(sti->constraint_out_port->getName());
             }
         }
-        if(sti->sub_task->config.type == cart)
+        if(sti->constraint->config.type == cart)
         {
             if(ports()->getPort(sti->pose_out_port->getName())){
                 ports()->removePort(sti->pose_out_port->getName());

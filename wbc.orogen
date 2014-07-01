@@ -1,8 +1,8 @@
 name "wbc"
 
 import_types_from "wbcTypes.hpp"
-import_types_from "wbc/SubTaskConfig.hpp"
-import_types_from "wbc/SubTask.hpp"
+import_types_from "wbc/ConstraintConfig.hpp"
+import_types_from "wbc/Constraint.hpp"
 import_types_from "wbc/HierarchicalWDLSSolver.hpp"
 import_types_from "wbc/PriorityData.hpp"
 import_types_from "base"
@@ -21,10 +21,10 @@ task_context "WbcVelocityTask" do
     property("reduced_tree", "std/vector<wbc/SubChainConfig>").
         doc("Define sub chains if not the complete KDL tree shall be used")
 
-    property("wbc_config", "std/vector<wbc/SubTaskConfig>").
-        doc("Configuration of subtasks. The WbcVelocityTask will dynamically create the following input ports for each subtasks:
-             Cartesian Task: ref_p<prio>_cart_<task_name>, weight_p<prio>_cart_<task_name>
-             Joint Space Task: ref_p<prio>_jnt_<task_name>, weight_p<prio>_jnt_<task_name>")
+    property("wbc_config", "std/vector<wbc/ConstraintConfig>").
+        doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
+             Cartesian constraints: ref_p<prio>_cart_<task_name>, weight_p<prio>_cart_<task_name>
+             Joint Space constraints: ref_p<prio>_jnt_<task_name>, weight_p<prio>_jnt_<task_name>")
 
     property("norm_max", "double").
         doc("Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, 
@@ -49,6 +49,7 @@ task_context "WbcVelocityTask" do
         doc("Defines the initial task state. If true, all task weights will be 1 at startup (tasks active), otherwise 0 (tasks inactive)")
     
     #These dynamic ports are created according to the 'wbc_config'
+
     dynamic_input_port /.*/, "/base/samples/Joints"
     dynamic_input_port /.*/, "/base/samples/RigidBodyState"
     dynamic_input_port /.*/, "/base/VectorXd"
@@ -62,8 +63,9 @@ task_context "WbcVelocityTask" do
     output_port("ctrl_out", "base/commands/Joints")
 
     #Debug ports
+
     output_port "sample_time", "double"
-    dynamic_output_port /.*/, "wbc/SubTask"
+    dynamic_output_port /.*/, "wbc/Constraint"
     dynamic_output_port /.*/, "wbc/PriorityData"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
@@ -71,7 +73,7 @@ task_context "WbcVelocityTask" do
 end
 
 typekit do
-   export_types "wbc/SubTask"
-   export_types "wbc/SubTaskConfig"
+   export_types "wbc/Constraint"
+   export_types "wbc/ConstraintConfig"
    export_types "wbc/PriorityData"
 end

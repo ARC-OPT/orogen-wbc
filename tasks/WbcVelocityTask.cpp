@@ -1,11 +1,11 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
-#include <wbc/SubTask.hpp>
+#include <wbc/Constraint.hpp>
 #include "WbcVelocityTask.hpp"
 #include <wbc/TaskFrame.hpp>
 #include <urdf_parser/urdf_parser.h>
 #include <kdl_parser/kdl_parser.hpp>
-#include <wbc/ExtendedSubTask.hpp>
+#include <wbc/ExtendedConstraint.hpp>
 #include <fstream>
 
 using namespace wbc;
@@ -24,7 +24,7 @@ bool WbcVelocityTask::configureHook(){
         return false;
     
     std::string urdf_file = _urdf.get();
-    std::vector<wbc::SubTaskConfig> wbc_config = _wbc_config.get();
+    std::vector<wbc::ConstraintConfig> wbc_config = _wbc_config.get();
     debug_ = _debug.get();
     
     //
@@ -82,11 +82,11 @@ bool WbcVelocityTask::configureHook(){
     //
     for(uint i = 0; i < wbc_config.size(); i++)
     {
-        SubTask* sub_task = wbc_.subTask(wbc_config[i].name);
-        SubTaskInterface* sti = new SubTaskInterface(sub_task);
+        Constraint* constraint = wbc_.constraint(wbc_config[i].name);
+        ConstraintInterface* sti = new ConstraintInterface(constraint);
         
-        addPortsForSubTask(sti);
-        sub_task_interface_map_[wbc_config[i].name] = sti;
+        addPortsForConstraint(sti);
+        constraint_interface_map_[wbc_config[i].name] = sti;
     }
     for(uint i = 0; i < wbc_.solver()->getNoPriorities(); i++)
     {
@@ -115,8 +115,8 @@ bool WbcVelocityTask::startHook(){
         return false;
 
     //Clear all task references, weights etc. to have to secure initial state
-    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
-        it->second->resetTask();
+    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
+        it->second->reset();
 
     return true;
 }
@@ -133,7 +133,7 @@ void WbcVelocityTask::updateHook(){
         LOG_DEBUG("No data on joint status port");
         return;
     }
-    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
         it->second->update();
     
     if(_joint_weights.read(joint_weights_) == RTT::NewData)
@@ -162,15 +162,15 @@ void WbcVelocityTask::updateHook(){
     //
     // write Debug Data
     //
-    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
     {
         //TODO: This should be done somewhere else (tasks should get current poses from transformer!?)
-        SubTask* task = wbc_.subTask(it->first);
-        SubTaskInterface *iface = it->second;
+        Constraint* task = wbc_.constraint(it->first);
+        ConstraintInterface *iface = it->second;
         if(task->config.type == wbc::cart)
         {
             base::samples::RigidBodyState rbs;
-            kdl_conversions::KDL2RigidBodyState(((ExtendedSubTask*)task)->pose, rbs);
+            kdl_conversions::KDL2RigidBodyState(((ExtendedConstraint*)task)->pose, rbs);
             rbs.time = base::Time::now();
             rbs.sourceFrame = task->config.tip;
             rbs.targetFrame = task->config.root;
@@ -180,10 +180,10 @@ void WbcVelocityTask::updateHook(){
     }
     if(debug_)
     {
-        for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+        for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
         {
-            SubTask* task = wbc_.subTask(it->first);
-            SubTaskInterface *iface = it->second;
+            Constraint* task = wbc_.constraint(it->first);
+            ConstraintInterface *iface = it->second;
             for(size_t i = 0; i < ctrl_out_.size(); i++)
             {
                 size_t idx = joint_status_.mapNameToIndex(ctrl_out_.names[i]);
@@ -191,7 +191,7 @@ void WbcVelocityTask::updateHook(){
             }
             
             task->computeDebug(solver_output_, act_robot_velocity_);
-            iface->sub_task_out_port->write(*task);
+            iface->constraint_out_port->write(*task);
         }
 
         wbc_.solver()->getPrioDebugData(prio_data_);
@@ -207,9 +207,9 @@ void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
     
-    for(SubTaskInterfaceMap::iterator it = sub_task_interface_map_.begin(); it != sub_task_interface_map_.end(); it++)
+    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
     {
-        removePortsOfSubTask(it->second);
+        removePortsOfConstraint(it->second);
         delete it->second;
     }
     for(uint i = 0; i < prio_data_ports_.size(); i++)
@@ -217,15 +217,15 @@ void WbcVelocityTask::cleanupHook()
         ports()->removePort(prio_data_ports_[i]->getName());
         delete prio_data_ports_[i];
     }
-    sub_task_interface_map_.clear();
+    constraint_interface_map_.clear();
     prio_data_ports_.clear();
 }
 
-SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
+ConstraintInterface::ConstraintInterface(Constraint* _constraint)
 {
     std::string port_namespace;
-    sub_task = _sub_task;
-    SubTaskConfig config = sub_task->config;
+    constraint = _constraint;
+    ConstraintConfig config = constraint->config;
     
     if(config.type == wbc::cart){
         std::stringstream ss;
@@ -245,22 +245,22 @@ SubTaskInterface::SubTaskInterface(SubTask* _sub_task)
         jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + port_namespace);
         cart_ref_port = 0;
         pose_out_port = 0;
-        jnt_ref.resize(config.task_var_names.size());
-        jnt_ref.names = config.task_var_names;
-        for(uint i = 0; i < config.task_var_names.size(); i++)
+        jnt_ref.resize(config.joint_names.size());
+        jnt_ref.names = config.joint_names;
+        for(uint i = 0; i < config.joint_names.size(); i++)
             jnt_ref[i].speed = 0;
     }
     
     activation_port = new RTT::InputPort<double>("activation_" + port_namespace);
     weight_port = new RTT::InputPort<base::VectorXd>("weight_" + port_namespace);
-    sub_task_out_port = new RTT::OutputPort<SubTask>("sub_task_" + port_namespace);
+    constraint_out_port = new RTT::OutputPort<Constraint>("constraint_" + port_namespace);
 }
 
-SubTaskInterface::~SubTaskInterface()
+ConstraintInterface::~ConstraintInterface()
 {
     delete weight_port;
     delete activation_port;
-    delete sub_task_out_port;
+    delete constraint_out_port;
     if(pose_out_port)
         delete pose_out_port;
     if(cart_ref_port)
@@ -269,24 +269,24 @@ SubTaskInterface::~SubTaskInterface()
         delete jnt_ref_port;
 }
 
-void SubTaskInterface::update(){
+void ConstraintInterface::update(){
     
     // Read
-    activation_port->read(sub_task->activation);
-    weight_port->read(sub_task->weights);
+    activation_port->read(constraint->activation);
+    weight_port->read(constraint->weights);
     
     if(cart_ref_port){
         if(cart_ref_port->read(cart_ref) == RTT::NewData)
-            sub_task->setReference(cart_ref);
+            constraint->setReference(cart_ref);
     }
     else{
         if(jnt_ref_port->read(jnt_ref) == RTT::NewData)
-            sub_task->setReference(jnt_ref);
+            constraint->setReference(jnt_ref);
     }
-    sub_task->validate();
+    constraint->validate();
 }
 
-void SubTaskInterface::resetTask()
+void ConstraintInterface::reset()
 {
-    sub_task->reset();
+    constraint->reset();
 }
