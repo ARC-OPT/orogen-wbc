@@ -1,27 +1,27 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
-#include "RobotModelKDL.hpp"
+#include "RobotModelKDLTask.hpp"
 #include <kdl_parser/kdl_parser.hpp>
 
 using namespace wbc;
 
-RobotModelKDL::RobotModelKDL(std::string const& name)
-    : RobotModelKDLBase(name)
+RobotModelKDLTask::RobotModelKDLTask(std::string const& name)
+    : RobotModelKDLTaskBase(name)
 {
 }
 
-RobotModelKDL::RobotModelKDL(std::string const& name, RTT::ExecutionEngine* engine)
-    : RobotModelKDLBase(name, engine)
+RobotModelKDLTask::RobotModelKDLTask(std::string const& name, RTT::ExecutionEngine* engine)
+    : RobotModelKDLTaskBase(name, engine)
 {
 }
 
-RobotModelKDL::~RobotModelKDL()
+RobotModelKDLTask::~RobotModelKDLTask()
 {
 }
 
-bool RobotModelKDL::configureHook()
+bool RobotModelKDLTask::configureHook()
 {
-    if (! RobotModelKDLBase::configureHook())
+    if (! RobotModelKDLTaskBase::configureHook())
         return false;
 
     //
@@ -98,16 +98,16 @@ bool RobotModelKDL::configureHook()
     return true;
 }
 
-bool RobotModelKDL::startHook()
+bool RobotModelKDLTask::startHook()
 {
-    if (! RobotModelKDLBase::startHook())
+    if (! RobotModelKDLTaskBase::startHook())
         return false;
     return true;
 }
 
-void RobotModelKDL::updateHook()
+void RobotModelKDLTask::updateHook()
 {
-    RobotModelKDLBase::updateHook();
+    RobotModelKDLTaskBase::updateHook();
 
     if(_joint_state.read(joint_state_) == RTT::NewData){
         for(TaskFrameInterfaceMap::iterator it = tf_map_.begin(); it != tf_map_.end(); it++){
@@ -116,19 +116,19 @@ void RobotModelKDL::updateHook()
     }
 }
 
-void RobotModelKDL::errorHook()
+void RobotModelKDLTask::errorHook()
 {
-    RobotModelKDLBase::errorHook();
+    RobotModelKDLTaskBase::errorHook();
 }
 
-void RobotModelKDL::stopHook()
+void RobotModelKDLTask::stopHook()
 {
-    RobotModelKDLBase::stopHook();
+    RobotModelKDLTaskBase::stopHook();
 }
 
-void RobotModelKDL::cleanupHook()
+void RobotModelKDLTask::cleanupHook()
 {
-    RobotModelKDLBase::cleanupHook();
+    RobotModelKDLTaskBase::cleanupHook();
 
     for(TaskFrameInterfaceMap::iterator it = tf_map_.begin(); it != tf_map_.end(); it++){
         ports()->removePort(it->second->pose_out_port->getName());
@@ -140,7 +140,7 @@ void RobotModelKDL::cleanupHook()
     joint_index_map_.clear();
 }
 
-bool RobotModelKDL::addTaskFrame(const std::string &id){
+bool RobotModelKDLTask::addTaskFrame(const std::string &id){
     if(tf_map_.count(id) == 0)
     {
         KDL::Chain chain;

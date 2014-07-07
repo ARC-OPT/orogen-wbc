@@ -32,8 +32,7 @@ task_context "WbcVelocityTask" do
 
     property("initial_joint_weights", "/base/VectorXd").
         doc("Initial values for the joint weights. If not set here, all values will be one. If not empty,
-             size has to be same as no of joints: Note: A high value here means that the corresponding
-             joint will be used less")
+             size has to be same as no of joints.s")
 
     property("task_timeout", "double", 1.0).
         doc("Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds.
@@ -81,15 +80,15 @@ end
 
 ######################################################################################################################################################
 
-task_context "RobotModelKDL" do
+task_context "RobotModelKDLTask" do
     needs_configuration
     
-    # Want a specific order of joints used in the Jacobians? If not, leave empty!
-    property "joint_names", "std/vector<std/string>"
     # URDF model file.
     property "urdf", "std/string"
     # Optionally define sub chains if not the complete KDL tree shall be used.
     property "reduced_tree", "std/vector<wbc/SubChainConfig>"
+    # Want a specific order of joints used in the Jacobians? If not, leave empty!
+    property "joint_names", "std/vector<std/string>"
 
     # Joint state input. Thsi has to contain at least each joint that is used in a task frame chain. Order of joints is arbitrary.
     input_port "joint_state", "/base/samples/Joints"
@@ -108,5 +107,14 @@ task_context "RobotModelKDL" do
        argument("id","std/string")
 
     port_driven "joint_state"
+end
+
+task_context "HierarchicalWDLSSolverTask" do
+    needs_configuration
+
+    #input_port "solver_input", "wbc/SolverInput"
+
+    # Velocity based solver output
+    output_port "ctrl_out", "base/commands/Joints"
 end
 

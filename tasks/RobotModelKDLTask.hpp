@@ -1,9 +1,9 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.hpp */
 
-#ifndef WBC_ROBOTMODELKDL_TASK_HPP
-#define WBC_ROBOTMODELKDL_TASK_HPP
+#ifndef WBC_RobotModelKDLTask_TASK_HPP
+#define WBC_RobotModelKDLTask_TASK_HPP
 
-#include "wbc/RobotModelKDLBase.hpp"
+#include "wbc/RobotModelKDLTaskBase.hpp"
 #include <kdl/tree.hpp>
 #include <wbc/TaskFrame.hpp>
 #include <kdl_conversions/KDLConversions.hpp>
@@ -42,9 +42,9 @@ public:
 typedef std::map<std::string, int> JointIndexMap;
 typedef std::map<std::string, TaskFrameInterface*> TaskFrameInterfaceMap;
 
-class RobotModelKDL : public RobotModelKDLBase
+class RobotModelKDLTask : public RobotModelKDLTaskBase
 {
-    friend class RobotModelKDLBase;
+    friend class RobotModelKDLTaskBase;
 protected:
     /**
      * Add a task frame to the robot model. ID has to be a link in the URDF model. This will autogenerate the corresponding ports. Returns true in case of success, otherwise false.
@@ -59,9 +59,9 @@ protected:
     base::Time stamp_;
 
 public:
-    RobotModelKDL(std::string const& name = "wbc::RobotModelKDL");
-    RobotModelKDL(std::string const& name, RTT::ExecutionEngine* engine);
-    ~RobotModelKDL();
+    RobotModelKDLTask(std::string const& name = "wbc::RobotModelKDLTask");
+    RobotModelKDLTask(std::string const& name, RTT::ExecutionEngine* engine);
+    ~RobotModelKDLTask();
 
     bool configureHook();
     bool startHook();
