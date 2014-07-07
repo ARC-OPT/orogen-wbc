@@ -77,3 +77,36 @@ typekit do
    export_types "wbc/ConstraintConfig"
    export_types "wbc/PriorityData"
 end
+
+
+######################################################################################################################################################
+
+task_context "RobotModelKDL" do
+    needs_configuration
+    
+    # Want a specific order of joints used in the Jacobians? If not, leave empty!
+    property "joint_names", "std/vector<std/string>"
+    # URDF model file.
+    property "urdf", "std/string"
+    # Optionally define sub chains if not the complete KDL tree shall be used.
+    property "reduced_tree", "std/vector<wbc/SubChainConfig>"
+
+    # Joint state input. Thsi has to contain at least each joint that is used in a task frame chain. Order of joints is arbitrary.
+    input_port "joint_state", "/base/samples/Joints"
+
+    # Debug: Compute sample time
+    output_port "actual_cycle_time", "double"
+
+    # Jacobians computed for each task frame.
+    dynamic_output_port(/.*/, "/base/MatrixXd")
+    # Poses computed for each task frame.
+    dynamic_output_port(/.*/, "/base/samples/RigidBodyState")
+
+    # Add a task frame to the robot model. ID has to be a link in the URDF model. This will autogenerate the corresponding ports. Returns true in case of success, otherwise false.
+    operation("addTaskFrame").
+       returns("bool").
+       argument("id","std/string")
+
+    port_driven "joint_state"
+end
+
