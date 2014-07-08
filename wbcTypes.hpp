@@ -18,13 +18,6 @@ struct SubChainConfig{
     std::string root;
     std::string tip;
 };
-
-struct SolverInput{
-    std::vector<base::MatrixXd> A;  /** Prioritized equation system constructed from Task Jacobians */
-    std::vector<base::VectorXd> Wt; /** Task Weight Vectors per priority */
-    base::VectorXd Wq;              /** Joint Weight Vector */
-    std::vector<base::VectorXd> y;  /** Constraint variables */
-};
 }
 
 #endif
