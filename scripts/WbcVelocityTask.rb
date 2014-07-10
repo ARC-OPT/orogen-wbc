@@ -1,30 +1,20 @@
-require 'orocos'
-require 'pry'
-require 'vizkit'
+require 'rock/bundle'
 
-if !ARGV[0]
-    STDERR.puts "usage: test_wbc.rb <urdf_file>"
-    exit 1
-end
-
-include Orocos
-
-Orocos.initialize
+Bundles.initialize
 Orocos.conf.load_dir('config')
 
-urdf_file = ARGV[0] if ARGV[0]
-Orocos.run do
+Orocos.run do# 'wbc::WbcVelocityTask' => 'wbc' do
     
-   driver = Orocos.name_service.get 'driver'
+   robot_model = Orocos.name_service.get 'robot_model'
+   wbc = Orocos.name_service.get 'orogen_default_wbc__WbcVelocityTask'
    
-   wbc = Orocos::TaskContext.get 'orogen_default_wbc__WbcVelocityTask'
    Orocos.conf.apply(wbc, ['default'])
-   wbc.urdf = urdf_file
 
-   driver.joint_state.connect_to wbc.joint_state
+   robot_model.task_frames.connect_to wbc.task_frames
 
    wbc.configure
    wbc.start
-   Vizkit.exec
+   puts "Press ENTER to stop!"
+   STDIN.readline
     
 end

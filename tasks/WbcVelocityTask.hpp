@@ -47,56 +47,19 @@ protected:
 
     ConstraintInterfaceMap constraint_interface_map_;
 
-    base::VectorXd joint_weights_;
-    base::VectorXd solver_output_, act_robot_velocity_;
-    base::samples::Joints ctrl_out_;
-    base::samples::Joints joint_status_;
+    base::VectorXd act_robot_velocity_, solver_output_eigen_;
+    std::vector<TaskFrame> task_frames_;
+    std::vector<SolverInput> solver_input_;
+    base::samples::RigidBodyState constraint_pose_;
+    base::Time stamp_;
+
+    std::vector<std::string> joint_names_;
+    base::samples::Joints joint_state_;
+    base::commands::Joints solver_output_;
     bool debug_;
-    std::vector<PriorityData> prio_data_;
-    std::vector<RTT::OutputPort<PriorityData>*> prio_data_ports_;
 
-    void addPortsForConstraint(const ConstraintInterface* sti)
-    {
-        if(sti->constraint->config.type == wbc::cart){
-            ports()->addPort(sti->cart_ref_port->getName(), *(sti->cart_ref_port));
-            ports()->addPort(sti->pose_out_port->getName(), *(sti->pose_out_port));
-        }
-        else
-            ports()->addPort((sti->jnt_ref_port)->getName(), *(sti->jnt_ref_port));
-
-        ports()->addPort(sti->weight_port->getName(), *(sti->weight_port));
-        ports()->addPort(sti->activation_port->getName(), *(sti->activation_port));
-
-        if(debug_)
-            ports()->addPort(sti->constraint_out_port->getName(), *(sti->constraint_out_port));
-    }
-
-    void removePortsOfConstraint(const ConstraintInterface* sti)
-    {
-        ports()->removePort(sti->weight_port->getName());
-        ports()->removePort(sti->activation_port->getName());
-
-        if(debug_)
-        {
-            if(ports()->getPort(sti->constraint_out_port->getName())){
-                ports()->removePort(sti->constraint_out_port->getName());
-            }
-        }
-        if(sti->constraint->config.type == cart)
-        {
-            if(ports()->getPort(sti->pose_out_port->getName())){
-                ports()->removePort(sti->pose_out_port->getName());
-            }
-            if(ports()->getPort(sti->cart_ref_port->getName())){
-                ports()->removePort(sti->cart_ref_port->getName());
-            }
-        }
-        else{
-            if(ports()->getPort(sti->jnt_ref_port->getName())){
-                ports()->removePort(sti->jnt_ref_port->getName());
-            }
-        }
-    }
+    void addPortsForConstraint(const ConstraintInterface* sti);
+    void removePortsOfConstraint(const ConstraintInterface* sti);
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");

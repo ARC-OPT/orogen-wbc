@@ -1,33 +1,16 @@
 --- name:default
 
-# Robot model file
-urdf: ''
-
-# Define sub chains if not the complete KDL tree shall be used
-reduced_tree: 
-    - root: Rover_base
-      tip: Hand_r
-    - root: Chest
-      tip: Hand_l
-
 # Define order of Joints that is used internally (for easier debugging)
 joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
               "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
               "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l"]
-   
-
-# Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, 
-# but also high joint velocities in singular configurations. A very low value will provide a strongly damped, but inaccurate behavior.
-# E.g. if you have 7 joints with dot_q_max=2.0 rad/sec, then norm_max = sqrt(7 * 2*2) = 5.29.
-# TODO: Use joint limits instead and compute norm_max during task execution
-norm_max: 6.0
 
 # Configuration of subtasks
 wbc_config: 
    - name: pos_ctrl_r
      type: cart
      priority: 0
-     root: "Chest"
+     root: "Rover_base"
      tip: "Hand_r"
    - name: joint_pos_ctrl
      type: jnt

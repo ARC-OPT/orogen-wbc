@@ -20,3 +20,6 @@ reduced_tree:
 
 # URDF model file.
 urdf: <%= "#{Bundles.find_file('data/aila.urdf')}" %>
+
+# List of Task Frames. All ids given here must be valid links of the KDL Tree
+task_frame_ids: ["Hand_r", "Rover_base"]

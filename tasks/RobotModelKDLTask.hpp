@@ -9,9 +9,6 @@
 
 namespace wbc{
 
-typedef std::map<std::string, RTT::OutputPort<TaskFrame>*> TaskFramePortMap;
-typedef std::map<std::string, TaskFrame> TaskFrameMap;
-
 class RobotModelKDLTask : public RobotModelKDLTaskBase
 {
     friend class RobotModelKDLTaskBase;
@@ -19,14 +16,14 @@ class RobotModelKDLTask : public RobotModelKDLTaskBase
 protected:
     /**
      * Add a task frame to the robot model. ID has to be a link in the URDF model. This will autogenerate the corresponding ports. Returns true in case of success, otherwise false.
+     * Component has to be configured.
      */
     virtual bool addTaskFrame(::std::string const & id);
 
     RobotModelKDL* robot_model_;
     base::samples::Joints joint_state_;
     base::Time stamp_;
-    TaskFramePortMap tf_port_map_;
-    TaskFrameMap tf_map_;
+    std::vector<TaskFrame> tf_vector_;
 
 public:
     RobotModelKDLTask(std::string const& name = "wbc::RobotModelKDLTask");

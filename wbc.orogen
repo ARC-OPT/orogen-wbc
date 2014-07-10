@@ -3,7 +3,7 @@ name "wbc"
 import_types_from "wbcTypes.hpp"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
-import_types_from "wbc/HierarchicalWDLSSolver.hpp"
+import_types_from "wbc/SolverTypes.hpp"
 import_types_from "wbc/TaskFrame.hpp"
 import_types_from "wbc/PriorityData.hpp"
 import_types_from "base"
@@ -14,11 +14,7 @@ using_library "kdl_conversions"
 task_context "WbcVelocityTask" do
     needs_configuration
 
-    # URDF model file.
-    property "urdf", "std/string"
-    # Optionally define sub chains if not the complete KDL tree shall be used.
-    property "reduced_tree", "std/vector<wbc/SubChainConfig>"
-    # Want a specific order of joints used in the Jacobians? If not, leave empty!
+    # Want a specific order of joints used in the Jacobians? If not, leave empty! This order has to be the same as in Robot Model
     property "joint_names", "std/vector<std/string>"
     # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
     # Cartesian constraints: ref_p<prio>_cart_<task_name>, weight_p<prio>_cart_<task_name>
@@ -31,40 +27,30 @@ task_context "WbcVelocityTask" do
     property "debug", "bool", false
     # Defines the initial task state. If true, all task weights will be 1 at startup (tasks active), otherwise 0 (tasks inactive)
     property "tasks_active", "bool", true
-    # Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, but also high joint velocities in singular configurations
-    property "norm_max", "double"
-    # Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints
-    property "initial_joint_weights", "/base/VectorXd"
-    # Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)
-    property "svd_method", "wbc/svd_method"
-    # Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero
-    property "epsilon", "double", 1e-9
-    
+
     #These dynamic ports are created according to the 'wbc_config'
 
     dynamic_input_port /.*/, "/base/samples/Joints"
     dynamic_input_port /.*/, "/base/samples/RigidBodyState"
     dynamic_input_port /.*/, "/base/VectorXd"
     dynamic_input_port /.*/, "/double"
+    dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
+    # Task Frame input
+    input_port "task_frames", "std/vector<wbc/TaskFrame>"
+    # Only for debugging to compare actual vs. desired constraint state.
+    input_port "joint_state", "base/samples/Joints"
+    # Only for debugging to compare solver output vs. desired constraint state.
+    input_port "solver_output", "base/commands/Joints"
 
     # Solver Input per priority (index 0 - highest prio)
-    input_port "solver_input", "std/vector<wbc/SolverInput>"
-    # Input size must be same as number of joints. Entries must be > 0. A higher value means that the corresponding joint is used less
-    input_port "joint_weights", "/base/VectorXd"
-    # Current joint state
-    input_port("joint_state", "/base/samples/Joints")
-    # Solver Output
-    output_port("ctrl_out", "base/commands/Joints")
+    output_port "solver_input", "std/vector<wbc/SolverInput>"
     # Actual sample time
     output_port "sample_time", "double"
-    # Debug: Internal data per priority
-    output_port "priority_data", "std/vector<wbc/PriorityData>"
 
     #Debug ports
 
     dynamic_output_port /.*/, "wbc/Constraint"
-    dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
     periodic 0.01
 end
@@ -77,21 +63,23 @@ task_context "RobotModelKDLTask" do
 
     # URDF model file.
     property "urdf", "std/string"
-    # Optionally define sub chains if not the complete KDL tree shall be used.
+    # Optionally define sub chains if not the complete KDL tree shall be used. Note that the root of the first subchain will be used as root of the whole tree.
     property "reduced_tree", "std/vector<wbc/SubChainConfig>"
     # Want a specific order of joints used in the Jacobians? If not, leave empty!
     property "joint_names", "std/vector<std/string>"
+    # List of Task Frames. All ids given here must be valid links of the KDL Tree
+    property "task_frame_ids", "std/vector<std/string>"
 
     # Joint state input. This has to contain at least each joint that is used in a task frame chain. Order of joints is arbitrary.
     input_port "joint_state", "/base/samples/Joints"
 
     # Debug: Compute sample time
     output_port "actual_cycle_time", "double"
-
     # Jacobians and poses computed for each task frame.
-    dynamic_output_port(/.*/, "/wbc/TaskFrame")
+    output_port "task_frames", "std/vector<wbc/TaskFrame>"
 
     # Add a task frame to the robot model. ID has to be a link in the URDF model. This will autogenerate the corresponding ports. Returns true in case of success, otherwise false.
+    # Component has to be configured before.
     operation("addTaskFrame").
        returns("bool").
        argument("id","std/string")

@@ -56,6 +56,12 @@ bool RobotModelKDLTask::configureHook()
     }
 
     robot_model_ = new RobotModelKDL(tree, _joint_names.get());
+    std::vector<std::string> task_frame_ids = _task_frame_ids.get();
+    for(uint i =0 ; i < task_frame_ids.size(); i++)
+    {
+        if(!addTaskFrame(task_frame_ids[i]))
+            return false;
+    }
 
     return true;
 }
@@ -79,13 +85,11 @@ void RobotModelKDLTask::updateHook()
 
         robot_model_->update(joint_state_);
 
-        for(TaskFramePortMap::iterator it = tf_port_map_.begin(); it != tf_port_map_.end(); it++)
-        {
-            TaskFrameKDL* tf_kdl = robot_model_->getTaskFrame(it->first);
-            tf_map_[it->first].jac = tf_kdl->jac_robot_kdl_.data;
-            kdl_conversions(tf_kdl->pose_kdl_, tf_map_[it->first].pose);
-            it->second->write(tf_map[it->first]);
+        for(uint i = 0; i < tf_vector_.size(); i++){
+            TfKDLToTf(*robot_model_->getTaskFrame(tf_vector_[i].tf_name), tf_vector_[i]);
+            tf_vector_[i].time = tf_vector_[i].pose.time = base::Time::now();
         }
+        _task_frames.write(tf_vector_);
     }
 }
 
@@ -101,30 +105,27 @@ void RobotModelKDLTask::cleanupHook(){
     RobotModelKDLTaskBase::cleanupHook();
 
     delete robot_model_;
-
-    for(TaskFramePortMap::iterator it = tf_port_map_.begin(); it != tf_port_map_.end(); it++)
-    {
-        ports()->removePort(it->second->getName());
-        delete it->second;
-    }
-    tf_port_map_.clear();
-    tf_map_.clear();
+    robot_model_ = 0;
+    tf_vector_.clear();
 }
 
 bool RobotModelKDLTask::addTaskFrame(const std::string &id){
 
-    if(state() != STOPPED)
+    if(robot_model_)
     {
-        LOG_ERROR("Call to addTaskFrame only allowed in state STOPPED, current state is %i", state());
+        if(!robot_model_->hasTaskFrame(id))
+        {
+            TaskFrame tf(TaskFrame(robot_model_->getNoOfJoints(), id));
+            tf.pose.sourceFrame = robot_model_->robotRoot();
+            tf.pose.targetFrame = id;
+            tf_vector_.push_back(tf);
+            return robot_model_->addTaskFrame(id);
+        }
+    }
+    else
+    {
+        LOG_ERROR("Call to addTaskFrame failed. Is the component configured?");
         throw std::runtime_error("Invalid call to addTaskFrame");
     }
-
-    if(tf_port_map_.count(id) == 0)
-    {
-        RTT::OutputPort<TaskFrame>* port = new RTT::OutputPort<TaskFrame>("tf_" + id);
-        ports()->addPort("tf_" + id, *port);
-        tf_port_map_[id] = port;
-        tf_map_[id] = TaskFrame(robot_model_->getNoOfJoints(), id);
-    }
-    return robot_model_->addTaskFrame(id);
+    return true;
 }

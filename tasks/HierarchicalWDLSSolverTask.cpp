@@ -74,6 +74,11 @@ void HierarchicalWDLSSolverTask::updateHook()
                 throw std::invalid_argument("Online configuration of HierarchicalWDLSSolver failed");
         }
 
+        if(_joint_weights.read(joint_weights_) == RTT::NewData)
+            solver_->setJointWeights(joint_weights_);
+        solver_->getJointWeights((Eigen::VectorXd& )joint_weights_);
+        _current_joint_weights.write(joint_weights_);
+
         solver_->solve(solver_input_, x_);
         for(uint i = 0; i < nx_; i++)
             ctrl_out_[i].speed = x_(i);

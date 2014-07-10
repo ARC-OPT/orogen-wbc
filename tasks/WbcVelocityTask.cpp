@@ -22,59 +22,13 @@ WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* 
 bool WbcVelocityTask::configureHook(){
     if (! WbcVelocityTaskBase::configureHook())
         return false;
-    
-    std::string urdf_file = _urdf.get();
+
     std::vector<wbc::ConstraintConfig> wbc_config = _wbc_config.get();
     debug_ = _debug.get();
-    
-    //
-    // Load urdf model: Kinematics of the robot
-    //
-    std::ifstream urdf_stream(urdf_file.c_str());
-    if(!urdf_stream.is_open()){
-        LOG_ERROR("Error opening urdf file %s", urdf_file.c_str());
-        return false;
-    }
-    std::string xml((std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>());
-    boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF(xml);
-    LOG_DEBUG("Parsing URDF file done");
-    
-    //
-    // Configure wbc lib
-    //
-    KDL::Tree full_tree, tree;
-    if(!kdl_parser::treeFromFile(urdf_file, full_tree)){
-        LOG_ERROR("Unable to load KDL Tree from urdf file: %s", urdf_file.c_str());
-        return false;
-    }
-    std::vector<wbc::SubChainConfig> reduced_tree = _reduced_tree.get();
-    if(reduced_tree.empty())
-        tree = full_tree;
-    else
-    {
-        for(uint i = 0; i < reduced_tree.size(); i++)
-        {
-            KDL::Chain chain;
-            if(!full_tree.getChain(reduced_tree[i].root, reduced_tree[i].tip, chain))
-            {
-                LOG_ERROR("Could not extract sub chain between %s and %s from KDL tree", reduced_tree[i].root.c_str(), reduced_tree[i].tip.c_str());
-                return false;
-            }
-            //Root of first subchain will be root of whole KDL tree
-            if(i == 0)
-                tree.addSegment(KDL::Segment(reduced_tree[i].root, KDL::Joint(reduced_tree[i].root,KDL::Joint::None),KDL::Frame::Identity()), "root");
-            tree.addChain(chain, reduced_tree[i].root);
-        }
-    }
 
-    if(!wbc_.configure(tree, wbc_config, _joint_names.get(), _tasks_active.get(), _task_timeout.get(), _debug.get()))
+    if(!wbc_.configure(wbc_config, _joint_names.get(), _tasks_active.get(), _task_timeout.get()))
         return false;
 
-    wbc_.solver()->setNormMax(_norm_max.get());
-    wbc_.solver()->setSVDMethod(_svd_method.get());
-    wbc_.solver()->setComputeDebug(_debug.get());
-    joint_weights_ = _initial_joint_weights.get();
-    wbc_.solver()->setJointWeights(joint_weights_);
     LOG_DEBUG("Configuring WBC Config done");
     
     //
@@ -88,24 +42,13 @@ bool WbcVelocityTask::configureHook(){
         addPortsForConstraint(sti);
         constraint_interface_map_[wbc_config[i].name] = sti;
     }
-    for(uint i = 0; i < wbc_.solver()->getNoPriorities(); i++)
-    {
-        std::stringstream s;
-        s <<  "prio_data_p" << i;
-        RTT::OutputPort<PriorityData> *port = new RTT::OutputPort<PriorityData>(s.str());
-        prio_data_ports_.push_back(port);
-        ports()->addPort(port->getName(), *port);
-    }
-
     
     LOG_DEBUG("Created ports");
-    
-    solver_output_.resize(wbc_.noOfJoints());
-    solver_output_.setZero();
+
     act_robot_velocity_.resize(wbc_.noOfJoints());
     act_robot_velocity_.setZero();
-    ctrl_out_.resize(wbc_.noOfJoints());
-    ctrl_out_.names = wbc_.jointNames();
+    solver_output_eigen_.resize(wbc_.noOfJoints());
+    solver_output_eigen_.setZero();
     
     return true;
 }
@@ -123,84 +66,72 @@ bool WbcVelocityTask::startHook(){
 
 void WbcVelocityTask::updateHook(){
     WbcVelocityTaskBase::updateHook();
-    
-    base::Time start = base::Time::now();
+
+    if(!stamp_.isNull())
+        _sample_time.write((base::Time::now() - stamp_).toSeconds());
+    stamp_ = base::Time::now();
     
     //
     // Read inputs
     //
-    if(_joint_state.read(joint_status_) == RTT::NoData){
-        LOG_DEBUG("No data on joint status port");
+    if(_task_frames.read(task_frames_) == RTT::NoData){
+        LOG_DEBUG("No data on task frame port");
         return;
     }
+
     for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
         it->second->update();
-    
-    if(_joint_weights.read(joint_weights_) == RTT::NewData)
-        wbc_.solver()->setJointWeights((Eigen::VectorXd& )joint_weights_);
-    _current_joint_weights.write(joint_weights_);
-    
     //
     // Compute control solution
     //
-    wbc_.solve(joint_status_, (Eigen::VectorXd& )solver_output_);
+    wbc_.prepareEqSystem(task_frames_, solver_input_);
     
     //
     // Write output
     //
-    if(ctrl_out_.empty()){
-        ctrl_out_.resize(joint_status_.size());
-        ctrl_out_.names = joint_status_.names;
-    }
-    for(uint i = 0; i < ctrl_out_.size(); i++){
-        uint idx = wbc_.jointIndex(ctrl_out_.names[i]);
-        ctrl_out_[i].speed = solver_output_(idx);
-    }
-    ctrl_out_.time = base::Time::now();
-    _ctrl_out.write(ctrl_out_);
-    
-    //
-    // write Debug Data
-    //
+    _solver_input.write(solver_input_);
+
     for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
     {
         //TODO: This should be done somewhere else (tasks should get current poses from transformer!?)
-        Constraint* task = wbc_.constraint(it->first);
+        Constraint* constraint = wbc_.constraint(it->first);
         ConstraintInterface *iface = it->second;
-        if(task->config.type == wbc::cart)
+        if(constraint->config.type == wbc::cart)
         {
-            base::samples::RigidBodyState rbs;
-            kdl_conversions::KDL2RigidBodyState(((ExtendedConstraint*)task)->pose, rbs);
-            rbs.time = base::Time::now();
-            rbs.sourceFrame = task->config.tip;
-            rbs.targetFrame = task->config.root;
-            
-            iface->pose_out_port->write(rbs);
+            kdl_conversions::KDL2RigidBodyState(((ExtendedConstraint*)constraint)->pose, constraint_pose_);
+            constraint_pose_.time = base::Time::now();
+            constraint_pose_.sourceFrame = constraint->config.tip;
+            constraint_pose_.targetFrame = constraint->config.root;
+            iface->pose_out_port->write(constraint_pose_);
         }
     }
+
+    //
+    // write Debug Data
+    //
     if(debug_)
     {
+        if(_joint_state.read(joint_state_) == RTT::NoData)
+            throw std::runtime_error("Current joint state is required to compute debug data, but there is no data on joint state port");
+        if(_solver_output.read(solver_output_) == RTT::NoData)
+            throw std::runtime_error("Solver Output is required to compute debug data, but there is no data on solver_output port");
+
         for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
         {
-            Constraint* task = wbc_.constraint(it->first);
+            Constraint* constraint = wbc_.constraint(it->first);
             ConstraintInterface *iface = it->second;
-            for(size_t i = 0; i < ctrl_out_.size(); i++)
+            for(size_t i = 0; i < joint_names_.size(); i++)
             {
-                size_t idx = joint_status_.mapNameToIndex(ctrl_out_.names[i]);
-                act_robot_velocity_[i] = joint_status_[idx].speed;
+                size_t idx = joint_state_.mapNameToIndex(joint_names_[i]);
+                act_robot_velocity_(i) = joint_state_[idx].speed;
+                solver_output_eigen_(i) = solver_output_[idx].speed;
             }
             
-            task->computeDebug(solver_output_, act_robot_velocity_);
-            iface->constraint_out_port->write(*task);
+            constraint->computeDebug(solver_output_eigen_, act_robot_velocity_);
+            iface->constraint_out_port->write(*constraint);
         }
-
-        wbc_.solver()->getPrioDebugData(prio_data_);
-        for(uint i = 0; i < prio_data_.size(); i++)
-            prio_data_ports_[i]->write(prio_data_[i]);
-
     }
-    
-    _sample_time.write((base::Time::now() - start).toSeconds());
+
 }
 
 void WbcVelocityTask::cleanupHook()
@@ -212,13 +143,49 @@ void WbcVelocityTask::cleanupHook()
         removePortsOfConstraint(it->second);
         delete it->second;
     }
-    for(uint i = 0; i < prio_data_ports_.size(); i++)
-    {
-        ports()->removePort(prio_data_ports_[i]->getName());
-        delete prio_data_ports_[i];
-    }
     constraint_interface_map_.clear();
-    prio_data_ports_.clear();
+}
+
+void WbcVelocityTask::addPortsForConstraint(const ConstraintInterface* sti){
+    if(sti->constraint->config.type == wbc::cart){
+        ports()->addPort(sti->cart_ref_port->getName(), *(sti->cart_ref_port));
+        ports()->addPort(sti->pose_out_port->getName(), *(sti->pose_out_port));
+    }
+    else
+        ports()->addPort((sti->jnt_ref_port)->getName(), *(sti->jnt_ref_port));
+
+    ports()->addPort(sti->weight_port->getName(), *(sti->weight_port));
+    ports()->addPort(sti->activation_port->getName(), *(sti->activation_port));
+
+    if(debug_)
+        ports()->addPort(sti->constraint_out_port->getName(), *(sti->constraint_out_port));
+}
+
+void WbcVelocityTask::removePortsOfConstraint(const ConstraintInterface* sti)
+{
+    ports()->removePort(sti->weight_port->getName());
+    ports()->removePort(sti->activation_port->getName());
+
+    if(debug_)
+    {
+        if(ports()->getPort(sti->constraint_out_port->getName())){
+            ports()->removePort(sti->constraint_out_port->getName());
+        }
+    }
+    if(sti->constraint->config.type == cart)
+    {
+        if(ports()->getPort(sti->pose_out_port->getName())){
+            ports()->removePort(sti->pose_out_port->getName());
+        }
+        if(ports()->getPort(sti->cart_ref_port->getName())){
+            ports()->removePort(sti->cart_ref_port->getName());
+        }
+    }
+    else{
+        if(ports()->getPort(sti->jnt_ref_port->getName())){
+            ports()->removePort(sti->jnt_ref_port->getName());
+        }
+    }
 }
 
 ConstraintInterface::ConstraintInterface(Constraint* _constraint)

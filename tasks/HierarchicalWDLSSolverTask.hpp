@@ -21,6 +21,7 @@ protected:
     base::Time stamp_;
     uint nx_;
     bool debug_;
+    base::VectorXd joint_weights_;
 
 public:
     HierarchicalWDLSSolverTask(std::string const& name = "wbc::HierarchicalWDLSSolverTask");
