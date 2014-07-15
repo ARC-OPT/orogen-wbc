@@ -126,7 +126,7 @@ void WbcVelocityTask::updateHook(){
                 act_robot_velocity_(i) = joint_state_[idx].speed;
                 solver_output_eigen_(i) = solver_output_[idx].speed;
             }
-            
+
             constraint->computeDebug(solver_output_eigen_, act_robot_velocity_);
             iface->constraint_out_port->write(*constraint);
         }

@@ -49,7 +49,7 @@ protected:
 
     base::VectorXd act_robot_velocity_, solver_output_eigen_;
     std::vector<TaskFrame> task_frames_;
-    std::vector<SolverInput> solver_input_;
+    SolverInput solver_input_;
     base::samples::RigidBodyState constraint_pose_;
     base::Time stamp_;
 

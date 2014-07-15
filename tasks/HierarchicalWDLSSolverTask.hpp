@@ -14,7 +14,7 @@ class HierarchicalWDLSSolverTask : public HierarchicalWDLSSolverTaskBase
 protected:
 
     HierarchicalWDLSSolver* solver_;
-    std::vector<SolverInput> solver_input_;
+    SolverInput solver_input_;
     std::vector<PriorityData> priority_data_;
     Eigen::VectorXd x_;
     base::commands::Joints ctrl_out_;

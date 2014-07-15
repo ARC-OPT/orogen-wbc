@@ -3,10 +3,10 @@ require 'rock/bundle'
 Bundles.initialize
 Orocos.conf.load_dir('config')
 
-Orocos.run do# 'wbc::WbcVelocityTask' => 'wbc' do
+Orocos.run 'wbc::WbcVelocityTask' => 'wbc' do
     
    robot_model = Orocos.name_service.get 'robot_model'
-   wbc = Orocos.name_service.get 'orogen_default_wbc__WbcVelocityTask'
+   wbc = Orocos.name_service.get 'wbc'
    
    Orocos.conf.apply(wbc, ['default'])
 

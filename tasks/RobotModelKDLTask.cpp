@@ -55,7 +55,7 @@ bool RobotModelKDLTask::configureHook()
         }
     }
 
-    robot_model_ = new RobotModelKDL(tree, _joint_names.get());
+    robot_model_ = new RobotModelKDL(tree);
     std::vector<std::string> task_frame_ids = _task_frame_ids.get();
     for(uint i =0 ; i < task_frame_ids.size(); i++)
     {
@@ -115,11 +115,14 @@ bool RobotModelKDLTask::addTaskFrame(const std::string &id){
     {
         if(!robot_model_->hasTaskFrame(id))
         {
-            TaskFrame tf(TaskFrame(robot_model_->getNoOfJoints(), id));
+            if(!robot_model_->addTaskFrame(id))
+                return false;
+
+            TaskFrame tf;
+            TfKDLToTf(*robot_model_->getTaskFrame(id), tf);
             tf.pose.sourceFrame = robot_model_->robotRoot();
             tf.pose.targetFrame = id;
             tf_vector_.push_back(tf);
-            return robot_model_->addTaskFrame(id);
         }
     }
     else
