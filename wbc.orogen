@@ -79,7 +79,8 @@ task_context "RobotModelKDLTask" do
        returns("bool").
        argument("id","std/string")
 
-    port_driven "joint_state"
+    #port_driven "joint_state"
+    periodic 0.005
 end
 
 task_context "HierarchicalWDLSSolverTask" do

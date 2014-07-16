@@ -25,7 +25,6 @@ bool HierarchicalWDLSSolverTask::configureHook()
 
     solver_ = new HierarchicalWDLSSolver();
     solver_->setNormMax(_norm_max.get());
-    solver_->setJointWeights(_initial_joint_weights.get());
     solver_->setSVDMethod(_svd_method.get());
     solver_->setEpsilon(_epsilon.get());
     debug_ = _debug.get();
@@ -58,14 +57,21 @@ void HierarchicalWDLSSolverTask::updateHook()
             for(uint prio  = 0; prio < solver_input_.priorities.size(); prio++)
                 ny_per_prio.push_back(solver_input_.priorities[prio].y_ref.size());
 
-            if(!solver_->configure(ny_per_prio, nx_))
-                throw std::invalid_argument("Online configuration of HierarchicalWDLSSolver failed");
-
             nx_ = solver_input_.joint_names.size();
             x_.resize(nx_);
             x_.setZero();
             ctrl_out_.resize(nx_);
             ctrl_out_.names = solver_input_.joint_names;
+
+            if(!solver_->configure(ny_per_prio, nx_))
+                throw std::invalid_argument("Online configuration of HierarchicalWDLSSolver failed");
+
+            solver_->setJointWeights(_initial_joint_weights.get());
+
+            LOG_INFO("Succesfully configured HierarchicalWDLSSolver");
+            LOG_INFO("Priorities: ");
+            for(uint i = 0; i < ny_per_prio.size(); i++)
+                LOG_INFO("Prio: %i, ny: %i", i, ny_per_prio[i]);
         }
 
         if(_joint_weights.read(joint_weights_) == RTT::NewData)
