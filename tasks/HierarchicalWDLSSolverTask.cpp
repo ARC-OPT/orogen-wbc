@@ -46,6 +46,8 @@ void HierarchicalWDLSSolverTask::updateHook()
 
     if(_solver_input.read(solver_input_) == RTT::NewData){
 
+        base::Time start = base::Time::now();
+
         if(!stamp_.isNull())
             _actual_cycle_time.write((base::Time::now() - stamp_).toSeconds());
         stamp_ = base::Time::now();
@@ -88,6 +90,8 @@ void HierarchicalWDLSSolverTask::updateHook()
             solver_->getPrioDebugData(priority_data_);
             _priority_data.write(priority_data_);
         }
+
+        _actual_computation_time.write((base::Time::now() - start).toSeconds());
     }
 }
 

@@ -45,8 +45,10 @@ task_context "WbcVelocityTask" do
 
     # Solver Input per priority (index 0 - highest prio)
     output_port "solver_input", "wbc/SolverInput"
-    # Actual sample time
-    output_port "sample_time", "double"
+    # Debug: Cycle time in seconds
+    output_port "actual_cycle_time", "double"
+    # Debug: Time for one cycle in seconds
+    output_port "actual_computation_time", "double"
 
     #Debug ports
 
@@ -68,8 +70,10 @@ task_context "RobotModelKDLTask" do
     # Joint state input. This has to contain at least each joint that is used in a task frame chain. Order of joints is arbitrary.
     input_port "joint_state", "/base/samples/Joints"
 
-    # Debug: Compute sample time
+    # Debug: Actual cycle time in seconds
     output_port "actual_cycle_time", "double"
+    # Debug: Time for one cycle in seconds
+    output_port "actual_computation_time", "double"
     # Jacobians and poses computed for each task frame.
     output_port "task_frames", "std/vector<wbc/TaskFrame>"
 
@@ -104,8 +108,10 @@ task_context "HierarchicalWDLSSolverTask" do
 
     # Currently used joint weight
     output_port "current_joint_weights", "/base/VectorXd"
-    # Debug: Compute sample time
+    # Debug: Cycle time in seconds
     output_port "actual_cycle_time", "double"
+    # Debug: Time for one cycle in seconds
+    output_port "actual_computation_time", "double"
     # Debug: Internal data per priority
     output_port "priority_data", "std/vector<wbc/PriorityData>"
     # Velocity based solver output

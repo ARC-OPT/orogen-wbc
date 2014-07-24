@@ -26,7 +26,8 @@ bool WbcVelocityTask::configureHook(){
     std::vector<wbc::ConstraintConfig> wbc_config = _wbc_config.get();
     debug_ = _debug.get();
 
-    if(!wbc_.configure(wbc_config, _joint_names.get(), _tasks_active.get(), _task_timeout.get()))
+    joint_names_ = _joint_names.get();
+    if(!wbc_.configure(wbc_config, joint_names_, _tasks_active.get(), _task_timeout.get()))
         return false;
 
     LOG_DEBUG("Configuring WBC Config done");
@@ -67,8 +68,10 @@ bool WbcVelocityTask::startHook(){
 void WbcVelocityTask::updateHook(){
     WbcVelocityTaskBase::updateHook();
 
+    base::Time start = base::Time::now();
+
     if(!stamp_.isNull())
-        _sample_time.write((base::Time::now() - stamp_).toSeconds());
+        _actual_cycle_time.write((base::Time::now() - stamp_).toSeconds());
     stamp_ = base::Time::now();
     
     //
@@ -111,33 +114,44 @@ void WbcVelocityTask::updateHook(){
     //
     if(debug_)
     {
+        if(!_joint_state.connected())
+            throw std::runtime_error("Current joint state is required to compute debug data, but the joint_state port is not connected");
+        if(!_solver_output.connected())
+            throw std::runtime_error("Solver Output  is required to compute debug data, but the joint_state port is not connected");
+
         if(_joint_state.read(joint_state_) == RTT::NoData)
-            throw std::runtime_error("Current joint state is required to compute debug data, but there is no data on joint state port");
-        if(_solver_output.read(solver_output_) == RTT::NoData)
-            throw std::runtime_error("Solver Output is required to compute debug data, but there is no data on solver_output port");
-
-        for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
+            LOG_DEBUG("No data on joint state port");
+        else
         {
-            Constraint* constraint = wbc_.constraint(it->first);
-            ConstraintInterface *iface = it->second;
-            for(size_t i = 0; i < joint_names_.size(); i++)
-            {
-                size_t idx = joint_state_.mapNameToIndex(joint_names_[i]);
-                act_robot_velocity_(i) = joint_state_[idx].speed;
-                solver_output_eigen_(i) = solver_output_[idx].speed;
-            }
 
-            constraint->computeDebug(solver_output_eigen_, act_robot_velocity_);
-            iface->constraint_out_port->write(*constraint);
+            if(_solver_output.read(solver_output_) == RTT::NoData)
+                LOG_DEBUG("No data on solver_outputport");
+            else
+            {
+                for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
+                {
+                    Constraint* constraint = wbc_.constraint(it->first);
+                    ConstraintInterface *iface = it->second;
+                    for(size_t i = 0; i < joint_names_.size(); i++)
+                    {
+                        act_robot_velocity_(i) = joint_state_.getElementByName(joint_names_[i]).speed;
+                        solver_output_eigen_(i) = solver_output_.getElementByName(joint_names_[i]).speed;
+                    }
+
+                    constraint->computeDebug(solver_output_eigen_, act_robot_velocity_);
+                    iface->constraint_out_port->write(*constraint);
+                }
+            }
         }
     }
 
+    _actual_computation_time.write((base::Time::now() - start).toSeconds());
 }
 
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
-    
+
     for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
     {
         removePortsOfConstraint(it->second);
@@ -193,12 +207,12 @@ ConstraintInterface::ConstraintInterface(Constraint* _constraint)
     std::string port_namespace;
     constraint = _constraint;
     ConstraintConfig config = constraint->config;
-    
+
     if(config.type == wbc::cart){
         std::stringstream ss;
         ss<<"p"<<config.priority<<"_cart_"<<config.name;
         port_namespace = ss.str();
-        
+
         pose_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + port_namespace);
         cart_ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + port_namespace);
         jnt_ref_port = 0;
@@ -208,7 +222,7 @@ ConstraintInterface::ConstraintInterface(Constraint* _constraint)
         std::stringstream ss;
         ss<<"p"<<config.priority<<"_jnt_"<<config.name;
         port_namespace = ss.str();
-        
+
         jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + port_namespace);
         cart_ref_port = 0;
         pose_out_port = 0;
@@ -217,7 +231,7 @@ ConstraintInterface::ConstraintInterface(Constraint* _constraint)
         for(uint i = 0; i < config.joint_names.size(); i++)
             jnt_ref[i].speed = 0;
     }
-    
+
     activation_port = new RTT::InputPort<double>("activation_" + port_namespace);
     weight_port = new RTT::InputPort<base::VectorXd>("weight_" + port_namespace);
     constraint_out_port = new RTT::OutputPort<Constraint>("constraint_" + port_namespace);
@@ -237,11 +251,11 @@ ConstraintInterface::~ConstraintInterface()
 }
 
 void ConstraintInterface::update(){
-    
+
     // Read
     activation_port->read(constraint->activation);
     weight_port->read(constraint->weights);
-    
+
     if(cart_ref_port){
         if(cart_ref_port->read(cart_ref) == RTT::NewData)
             constraint->setReference(cart_ref);

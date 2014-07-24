@@ -6,6 +6,7 @@
   <license></license>
   <url>http://</url>
   <logo>http://</logo>
+  <tags>stable</tags>
   <depend package="control/wbc"/>
   <depend package="control/urdfdom"/>
   <depend package="external/yaml-cpp"/>
