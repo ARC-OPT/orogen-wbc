@@ -120,12 +120,16 @@ void WbcVelocityTask::updateHook(){
             throw std::runtime_error("Solver Output  is required to compute debug data, but the joint_state port is not connected");
 
         if(_joint_state.read(joint_state_) == RTT::NoData)
+        {
             LOG_DEBUG("No data on joint state port");
+        }
         else
         {
 
             if(_solver_output.read(solver_output_) == RTT::NoData)
+            {
                 LOG_DEBUG("No data on solver_outputport");
+            }
             else
             {
                 for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
