@@ -10,7 +10,8 @@ initial_joint_weights:
   data: 
      [1.0, 1.0, 1.0, 1.0,
       1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+      1.0, 1.0]
 
 
 # Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, but also high joint velocities in singular configurations

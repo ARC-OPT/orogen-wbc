@@ -129,3 +129,14 @@ typekit do
    export_types "wbc/SolverInput"
    export_types "wbc/TaskFrame"
 end
+
+deployment "aila_wbc_dynamics" do
+
+   task("aila_wbc_solver", "wbc::HierarchicalWDLSSolverTask").
+       realtime.priority(60)
+
+   task("aila_wbc_robot_model", "wbc::RobotModelKDLTask").
+       realtime.priority(60).
+       periodic(0.01)
+end
+
