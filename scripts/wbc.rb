@@ -57,7 +57,7 @@ Bundles.run  'aila_wbc', 'aila_wbc_dynamics', "robot_frames::ChainPublisher" => 
         ft_ctrl_left = Orocos.name_service.get 'aila_force_ctrl_left_arm'
     end
 
-    Orocos.conf.apply( wbc, ['dynamics'], true )
+    Orocos.conf.apply( wbc, ['default'], true )
     Orocos.conf.apply( solver, ['default'], true )
     Orocos.conf.apply( robot_model, ['default'], true )
     Orocos.conf.apply( cart_pos_ctrl_right_arm, ['cart_pos_ctrl_right_arm'], true )
