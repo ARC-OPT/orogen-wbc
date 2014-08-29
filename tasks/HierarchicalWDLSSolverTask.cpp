@@ -27,8 +27,14 @@ bool HierarchicalWDLSSolverTask::configureHook()
     solver_->setNormMax(_norm_max.get());
     solver_->setSVDMethod(_svd_method.get());
     solver_->setEpsilon(_epsilon.get());
-    debug_ = _debug.get();
-    solver_->setComputeDebug(debug_);
+    joint_names_ = _joint_names.get();
+    Wx_= _initial_joint_weights.get();
+
+    ctrl_out_.resize(joint_names_.size());
+    ctrl_out_.names = joint_names_;
+    x_.resize(joint_names_.size());
+    x_.setZero();
+    nx_ = joint_names_.size();
 
     return true;
 }
@@ -44,31 +50,36 @@ void HierarchicalWDLSSolverTask::updateHook()
 {
     HierarchicalWDLSSolverTaskBase::updateHook();
 
-    if(_solver_input.read(solver_input_) == RTT::NewData){
+    if(_constraints.read(constraints_) == RTT::NewData){
 
         base::Time start = base::Time::now();
 
-        if(!stamp_.isNull())
-            _actual_cycle_time.write((base::Time::now() - stamp_).toSeconds());
-        stamp_ = base::Time::now();
-
+        //Configure solver online, if this has not been done yet
         if(!solver_->configured())
         {
-            std::vector<uint> ny_per_prio;
+            uint n_prios = constraints_.size();
 
-            for(uint prio  = 0; prio < solver_input_.priorities.size(); prio++)
-                ny_per_prio.push_back(solver_input_.priorities[prio].y_ref.size());
+            A_.resize(n_prios);
+            Wy_.resize(n_prios);
+            y_ref_.resize(n_prios);
+            singular_values_.resize(n_prios);
+            damping_factors_.resize(n_prios);
+            condition_numbers_.resize(n_prios);
 
-            nx_ = solver_input_.joint_names.size();
-            x_.resize(nx_);
-            x_.setZero();
-            ctrl_out_.resize(nx_);
-            ctrl_out_.names = solver_input_.joint_names;
+            std::vector<uint> ny_per_prio(n_prios, 0); // number of constraint per priority
+            for(uint prio  = 0; prio < n_prios; prio++)
+            {
+                for(uint i = 0; i < constraints_[prio].size(); i++)
+                    ny_per_prio[prio] += constraints_[prio][i].y_ref.size();
+
+                A_[prio].resize(ny_per_prio[prio], nx_);
+                Wy_[prio].resize(ny_per_prio[prio]);
+                y_ref_[prio].resize(ny_per_prio[prio]);
+            }
+
 
             if(!solver_->configure(ny_per_prio, nx_))
                 throw std::invalid_argument("Online configuration of HierarchicalWDLSSolver failed");
-
-            solver_->setJointWeights(_initial_joint_weights.get());
 
             LOG_INFO("Succesfully configured HierarchicalWDLSSolver");
             LOG_INFO("Priorities: ");
@@ -76,22 +87,41 @@ void HierarchicalWDLSSolverTask::updateHook()
                 LOG_INFO("Prio: %i, ny: %i", i, ny_per_prio[i]);
         }
 
-        if(_joint_weights.read(joint_weights_) == RTT::NewData)
-            solver_->setJointWeights(joint_weights_);
-        solver_->getJointWeights((Eigen::VectorXd& )joint_weights_);
-        _current_joint_weights.write(joint_weights_);
+        _joint_weights.read(Wx_);
 
-        solver_->solve(solver_input_, x_);
-        for(uint i = 0; i < nx_; i++)
-            ctrl_out_[i].speed = x_(i);
-        _ctrl_out.write(ctrl_out_);
+        //insert constraint equation into equation system of current priority
+        uint row_index = 0;
+        for(uint prio  = 0; prio < constraints_.size(); prio++)
+        {
+            damping_factors_[prio] = solver_->priorities_[prio].damping_;
+            singular_values_[prio] = solver_->priorities_[prio].singular_values_;
+            condition_numbers_[prio] = solver_->priorities_[prio].singular_values_(0) /
+                    solver_->priorities_[prio].singular_values_(solver_->priorities_[prio].ny_);
 
-        if(debug_){
-            solver_->getPrioDebugData(priority_data_);
-            _priority_data.write(priority_data_);
+            for(uint i = 0; i < constraints_[prio].size(); i++)
+            {
+                const Constraint& constraint = constraints_[prio][i];
+                const uint n_vars = constraint.no_variables;
+
+                Wy_[prio].segment(row_index, n_vars) = constraint.weights * constraint.activation * (!constraint.constraint_timed_out);
+                A_[prio].block(row_index, 0, n_vars, nx_) = constraint.A;
+                y_ref_[prio].segment(row_index, n_vars) = constraint.y_ref;
+
+                row_index += n_vars;
+            }
         }
 
-        _actual_computation_time.write((base::Time::now() - start).toSeconds());
+        solver_->solve(A_, Wy_, y_ref_, Wx_, x_);
+
+        for(uint i = 0; i < nx_; i++)
+            ctrl_out_[i].speed = x_(i);
+
+        _condition_numbers.write(condition_numbers_);
+        _damping_factors.write(damping_factors_);
+        _singular_values.write(singular_values_);
+        _ctrl_out.write(ctrl_out_);
+        _computation_time.write((base::Time::now() - start).toSeconds());
+        _current_joint_weights.write(Wx_);
     }
 }
 
@@ -108,4 +138,6 @@ void HierarchicalWDLSSolverTask::stopHook()
 void HierarchicalWDLSSolverTask::cleanupHook()
 {
     HierarchicalWDLSSolverTaskBase::cleanupHook();
+
+    delete solver_;
 }

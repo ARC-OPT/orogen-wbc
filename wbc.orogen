@@ -3,9 +3,7 @@ name "wbc"
 import_types_from "wbcTypes.hpp"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
-import_types_from "wbc/SolverTypes.hpp"
 import_types_from "wbc/TaskFrame.hpp"
-import_types_from "wbc/PriorityData.hpp"
 import_types_from "wbc/GeneralizedInverse.hpp"
 import_types_from "base"
 using_library "wbc"
@@ -15,21 +13,22 @@ using_library "kdl_conversions"
 task_context "WbcVelocityTask" do
     needs_configuration
 
-    # Want a specific order of joints used in the Jacobians? If not, leave empty! This order has to be the same as in Robot Model
-    property "joint_names", "std/vector<std/string>"
-    # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
-    # Cartesian constraints: ref_p<prio>_cart_<task_name>, weight_p<prio>_cart_<task_name>
-    # Joint Space constraints: ref_p<prio>_jnt_<task_name>, weight_p<prio>_jnt_<task_name
-    property "wbc_config", "std/vector<wbc/ConstraintConfig>"
-    # Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds.
-    # In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.
-    property "task_timeout", "double", 1
-    # Compute debug data and write it to ports. Set to false to avoid higher computation time.
-    property "debug", "bool", false
-    # Defines the initial task state. If true, all task weights will be 1 at startup (tasks active), otherwise 0 (tasks inactive)
-    property "tasks_active", "bool", true
+    property("joint_names", "std/vector<std/string>").
+        doc("Specify order of joints used in the Jacobians here.")
 
-    #These dynamic ports are created according to the 'wbc_config'
+    property("wbc_config", "std/vector<wbc/ConstraintConfig>").
+        doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
+             Cartesian constraints: ref_p<prio>_cart_<task_name>, weight_p<prio>_cart_<task_name>
+             Joint Space constraints: ref_p<prio>_jnt_<task_name>, weight_p<prio>_jnt_<task_name")
+
+    property("task_timeout", "double", 1).
+       doc("Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds.
+           In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.")
+
+    property("tasks_active", "bool", true).
+       doc("Defines the initial task state. If true, all task activations will be 1 at startup (tasks active), otherwise 0 (tasks inactive)")
+
+    # These dynamic ports are created according to the 'wbc_config'
 
     dynamic_input_port /.*/, "/base/samples/Joints"
     dynamic_input_port /.*/, "/base/samples/RigidBodyState"
@@ -37,23 +36,16 @@ task_context "WbcVelocityTask" do
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
-    # Task Frame input
-    input_port "task_frames", "std/vector<wbc/TaskFrame>"
-    # Only for debugging to compare actual vs. desired constraint state.
-    input_port "joint_state", "base/samples/Joints"
-    # Only for debugging to compare solver output vs. desired constraint state.
-    input_port "solver_output", "base/commands/Joints"
+    input_port("task_frames", "std/vector<wbc/TaskFrame>").
+       doc("Task Frame input from robot model")
 
-    # Solver Input per priority (index 0 - highest prio)
-    output_port "solver_input", "wbc/SolverInput"
-    # Debug: Cycle time in seconds
-    output_port "actual_cycle_time", "double"
-    # Debug: Time for one cycle in seconds
-    output_port "actual_computation_time", "double"
+    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
+       doc("Constraints ordered by priority (index 0 - highest prio, no empty priorities in between)")
 
-    #Debug ports
+    # Debug ports:
 
-    dynamic_output_port /.*/, "wbc/Constraint"
+    output_port("computation_time", "double").
+       doc("Computation time for one cycle in seconds")
 
     periodic 0.01
 end
@@ -61,72 +53,75 @@ end
 task_context "RobotModelKDLTask" do
     needs_configuration
 
-    # URDF model file.
-    property "urdf", "std/string"
-    # If you don't want to use the whole tree, define Subchains. Note: The first segment of the first sub chain will be the root element of the tree.
-    property "reduced_tree", "std/vector<wbc/SubChainConfig>"
-    # List of Task Frames. All ids given here must be valid links of the KDL Tree
-    property "task_frame_ids", "std/vector<std/string>"
+    property("urdf", "std/string").
+        doc("URDF model file.")
 
-    # Joint state input. This has to contain at least each joint that is used in a task frame chain. Order of joints is arbitrary.
-    input_port "joint_state", "/base/samples/Joints"
+    property("reduced_tree", "std/vector<wbc/SubChainConfig>")
+        doc("If you don't want to use the whole tree, define Subchains. Note: The first segment of the first sub chain will be the root element of the tree.")
 
-    # Debug: Actual cycle time in seconds
-    output_port "actual_cycle_time", "double"
-    # Debug: Time for one cycle in seconds
-    output_port "actual_computation_time", "double"
-    # Jacobians and poses computed for each task frame.
-    output_port "task_frames", "std/vector<wbc/TaskFrame>"
+    property("task_frame_ids", "std/vector<std/string>").
+       doc("List of Task Frames. All ids given here must be valid links of the KDL Tree")
 
-    # Add a task frame to the robot model. ID has to be a link in the URDF model. This will autogenerate the corresponding ports. Returns true in case of success, otherwise false.
-    # Component has to be configured before.
-    operation("addTaskFrame").
-       returns("bool").
-       argument("id","std/string")
+    input_port("joint_state", "/base/samples/Joints").
+       doc("Joint state input. This has to contain at least each joint that is used in a task frame chain. Order of joints is arbitrary.")
 
-    #port_driven "joint_state"
-    periodic 0.005
+    output_port("computation_time", "double").
+       doc("Debug: Time for one cycle in seconds")
+
+    output_port("task_frames", "std/vector<wbc/TaskFrame>").
+       doc("Jacobians and poses computed for each task frame.")
+
+    periodic 0.01
 end
 
 task_context "HierarchicalWDLSSolverTask" do
     needs_configuration
 
-    # Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, but also high joint velocities in singular configurations
-    property "norm_max", "double"
-    # Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints
-    property "initial_joint_weights", "/base/VectorXd"
-    # Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)
-    property "svd_method", "wbc/svd_method"
-    # Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero
-    property "epsilon", "double", 1e-9
-    # Compute debug data and send it on priority_data port
-    property "debug", "bool"
+    property("joint_names", "std/vector<std/string>").
+       doc("Joint names. Order has to be the same as in WbcVelocityTask")
 
-    # Solver Input per priority (index 0 - highest prio)
-    input_port "solver_input", "wbc/SolverInput"
-    # Input size must be same as number of joints. Entries must be > 0. A higher value means that the corresponding joint is used less
-    input_port "joint_weights", "/base/VectorXd"
+    property("norm_max", "double").
+       doc("Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, but also high joint velocities in singular configurations")
 
-    # Currently used joint weight
-    output_port "current_joint_weights", "/base/VectorXd"
-    # Debug: Cycle time in seconds
-    output_port "actual_cycle_time", "double"
-    # Debug: Time for one cycle in seconds
-    output_port "actual_computation_time", "double"
-    # Debug: Internal data per priority
-    output_port "priority_data", "std/vector<wbc/PriorityData>"
-    # Velocity based solver output
-    output_port "ctrl_out", "base/commands/Joints"
+    property("initial_joint_weights", "/base/VectorXd").
+       doc("Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints")
 
-    port_driven "solver_input"
+    property("svd_method", "wbc/svd_method").
+       doc("Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)")
+
+    property("epsilon", "double", 1e-9).
+       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
+
+    input_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
+       doc("Solver Input per priority (index 0 - highest prio)")
+
+    input_port("joint_weights", "/base/VectorXd").
+       doc("Input size must be same as number of joints. Entries must be > 0. A higher value means that the corresponding joint is used less")
+
+    output_port("current_joint_weights", "/base/VectorXd").
+       doc("Currently used joint weight")
+
+    output_port("computation_time", "double").
+       doc("Time for one cycle in seconds")
+
+    output_port("ctrl_out", "base/commands/Joints").
+       doc("Velocity based solver output")
+
+    output_port("singular_values", "std/vector<base/VectorXd>").
+       doc("Singular Values of the task Jacobians (ordered by priority, 0 - highest)")
+
+    output_port("condition_numbers", "base/VectorXd").
+       doc("For each priority: The ratio between highest and lowest singular value")
+
+    output_port("damping_factors", "base/VectorXd").
+       doc("Damping factor used for matrix inversion on each priority level (ordered by priority, 0 - highest)")
+
+    port_driven "constraints"
 end
-
 
 typekit do
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
-   export_types "wbc/PriorityData"
-   export_types "wbc/SolverInput"
    export_types "wbc/TaskFrame"
 end
 

@@ -24,7 +24,6 @@ bool WbcVelocityTask::configureHook(){
         return false;
 
     std::vector<wbc::ConstraintConfig> wbc_config = _wbc_config.get();
-    debug_ = _debug.get();
 
     joint_names_ = _joint_names.get();
     if(!wbc_.configure(wbc_config, joint_names_, _tasks_active.get(), _task_timeout.get()))
@@ -69,10 +68,6 @@ void WbcVelocityTask::updateHook(){
     WbcVelocityTaskBase::updateHook();
 
     base::Time start = base::Time::now();
-
-    if(!stamp_.isNull())
-        _actual_cycle_time.write((base::Time::now() - stamp_).toSeconds());
-    stamp_ = base::Time::now();
     
     //
     // Read inputs
@@ -81,22 +76,22 @@ void WbcVelocityTask::updateHook(){
         LOG_DEBUG("No data on task frame port");
         return;
     }
-
     for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
         it->second->update();
+
     //
     // Compute control solution
     //
-    wbc_.prepareEqSystem(task_frames_, solver_input_);
+    wbc_.prepareEqSystem(task_frames_, constraints_);
     
     //
     // Write output
     //
-    _solver_input.write(solver_input_);
+    _constraints.write(constraints_);
 
+    //TODO: This should be done somewhere else (tasks should get current poses from transformer!?)
     for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
     {
-        //TODO: This should be done somewhere else (tasks should get current poses from transformer!?)
         Constraint* constraint = wbc_.constraint(it->first);
         ConstraintInterface *iface = it->second;
         if(constraint->config.type == wbc::cart)
@@ -109,47 +104,7 @@ void WbcVelocityTask::updateHook(){
         }
     }
 
-    //
-    // write Debug Data
-    //
-    if(debug_)
-    {
-        if(!_joint_state.connected())
-            throw std::runtime_error("Current joint state is required to compute debug data, but the joint_state port is not connected");
-        if(!_solver_output.connected())
-            throw std::runtime_error("Solver Output  is required to compute debug data, but the joint_state port is not connected");
-
-        if(_joint_state.read(joint_state_) == RTT::NoData)
-        {
-            LOG_DEBUG("No data on joint state port");
-        }
-        else
-        {
-
-            if(_solver_output.read(solver_output_) == RTT::NoData)
-            {
-                LOG_DEBUG("No data on solver_outputport");
-            }
-            else
-            {
-                for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
-                {
-                    Constraint* constraint = wbc_.constraint(it->first);
-                    ConstraintInterface *iface = it->second;
-                    for(size_t i = 0; i < joint_names_.size(); i++)
-                    {
-                        act_robot_velocity_(i) = joint_state_.getElementByName(joint_names_[i]).speed;
-                        solver_output_eigen_(i) = solver_output_.getElementByName(joint_names_[i]).speed;
-                    }
-
-                    constraint->computeDebug(solver_output_eigen_, act_robot_velocity_);
-                    iface->constraint_out_port->write(*constraint);
-                }
-            }
-        }
-    }
-
-    _actual_computation_time.write((base::Time::now() - start).toSeconds());
+    _computation_time.write((base::Time::now() - start).toSeconds());
 }
 
 void WbcVelocityTask::cleanupHook()

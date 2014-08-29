@@ -9,7 +9,6 @@
 #include <wbc/WbcVelocity.hpp>
 #include <base/logging.h>
 #include <wbc/Constraint.hpp>
-#include <wbc/PriorityData.hpp>
 
 namespace wbc {
 
@@ -49,9 +48,8 @@ protected:
 
     base::VectorXd act_robot_velocity_, solver_output_eigen_;
     std::vector<TaskFrame> task_frames_;
-    SolverInput solver_input_;
+    std::vector<ConstraintsPerPrio> constraints_;
     base::samples::RigidBodyState constraint_pose_;
-    base::Time stamp_;
 
     std::vector<std::string> joint_names_;
     base::samples::Joints joint_state_;

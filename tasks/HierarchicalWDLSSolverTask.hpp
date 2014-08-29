@@ -14,14 +14,18 @@ class HierarchicalWDLSSolverTask : public HierarchicalWDLSSolverTaskBase
 protected:
 
     HierarchicalWDLSSolver* solver_;
-    SolverInput solver_input_;
-    std::vector<PriorityData> priority_data_;
+    std::vector<ConstraintsPerPrio> constraints_;
+    std::vector<std::string> joint_names_;
     Eigen::VectorXd x_;
     base::commands::Joints ctrl_out_;
-    base::Time stamp_;
+    base::VectorXd Wx_;
     uint nx_;
-    bool debug_;
-    base::VectorXd joint_weights_;
+    std::vector<Eigen::MatrixXd> A_;
+    std::vector<Eigen::VectorXd> Wy_;
+    std::vector<Eigen::VectorXd> y_ref_;
+    base::VectorXd damping_factors_;
+    base::VectorXd condition_numbers_;
+    std::vector< base::VectorXd > singular_values_;
 
 public:
     HierarchicalWDLSSolverTask(std::string const& name = "wbc::HierarchicalWDLSSolverTask");

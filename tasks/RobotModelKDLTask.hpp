@@ -22,7 +22,6 @@ protected:
 
     RobotModelKDL* robot_model_;
     base::samples::Joints joint_state_;
-    base::Time stamp_;
     std::vector<TaskFrame> tf_vector_;
 
 public:

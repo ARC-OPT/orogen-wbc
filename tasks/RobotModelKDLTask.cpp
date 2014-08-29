@@ -79,10 +79,6 @@ void RobotModelKDLTask::updateHook()
 
     RobotModelKDLTaskBase::updateHook();
 
-    if(!stamp_.isNull())
-        _actual_cycle_time.write((base::Time::now() - stamp_).toSeconds());
-    stamp_ = base::Time::now();
-
     if(_joint_state.read(joint_state_) == RTT::NewData){
 
         robot_model_->update(joint_state_);
@@ -94,7 +90,7 @@ void RobotModelKDLTask::updateHook()
         _task_frames.write(tf_vector_);
     }
 
-    _actual_computation_time.write((base::Time::now() - start).toSeconds());
+    _computation_time.write((base::Time::now() - start).toSeconds());
 }
 
 void RobotModelKDLTask::errorHook(){
