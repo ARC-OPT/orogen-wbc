@@ -1,6 +1,6 @@
 require 'rock/bundle'
 
-Bundles.initialize
+Orocos.initialize
 Orocos.conf.load_dir('config')
 
 

@@ -1,21 +1,11 @@
 --- name:default
-# Compute debug data and send it on priority_data port
-debug: true
 
 # Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero
 epsilon: 1.0e-09
-
-# Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints
-initial_joint_weights:
-  data: 
-     [1.0, 1.0, 1.0, 1.0,
-      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-      1.0, 1.0]
-
 
 # Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, but also high joint velocities in singular configurations
 norm_max: 10.0
 
 # Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)
 svd_method: :svd_kdl
+

@@ -1,5 +1,7 @@
 --- name:default
 
+task_frame_ids: ["Rover_base", "Hand_r", "Hand_l", "Force_Sensor_r", "Force_Sensor_l"]
+
 # Optionally define sub chains if not the complete KDL tree shall be used.
 reduced_tree: 
     - root: Rover_base
@@ -14,7 +16,7 @@ reduced_tree:
       tip: Force_Sensor_l
 
 # URDF model file.
-urdf:  <%= "#{Bundles.find_file('data','aila.urdf')}" %>
+urdf:  /home/dmronga/Repos/RockDev/bundles/aila/data/aila.urdf
 
 # List of Task Frames. All ids given here must be valid links of the KDL Tree
 task_frame_ids: ["Rover_base", "Hand_r", "Hand_l", "Force_Sensor_r", "Force_Sensor_l", "Chest"]

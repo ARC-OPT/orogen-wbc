@@ -14,11 +14,7 @@ class RobotModelKDLTask : public RobotModelKDLTaskBase
     friend class RobotModelKDLTaskBase;
 
 protected:
-    /**
-     * Add a task frame to the robot model. ID has to be a link in the URDF model. This will autogenerate the corresponding ports. Returns true in case of success, otherwise false.
-     * Component has to be configured.
-     */
-    virtual bool addTaskFrame(::std::string const & id);
+    bool addTaskFrame(::std::string const & id);
 
     RobotModelKDL* robot_model_;
     base::samples::Joints joint_state_;

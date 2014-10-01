@@ -16,19 +16,27 @@ task_context "WbcVelocityTask" do
     property("joint_names", "std/vector<std/string>").
         doc("Specify order of joints used in the Jacobians here.")
 
+    property("initial_joint_weights", "base/VectorXd").
+        doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
+             Size has to be same as joint_names")
+
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
-             Cartesian constraints: ref_p<prio>_cart_<task_name>, weight_p<prio>_cart_<task_name>
-             Joint Space constraints: ref_p<prio>_jnt_<task_name>, weight_p<prio>_jnt_<task_name")
+             Cartesian constraints:
+                 Reference Input (/base/samples/RigidBodyState):         ref_p<prio>_cart_<task_name>
+                 Weights (/base/VectorXd):                               weight_p<prio>_cart_<task_name>
+                 Activation function (double):                           activation_p<prio>_cart_<task_name>
+                 Constraint pose output (/base/samples/RigidBodyState):  pose_p<prio>_cart_<task_name>
+             Joint Space constraints:
+                 Reference Input (/base/samples/Joints):                 ref_p<prio>_jnt_<task_name>
+                 Weights (/base/VectorXd):                               weight_p<prio>_jnt_<task_name>
+                 Activation function (double):                           activation_p<prio>_cart_<task_name>")
 
     property("task_timeout", "double", 1).
        doc("Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds.
            In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.")
 
-    property("tasks_active", "bool", true).
-       doc("Defines the initial task state. If true, all task activations will be 1 at startup (tasks active), otherwise 0 (tasks inactive)")
-
-    # These dynamic ports are created according to the 'wbc_config'
+    # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
     dynamic_input_port /.*/, "/base/samples/RigidBodyState"
@@ -36,55 +44,39 @@ task_context "WbcVelocityTask" do
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
+    input_port("joint_weights", "base/VectorXd").
+       doc("Online set new joint weights")
+
     input_port("task_frames", "std/vector<wbc/TaskFrame>").
-       doc("Task Frame input from robot model")
+       doc("Task Frame vector containing jacobians and poses for each task frame")
 
-    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
-       doc("Constraints ordered by priority (index 0 - highest prio, no empty priorities in between)")
+    input_port("solver_output", "base/VectorXd").
+       doc("Solution of the equation system coming from the solver.")
 
-    # Debug ports:
+    input_port("joint_state", "base/samples/Joints").
+       doc("Optional: Current joint to compute constraint satisfaction measures.")
+
+    output_port("solver_input", "wbc/SolverInput").
+       doc("Equation System for the solver.")
+
+    output_port("ctrl_out", "base/commands/Joints").
+       doc("Control solution")
 
     output_port("computation_time", "double").
        doc("Computation time for one cycle in seconds")
 
-    periodic 0.01
-end
-
-task_context "RobotModelKDLTask" do
-    needs_configuration
-
-    property("urdf", "std/string").
-        doc("URDF model file.")
-
-    property("reduced_tree", "std/vector<wbc/SubChainConfig>")
-        doc("If you don't want to use the whole tree, define Subchains. Note: The first segment of the first sub chain will be the root element of the tree.")
-
-    property("task_frame_ids", "std/vector<std/string>").
-       doc("List of Task Frames. All ids given here must be valid links of the KDL Tree")
-
-    input_port("joint_state", "/base/samples/Joints").
-       doc("Joint state input. This has to contain at least each joint that is used in a task frame chain. Order of joints is arbitrary.")
-
-    output_port("computation_time", "double").
-       doc("Debug: Time for one cycle in seconds")
-
-    output_port("task_frames", "std/vector<wbc/TaskFrame>").
-       doc("Jacobians and poses computed for each task frame.")
+    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
+       doc("Constraint data for debugging and monitoring")
 
     periodic 0.01
 end
+
 
 task_context "HierarchicalWDLSSolverTask" do
     needs_configuration
 
-    property("joint_names", "std/vector<std/string>").
-       doc("Joint names. Order has to be the same as in WbcVelocityTask")
-
     property("norm_max", "double").
-       doc("Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, but also high joint velocities in singular configurations")
-
-    property("initial_joint_weights", "/base/VectorXd").
-       doc("Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints")
+       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
 
     property("svd_method", "wbc/svd_method").
        doc("Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)")
@@ -92,46 +84,70 @@ task_context "HierarchicalWDLSSolverTask" do
     property("epsilon", "double", 1e-9).
        doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
 
-    input_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
-       doc("Solver Input per priority (index 0 - highest prio)")
+    input_port("solver_input", "wbc/SolverInput").
+       doc("Input equation system for the solver")
 
-    input_port("joint_weights", "/base/VectorXd").
-       doc("Input size must be same as number of joints. Entries must be > 0. A higher value means that the corresponding joint is used less")
-
-    output_port("current_joint_weights", "/base/VectorXd").
-       doc("Currently used joint weight")
+    output_port("solver_output", "/base/VectorXd").
+       doc("Solver output.")
 
     output_port("computation_time", "double").
-       doc("Time for one cycle in seconds")
-
-    output_port("ctrl_out", "base/commands/Joints").
-       doc("Velocity based solver output")
+       doc("Computation time for one cycle in seconds")
 
     output_port("singular_values", "std/vector<base/VectorXd>").
-       doc("Singular Values of the task Jacobians (ordered by priority, 0 - highest)")
+       doc("Singular values for each priority")
 
-    output_port("condition_numbers", "base/VectorXd").
-       doc("For each priority: The ratio between highest and lowest singular value")
+    output_port("damping", "base/VectorXd").
+       doc("Damping coefficient for each priority")
 
-    output_port("damping_factors", "base/VectorXd").
-       doc("Damping factor used for matrix inversion on each priority level (ordered by priority, 0 - highest)")
+    output_port("condition_number", "base/VectorXd").
+       doc("Condition number (ratio biggest to smallest singular value) for each priority")
 
-    port_driven "constraints"
+    port_driven "solver_input"
 end
+
+
+task_context "RobotModelKDLTask" do
+    needs_configuration
+
+    property("urdf", "std/string").
+        doc("URDF model file.")
+
+    property("task_frame_ids", "std/vector<std/string>").
+        doc("Task frames required from the model.")
+
+    property("reduced_tree", "std/vector<wbc/SubChainConfig>")
+        doc("If you don't want to use the whole tree, define Subchains. Note: The first segment of the first sub chain will be the root element of the tree.")
+
+    input_port("joint_state", "base/samples/Joints").
+       doc("Current joint state from robot")
+
+    output_port("task_frames", "std/vector<wbc/TaskFrame>").
+       doc("Jacobians and poses computed for each task frame.")
+
+    output_port("computation_time", "double").
+       doc("Computation time for one cycle in seconds")
+
+    periodic 0.005
+end
+
 
 typekit do
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
+   export_types "wbc/SolverInput"
    export_types "wbc/TaskFrame"
 end
 
-deployment "aila_wbc_dynamics" do
 
-   task("aila_wbc_solver", "wbc::HierarchicalWDLSSolverTask").
-       realtime.priority(60)
+deployment "wbc_dynamic" do
 
-   task("aila_wbc_robot_model", "wbc::RobotModelKDLTask").
-       realtime.priority(60).
-       periodic(0.01)
+    task("wbc", "wbc::WbcVelocityTask").
+        periodic(0.01)
+
+    task("wbc_solver", "wbc::HierarchicalWDLSSolverTask")
+
+    task("wbc_robot_model", "wbc::RobotModelKDLTask").
+        periodic(0.005)
+
+    add_default_logger
 end
-
