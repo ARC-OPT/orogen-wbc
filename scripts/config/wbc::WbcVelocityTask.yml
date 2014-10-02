@@ -22,8 +22,8 @@ wbc_config:
      tip: "Force_Sensor_r"
      ref_frame: constraint_ref_frame_tip
      priority: 0
-     activation: 0
-     weights: [1,1,1,1,1,1]
+     activation: 1
+     weights: [0,1,1,1,1,1]
 
    - name: force_ctrl_left_arm
      type: cart
@@ -110,6 +110,6 @@ wbc_config:
      weights: [1,1,1,1,1,1]
 
 # Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds. In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.
-task_timeout: 1.0
+task_timeout: .nan
 
    

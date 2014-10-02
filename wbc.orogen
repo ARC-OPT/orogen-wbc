@@ -4,6 +4,7 @@ import_types_from "wbcTypes.hpp"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
 import_types_from "wbc/TaskFrame.hpp"
+import_types_from "wbc/LinearEqnSystem.hpp"
 import_types_from "wbc/GeneralizedInverse.hpp"
 import_types_from "base"
 using_library "wbc"
@@ -12,6 +13,8 @@ using_library "kdl_conversions"
 
 task_context "WbcVelocityTask" do
     needs_configuration
+
+    runtime_states "WAITING_FOR_TASK_FRAMES"
 
     property("joint_names", "std/vector<std/string>").
         doc("Specify order of joints used in the Jacobians here.")
@@ -56,7 +59,7 @@ task_context "WbcVelocityTask" do
     input_port("joint_state", "base/samples/Joints").
        doc("Optional: Current joint to compute constraint satisfaction measures.")
 
-    output_port("solver_input", "wbc/SolverInput").
+    output_port("linear_eqn_pp", "std/vector<wbc/LinearEqnSystem>").
        doc("Equation System for the solver.")
 
     output_port("ctrl_out", "base/commands/Joints").
@@ -68,12 +71,17 @@ task_context "WbcVelocityTask" do
     output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
        doc("Constraint data for debugging and monitoring")
 
+    output_port("current_joint_weights", "base/VectorXd").
+       doc("Currently used joint weights")
+
     periodic 0.01
 end
 
 
 task_context "HierarchicalWDLSSolverTask" do
     needs_configuration
+
+    runtime_states "WAITING_FOR_EQN_SYSTEM"
 
     property("norm_max", "double").
        doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
@@ -84,7 +92,7 @@ task_context "HierarchicalWDLSSolverTask" do
     property("epsilon", "double", 1e-9).
        doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
 
-    input_port("solver_input", "wbc/SolverInput").
+    input_port("linear_eqn_pp", "std/vector<wbc/LinearEqnSystem>").
        doc("Input equation system for the solver")
 
     output_port("solver_output", "/base/VectorXd").
@@ -102,7 +110,7 @@ task_context "HierarchicalWDLSSolverTask" do
     output_port("condition_number", "base/VectorXd").
        doc("Condition number (ratio biggest to smallest singular value) for each priority")
 
-    port_driven "solver_input"
+    port_driven "linear_eqn_pp"
 end
 
 
@@ -134,7 +142,8 @@ end
 typekit do
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
-   export_types "wbc/SolverInput"
+   export_types "wbc/ConstraintsPerPrio"
+   export_types "wbc/LinearEqnSystem"
    export_types "wbc/TaskFrame"
 end
 

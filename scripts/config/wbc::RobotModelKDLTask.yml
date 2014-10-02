@@ -1,7 +1,5 @@
 --- name:default
 
-task_frame_ids: ["Rover_base", "Hand_r", "Hand_l", "Force_Sensor_r", "Force_Sensor_l"]
-
 # Optionally define sub chains if not the complete KDL tree shall be used.
 reduced_tree: 
     - root: Rover_base

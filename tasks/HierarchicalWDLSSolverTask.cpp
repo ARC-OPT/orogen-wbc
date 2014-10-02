@@ -43,23 +43,30 @@ void HierarchicalWDLSSolverTask::updateHook()
 {
     HierarchicalWDLSSolverTaskBase::updateHook();
 
-    if(_solver_input.read(solver_input_) == RTT::NewData)
+    int ret = _linear_eqn_pp.read(linear_eqn_pp_);
+    if(ret == RTT::NoData)
     {
+        if(state() != WAITING_FOR_EQN_SYSTEM)
+            state(WAITING_FOR_EQN_SYSTEM);
+        return;
+    }
+
+    if(state() != RUNNING)
+        state(RUNNING);
+
+    if(ret == RTT::NewData)
+    {
+        if(linear_eqn_pp_.empty())
+            throw std::invalid_argument("Empty equation system");
+
         if(!solver_configured_)
             configureSolver();
 
         base::Time start = base::Time::now();
 
-        for(uint prio = 0; prio < solver_input_.priorities.size(); prio++)
-        {
-            A_[prio] = solver_input_.priorities[prio].system_matrix;
-            Wy_[prio] = solver_input_.priorities[prio].row_weights;
-            y_ref_[prio] = solver_input_.priorities[prio].system_input;
-        }
+        solver_->solve(linear_eqn_pp_, x_);
 
-        solver_->solve(A_, Wy_, y_ref_, solver_input_.column_weights, x_);
-
-        for(uint prio = 0; prio < solver_input_.priorities.size(); prio++)
+        for(uint prio = 0; prio < linear_eqn_pp_.size(); prio++)
         {
             singular_values_[prio] = solver_->getPriorityData(prio).singular_values_;
             damping_[prio] = solver_->getPriorityData(prio).damping_;

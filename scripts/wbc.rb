@@ -19,7 +19,7 @@ Orocos.run 'wbc_dynamic' do
 
    robot_model.joint_state.connect_to dispatcher.all_joint_state
    robot_model.task_frames.connect_to wbc.task_frames
-   wbc.solver_input.connect_to solver.solver_input
+   wbc.linear_eqn_pp.connect_to solver.linear_eqn_pp
    wbc.solver_output.connect_to solver.solver_output
    wbc.joint_state.connect_to dispatcher.all_joint_state
 
