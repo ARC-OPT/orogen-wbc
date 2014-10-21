@@ -5,7 +5,7 @@
 
 #include "wbc/HierarchicalWDLSSolverTaskBase.hpp"
 #include <wbc/HierarchicalWDLSSolver.hpp>
-#include <wbc/LinearEqnSystem.hpp>
+#include <wbc/SolverTypes.hpp>
 
 namespace wbc {
 
@@ -19,7 +19,7 @@ protected:
     std::vector<LinearEqnSystem> linear_eqn_pp_; /** Linear equations sorted by priorities*/
     Eigen::VectorXd x_;
     bool solver_configured_;
-    base::VectorXd damping_, condition_numbers_;
+    base::VectorXd damping_, inv_condition_numbers_, manipulability_;
     std::vector<base::VectorXd> singular_values_;
 
     void configureSolver()
@@ -29,14 +29,15 @@ protected:
 
         x_.resize(nx);
         singular_values_.resize(n_prios);
-        condition_numbers_.resize(n_prios);
+        inv_condition_numbers_.resize(n_prios);
         damping_.resize(n_prios);
+        manipulability_.resize(n_prios);
 
         std::vector<int> n_rows_per_prio(n_prios);
         for(uint prio = 0; prio < n_prios; prio++)
         {
             n_rows_per_prio[prio] = linear_eqn_pp_[prio].y_ref.size();
-            singular_values_[prio].resize(std::min((int)nx, (int)n_rows_per_prio[prio]));
+            singular_values_[prio].resize(nx);
         }
 
         if(!solver_->configure(n_rows_per_prio, nx))

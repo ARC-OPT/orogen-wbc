@@ -3,113 +3,51 @@
 # Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints
 initial_joint_weights:
   data: 
-     [1.0, 1.0, 1.0, 1.0,
+     [1.0, 1.0, 1.0,
+      1.0, 1.0, 1.0, 1.0,
       1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
       1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
       1.0, 1.0]
 
 # Define order of Joints that is used internally (for easier debugging)
-joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
+joint_names: ["J_X", "J_Y", "J_Theta",
+              "J_Foot", "J_Knees", "J_Hip", "J_Waist", 
               "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
               "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
               "J_Pan", "J_Tilt"]
 
 # Configuration of constraints
 wbc_config:  
-   - name: force_ctrl_right_arm
-     type: cart
-     root: "Rover_base"
-     tip: "Force_Sensor_r"
-     ref_frame: constraint_ref_frame_tip
-     priority: 0
-     activation: 1
-     weights: [0,1,1,1,1,1]
 
-   - name: force_ctrl_left_arm
-     type: cart
-     root: "Rover_base"
-     tip: "Force_Sensor_l"
-     ref_frame: constraint_ref_frame_tip
-     priority: 0   
-     activation: 0
-     weights: [1,1,1,1,1,1]
-
-   - name: cart_pos_ctrl_right_arm
-     type: cart
-     root: "Rover_base"
-     tip: "Hand_r"
-     priority: 0
-     activation: 0
-     weights: [1,1,1,1,1,1]
-
-   - name: self_collision_avoidance
+   - name: joint_limit_avoidance
      type: jnt
      priority: 0
      joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
                    "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
-                   "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l"]
+                   "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
+                   "J_Pan", "J_Tilt"]
      activation: 0
-     weights: [1,1,1,1, 1,1,1,1,1,1,1, 1,1,1,1,1,1,1]
+     weights: [1,1,1,1, 1,1,1,1,1,1,1, 1,1,1,1,1,1,1, 1,1]
 
-   - name: keep_hands_parallel_ctrl
+   - name: cart_pos_ctrl_right_arm
      type: cart
-     root: "Hand_r"
-     tip: "Hand_l"
+     root: "base_link"
+     tip: "Hand_r"
      priority: 1
      activation: 0
-     weights: [1,1,1,1,1,1]
-
-   - name: cart_pos_ctrl_left_arm
-     type: cart
-     root: "Rover_base"
-     tip: "Hand_l"
-     priority: 1
-     activation: 0
-     weights: [1,1,1,1,1,1]
+     weights: [1,1,1,1,1,1]   
 
    - name: joint_pos_ctrl
      type: jnt
      priority: 2
+     activation: 0
+     weights: [1,1,1,1, 1,1,1,1,1,1,1, 1,1,1,1,1,1,1, 1,1]   
      joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
                    "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
                    "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
                    "J_Pan", "J_Tilt"]
-     activation: 0
-     weights: [1,1,1,1, 1,1,1,1,1,1,1, 1,1,1,1,1,1,1, 1,1]
-
-   - name: joint_limit_avoidance
-     type: jnt
-     priority: 3
-     joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
-                   "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
-                   "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
-                   "J_Pan", "J_Tilt"]
-     activation: 0
-     weights: [1,1,1,1, 1,1,1,1,1,1,1, 1,1,1,1,1,1,1, 1,1]
-
-   - name: manipulability_ctrl_r
-     type: jnt
-     priority: 4
-     joint_names: ["J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r"]
-     activation: 0
-     weights: [1,1,1,1,1,1,1]
-
-   - name: manipulability_ctrl_l
-     type: jnt
-     joint_names: ["J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l"]
-     priority: 4
-     activation: 0
-     weights: [1,1,1,1,1,1,1]
-
-   - name: body_posture_ctrl
-     type: cart
-     root: "Rover_base"
-     tip: "Chest"
-     priority: 5
-     activation: 0
-     weights: [1,1,1,1,1,1]
 
 # Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds. In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.
-task_timeout: .nan
+task_timeout: 1.0
 
    

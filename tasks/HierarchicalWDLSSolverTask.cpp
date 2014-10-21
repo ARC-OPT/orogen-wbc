@@ -68,19 +68,38 @@ void HierarchicalWDLSSolverTask::updateHook()
 
         for(uint prio = 0; prio < linear_eqn_pp_.size(); prio++)
         {
-            singular_values_[prio] = solver_->getPriorityData(prio).singular_values_;
             damping_[prio] = solver_->getPriorityData(prio).damping_;
+            singular_values_[prio] = solver_->getPriorityData(prio).singular_values_;
+
+            //Find min and max singular value. Since some singular values might be zero due to deactivated
+            //constraints (zero row weight). Only consider the singular values, which correspond to rows with non-zero weights
 
             double max_s_val = singular_values_[prio].maxCoeff();
-            double min_s_val = singular_values_[prio].minCoeff();
-            condition_numbers_[prio] = singular_values_[prio].minCoeff() == 0 ? base::infinity<double>() : max_s_val / min_s_val;
+            double min_s_val = base::infinity<double>();
+            manipulability_[prio] = 1;
+            for(uint i = 0; i < singular_values_[prio].size(); i++)
+            {
+                if(singular_values_[prio](i) < min_s_val && singular_values_[prio](i) > 1e-5)
+                {
+                    min_s_val = singular_values_[prio](i);
+                    manipulability_[prio] *= singular_values_[prio](i);
+                }
+            }
+            //If all row weights are zero, inverse condition number should be 0
+            if(min_s_val == base::infinity<double>())
+                min_s_val = 0;
+            if(manipulability_[prio] == 1)
+                manipulability_[prio] = 0;
+
+            inv_condition_numbers_[prio] = min_s_val / max_s_val;
         }
 
         _solver_output.write(x_);
         _computation_time.write((base::Time::now() - start).toSeconds());
-        _condition_number.write(condition_numbers_);
-        _damping.write(damping_);
-        _singular_values.write(singular_values_);
+        _inv_condition_number_pp.write(inv_condition_numbers_);
+        _damping_pp.write(damping_);
+        _singular_values_pp.write(singular_values_);
+        _manipulability_pp.write(manipulability_);
     }
 }
 

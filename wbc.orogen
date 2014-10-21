@@ -4,12 +4,13 @@ import_types_from "wbcTypes.hpp"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
 import_types_from "wbc/TaskFrame.hpp"
-import_types_from "wbc/LinearEqnSystem.hpp"
-import_types_from "wbc/GeneralizedInverse.hpp"
+import_types_from "wbc/SolverTypes.hpp"
 import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"
 using_library "kdl_conversions"
+using_task_library "ctrl_lib"
+using_task_library "transformer"
 
 task_context "WbcVelocityTask" do
     needs_configuration
@@ -101,14 +102,17 @@ task_context "HierarchicalWDLSSolverTask" do
     output_port("computation_time", "double").
        doc("Computation time for one cycle in seconds")
 
-    output_port("singular_values", "std/vector<base/VectorXd>").
+    output_port("singular_values_pp", "std/vector<base/VectorXd>").
        doc("Singular values for each priority")
 
-    output_port("damping", "base/VectorXd").
+    output_port("damping_pp", "base/VectorXd").
        doc("Damping coefficient for each priority")
 
-    output_port("condition_number", "base/VectorXd").
-       doc("Condition number (ratio biggest to smallest singular value) for each priority")
+    output_port("inv_condition_number_pp", "base/VectorXd").
+       doc("Inverse Condition number (ratio smallest to biggest singular value) for each priority")
+
+    output_port("manipulability_pp", "base/VectorXd").
+          doc("Manipulability measure, product of singular values")
 
     port_driven "linear_eqn_pp"
 end
@@ -157,6 +161,17 @@ deployment "wbc_dynamic" do
 
     task("wbc_robot_model", "wbc::RobotModelKDLTask").
         periodic(0.005)
+
+    task("cart_pos_ctrl_right_arm", "ctrl_lib::CartPosCtrlVelFF").
+        periodic(0.001)
+
+    task("joint_limit_avoidance", "ctrl_lib::JointLimitAvoidance").
+        periodic(0.001)
+
+    task("joint_pos_ctrl", "ctrl_lib::JointPosCtrlVelFF").
+        periodic(0.001)
+
+    task("cart_pos_ctrl_right_proxy", "transformer::TransformationProxy")
 
     add_default_logger
 end
