@@ -9,6 +9,5 @@
   <!--tags>stable</tags-->
   <depend package="control/wbc"/>
   <depend package="control/urdfdom"/>
-  <depend package="external/yaml-cpp"/>
   <depend package="control/kdl_conversions"/>
 </package>

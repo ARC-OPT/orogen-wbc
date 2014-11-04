@@ -9,7 +9,6 @@ import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"
 using_library "kdl_conversions"
-using_task_library "ctrl_lib"
 using_task_library "transformer"
 
 task_context "WbcVelocityTask" do
@@ -142,36 +141,10 @@ task_context "RobotModelKDLTask" do
     periodic 0.005
 end
 
-
 typekit do
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
    export_types "wbc/ConstraintsPerPrio"
    export_types "wbc/LinearEqnSystem"
    export_types "wbc/TaskFrame"
-end
-
-
-deployment "wbc_dynamic" do
-
-    task("wbc", "wbc::WbcVelocityTask").
-        periodic(0.01)
-
-    task("wbc_solver", "wbc::HierarchicalWDLSSolverTask")
-
-    task("wbc_robot_model", "wbc::RobotModelKDLTask").
-        periodic(0.005)
-
-    task("cart_pos_ctrl_right_arm", "ctrl_lib::CartPosCtrlVelFF").
-        periodic(0.001)
-
-    task("joint_limit_avoidance", "ctrl_lib::JointLimitAvoidance").
-        periodic(0.001)
-
-    task("joint_pos_ctrl", "ctrl_lib::JointPosCtrlVelFF").
-        periodic(0.001)
-
-    task("cart_pos_ctrl_right_proxy", "transformer::TransformationProxy")
-
-    add_default_logger
 end

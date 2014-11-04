@@ -3,8 +3,8 @@
 # Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints
 initial_joint_weights:
   data: 
-     [1.0, 1.0, 1.0,
-      1.0, 1.0, 1.0, 1.0,
+     [0.0, 0.1, 0.0,
+      0.005, 0.005, 0.005, 0.005, 
       1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
       1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
       1.0, 1.0]
@@ -46,6 +46,21 @@ wbc_config:
                    "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
                    "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
                    "J_Pan", "J_Tilt"]
+
+   - name: body_posture_ctrl
+     type: cart
+     root: "Rover_base"
+     tip: "Chest"
+     priority: 3
+     activation: 0
+     weights: [0,0,0,1,1,1]   
+
+   - name: manipulability_ctrl
+     type: jnt
+     priority: 4
+     activation: 0
+     weights: [1,1,1,1,1,1,1]   
+     joint_names: ["J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r"]
 
 # Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds. In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.
 task_timeout: 1.0
