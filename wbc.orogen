@@ -23,6 +23,9 @@ task_context "WbcVelocityTask" do
         doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
              Size has to be same as joint_names")
 
+    property("compute_debug", "bool", false).
+       doc("Compute debug information")
+
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
              Cartesian constraints:

@@ -26,6 +26,7 @@ protected:
     base::samples::Joints joint_state_; /** Optional joint status input. Is used to compute the constraint status*/
     base::VectorXd solver_output_; /** Solution coming from the solver*/
     base::VectorXd robot_vel_; /** Robot velocity, converted from joint_state*/
+    bool compute_debug_;
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");

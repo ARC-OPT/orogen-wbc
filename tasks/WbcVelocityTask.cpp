@@ -23,6 +23,7 @@ bool WbcVelocityTask::configureHook(){
     std::vector<wbc::ConstraintConfig> wbc_config = _wbc_config.get();
     std::vector<std::string> joint_names = _joint_names.get();
     joint_weights_ = _initial_joint_weights.get();
+    compute_debug_ = _compute_debug.get();
 
     // Configure WBC library
     wbc_ = new WbcVelocity();
@@ -123,12 +124,16 @@ void WbcVelocityTask::updateHook(){
     for(uint prio  = 0; prio < equations_.size(); prio++)
     {
         equations_[prio].W_col = joint_weights_;
-        for(uint i = 0; i < constraints_[prio].size(); i++)
+
+        if(compute_debug_)
         {
-            constraints_[prio][i].y_solution = constraints_[prio][i].A * solver_output_;
-            constraints_[prio][i].y = constraints_[prio][i].A * robot_vel_;
-            constraints_[prio][i].error_y_solution = constraints_[prio][i].y_ref - constraints_[prio][i].y_solution;
-            constraints_[prio][i].error_y = constraints_[prio][i].y_ref - constraints_[prio][i].y;
+            for(uint i = 0; i < constraints_[prio].size(); i++)
+            {
+                constraints_[prio][i].y_solution = constraints_[prio][i].A * solver_output_;
+                constraints_[prio][i].y = constraints_[prio][i].A * robot_vel_;
+                constraints_[prio][i].error_y_solution = constraints_[prio][i].y_ref - constraints_[prio][i].y_solution;
+                constraints_[prio][i].error_y = constraints_[prio][i].y_ref - constraints_[prio][i].y;
+            }
         }
     }
 
