@@ -3,7 +3,6 @@ name "wbc"
 import_types_from "wbcTypes.hpp"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
-import_types_from "wbc/TaskFrame.hpp"
 import_types_from "wbc/SolverTypes.hpp"
 import_types_from "base"
 using_library "wbc"
@@ -14,17 +13,29 @@ using_task_library "transformer"
 task_context "WbcVelocityTask" do
     needs_configuration
 
-    runtime_states "WAITING_FOR_TASK_FRAMES"
+    runtime_states "WAITING_FOR_JOINT_STATE"
+
+    property("urdf", "std/string").
+        doc("URDF model file.")
+
+    property("reduced_tree", "std/vector<wbc/SubChainConfig>")
+        doc("If you don't want to use the whole tree, define Subchains. Note: The first segment of the first sub chain will be the root element of the tree.")
 
     property("joint_names", "std/vector<std/string>").
         doc("Specify order of joints used in the Jacobians here.")
 
+    property("norm_max", "double", 10.0).
+       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
+
+    property("svd_method", "wbc/svd_method", :svd_kdl).
+       doc("Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)")
+
+    property("epsilon", "double", 1e-9).
+       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
+
     property("initial_joint_weights", "base/VectorXd").
         doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
              Size has to be same as joint_names")
-
-    property("compute_debug", "bool", false).
-       doc("Compute debug information")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
@@ -50,20 +61,13 @@ task_context "WbcVelocityTask" do
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
+
     input_port("joint_weights", "base/VectorXd").
        doc("Online set new joint weights")
 
-    input_port("task_frames", "std/vector<wbc/TaskFrame>").
-       doc("Task Frame vector containing jacobians and poses for each task frame")
-
-    input_port("solver_output", "base/VectorXd").
-       doc("Solution of the equation system coming from the solver.")
-
     input_port("joint_state", "base/samples/Joints").
-       doc("Optional: Current joint to compute constraint satisfaction measures.")
+       doc("Current joint state of the robot. Right now, only position are required.")
 
-    output_port("linear_eqn_pp", "std/vector<wbc/LinearEqnSystem>").
-       doc("Equation System for the solver.")
 
     output_port("ctrl_out", "base/commands/Joints").
        doc("Control solution")
@@ -71,38 +75,14 @@ task_context "WbcVelocityTask" do
     output_port("computation_time", "double").
        doc("Computation time for one cycle in seconds")
 
+    output_port("actual_cycle_time", "double").
+       doc("Computation time for one cycle in seconds")
+
     output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
        doc("Constraint data for debugging and monitoring")
 
     output_port("current_joint_weights", "base/VectorXd").
        doc("Currently used joint weights")
-
-    periodic 0.01
-end
-
-
-task_context "HierarchicalWDLSSolverTask" do
-    needs_configuration
-
-    runtime_states "WAITING_FOR_EQN_SYSTEM"
-
-    property("norm_max", "double").
-       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
-
-    property("svd_method", "wbc/svd_method").
-       doc("Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)")
-
-    property("epsilon", "double", 1e-9).
-       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
-
-    input_port("linear_eqn_pp", "std/vector<wbc/LinearEqnSystem>").
-       doc("Input equation system for the solver")
-
-    output_port("solver_output", "/base/VectorXd").
-       doc("Solver output.")
-
-    output_port("computation_time", "double").
-       doc("Computation time for one cycle in seconds")
 
     output_port("singular_values_pp", "std/vector<base/VectorXd>").
        doc("Singular values for each priority")
@@ -114,40 +94,14 @@ task_context "HierarchicalWDLSSolverTask" do
        doc("Inverse Condition number (ratio smallest to biggest singular value) for each priority")
 
     output_port("manipulability_pp", "base/VectorXd").
-          doc("Manipulability measure, product of singular values")
-
-    port_driven "linear_eqn_pp"
-end
+       doc("Manipulability measure, product of singular values")
 
 
-task_context "RobotModelKDLTask" do
-    needs_configuration
-
-    property("urdf", "std/string").
-        doc("URDF model file.")
-
-    property("task_frame_ids", "std/vector<std/string>").
-        doc("Task frames required from the model.")
-
-    property("reduced_tree", "std/vector<wbc/SubChainConfig>")
-        doc("If you don't want to use the whole tree, define Subchains. Note: The first segment of the first sub chain will be the root element of the tree.")
-
-    input_port("joint_state", "base/samples/Joints").
-       doc("Current joint state from robot")
-
-    output_port("task_frames", "std/vector<wbc/TaskFrame>").
-       doc("Jacobians and poses computed for each task frame.")
-
-    output_port("computation_time", "double").
-       doc("Computation time for one cycle in seconds")
-
-    periodic 0.005
+    periodic 0.01
 end
 
 typekit do
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
    export_types "wbc/ConstraintsPerPrio"
-   export_types "wbc/LinearEqnSystem"
-   export_types "wbc/TaskFrame"
 end
