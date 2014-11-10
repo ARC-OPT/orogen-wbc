@@ -134,14 +134,17 @@ bool WbcVelocityTask::startHook(){
     //Clear all task references, weights etc. to have to secure initial state
     for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
         it->second->reset();
-
+    stamp_.microseconds = 0;
     return true;
 }
 
 void WbcVelocityTask::updateHook(){
     WbcVelocityTaskBase::updateHook();
 
-    base::Time start = base::Time::now();
+    base::Time cur = base::Time::now();
+    if(!stamp_.isNull())
+        _actual_cycle_time.write((cur - stamp_).toSeconds());
+    stamp_ = cur;
 
     for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
         it->second->update();
@@ -219,7 +222,7 @@ void WbcVelocityTask::updateHook(){
     _damping_pp.write(damping_);
     _singular_values_pp.write(singular_values_);
     _manipulability_pp.write(manipulability_);
-    _computation_time.write((base::Time::now() - start).toSeconds());
+    _computation_time.write((base::Time::now() - cur).toSeconds());
     _current_joint_weights.write(joint_weights_);
     _constraints.write(constraints_);
     _ctrl_out.write(ctrl_out_);

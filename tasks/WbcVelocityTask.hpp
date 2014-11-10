@@ -29,6 +29,7 @@ protected:
     base::VectorXd robot_vel_; /** Robot velocity, converted from joint_state*/
     base::VectorXd damping_, inv_condition_numbers_, manipulability_;
     std::vector<base::VectorXd> singular_values_;
+    base::Time stamp_;
 
     WbcVelocity *wbc_; /** This will create the equation system for the solver*/
     HierarchicalWDLSSolver* solver_;
