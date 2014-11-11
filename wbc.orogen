@@ -8,7 +8,6 @@ import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"
 using_library "kdl_conversions"
-using_task_library "transformer"
 
 task_context "WbcVelocityTask" do
     needs_configuration
