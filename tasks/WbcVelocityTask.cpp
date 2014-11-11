@@ -26,6 +26,7 @@ bool WbcVelocityTask::configureHook(){
     std::vector<wbc::ConstraintConfig> wbc_config = _wbc_config.get();
     std::vector<std::string> joint_names = _joint_names.get();
     joint_weights_ = _initial_joint_weights.get();
+    compute_debug_ = _compute_debug.get();
 
     //
     // Configure WBC Library
@@ -177,51 +178,54 @@ void WbcVelocityTask::updateHook(){
 
 
     //Compute debug data
-    for(uint prio = 0; prio < equations_.size(); prio++)
+    if(compute_debug_)
     {
-        for(uint i = 0; i < constraints_[prio].size(); i++)
+        for(uint prio = 0; prio < equations_.size(); prio++)
         {
-            for(uint j = 0; j <ctrl_out_.size(); j++)
-                robot_vel_(j) = joint_state_.getElementByName(ctrl_out_.names[j]).speed;
-
-            constraints_[prio][i].y_solution = constraints_[prio][i].A * solver_output_;
-            constraints_[prio][i].y = constraints_[prio][i].A * robot_vel_;
-            constraints_[prio][i].error_y_solution = constraints_[prio][i].y_ref - constraints_[prio][i].y_solution;
-            constraints_[prio][i].error_y = constraints_[prio][i].y_ref - constraints_[prio][i].y;
-        }
-
-        damping_[prio] = solver_->getPriorityData(prio).damping_;
-        singular_values_[prio] = solver_->getPriorityData(prio).singular_values_;
-
-        //Find min and max singular value. Since some singular values might be zero due to deactivated
-        //constraints (zero row weight). Only consider the singular values, which correspond to rows with non-zero weights
-
-        double max_s_val = singular_values_[prio].maxCoeff();
-        double min_s_val = base::infinity<double>();
-        manipulability_[prio] = 1;
-        for(uint i = 0; i < singular_values_[prio].size(); i++)
-        {
-            if(singular_values_[prio](i) < min_s_val && singular_values_[prio](i) > 1e-5)
+            for(uint i = 0; i < constraints_[prio].size(); i++)
             {
-                min_s_val = singular_values_[prio](i);
-                manipulability_[prio] *= singular_values_[prio](i);
-            }
-        }
-        //If all row weights are zero, inverse condition number should be 0
-        if(min_s_val == base::infinity<double>())
-            min_s_val = 0;
-        if(manipulability_[prio] == 1)
-            manipulability_[prio] = 0;
+                for(uint j = 0; j <ctrl_out_.size(); j++)
+                    robot_vel_(j) = joint_state_.getElementByName(ctrl_out_.names[j]).speed;
 
-        inv_condition_numbers_[prio] = min_s_val / max_s_val;
+                constraints_[prio][i].y_solution = constraints_[prio][i].A * solver_output_;
+                constraints_[prio][i].y = constraints_[prio][i].A * robot_vel_;
+                constraints_[prio][i].error_y_solution = constraints_[prio][i].y_ref - constraints_[prio][i].y_solution;
+                constraints_[prio][i].error_y = constraints_[prio][i].y_ref - constraints_[prio][i].y;
+            }
+
+            damping_[prio] = solver_->getPriorityData(prio).damping_;
+            singular_values_[prio] = solver_->getPriorityData(prio).singular_values_;
+
+            //Find min and max singular value. Since some singular values might be zero due to deactivated
+            //constraints (zero row weight). Only consider the singular values, which correspond to rows with non-zero weights
+
+            double max_s_val = singular_values_[prio].maxCoeff();
+            double min_s_val = base::infinity<double>();
+            manipulability_[prio] = 1;
+            for(uint i = 0; i < singular_values_[prio].size(); i++)
+            {
+                if(singular_values_[prio](i) < min_s_val && singular_values_[prio](i) > 1e-5)
+                {
+                    min_s_val = singular_values_[prio](i);
+                    manipulability_[prio] *= singular_values_[prio](i);
+                }
+            }
+            //If all row weights are zero, inverse condition number should be 0
+            if(min_s_val == base::infinity<double>())
+                min_s_val = 0;
+            if(manipulability_[prio] == 1)
+                manipulability_[prio] = 0;
+
+            inv_condition_numbers_[prio] = min_s_val / max_s_val;
+        }
+
+        _inv_condition_number_pp.write(inv_condition_numbers_);
+        _damping_pp.write(damping_);
+        _singular_values_pp.write(singular_values_);
+        _manipulability_pp.write(manipulability_);
     }
 
-
     // Write outputs
-    _inv_condition_number_pp.write(inv_condition_numbers_);
-    _damping_pp.write(damping_);
-    _singular_values_pp.write(singular_values_);
-    _manipulability_pp.write(manipulability_);
     _computation_time.write((base::Time::now() - cur).toSeconds());
     _current_joint_weights.write(joint_weights_);
     _constraints.write(constraints_);
