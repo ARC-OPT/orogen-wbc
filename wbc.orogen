@@ -18,10 +18,10 @@ task_context "WbcVelocityTask" do
         doc("URDF model file.")
 
     property("reduced_tree", "std/vector<wbc/SubChainConfig>")
-        doc("If you don't want to use the whole tree, define Subchains. Note: The first segment of the first sub chain will be the root element of the tree.")
+        doc("If you don't want to use the whole tree, define Subchains. Note: The root member of the first sub chain will be the root element of the reduced tree.")
 
     property("joint_names", "std/vector<std/string>").
-        doc("Specify order of joints used in the Jacobians here.")
+        doc("Specify order of joints used in the Jacobians here. All joints defined in the tree have to be specified here.")
 
     property("norm_max", "double", 10.0).
        doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
