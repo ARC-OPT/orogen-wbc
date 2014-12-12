@@ -16,7 +16,7 @@ public:
     ConstraintInterface(Constraint* config);
     ~ConstraintInterface();
 
-    void update();
+    void update(const base::samples::Joints& joint_state);
     void reset();
     void addPortsToTaskContext(RTT::TaskContext* task);
     void removePortsFromTaskContext(RTT::TaskContext* task);
@@ -24,6 +24,7 @@ public:
     Constraint *constraint;
 
     base::samples::RigidBodyState constraint_pose_;
+    base::samples::Joints constraint_jnt_state_;
 
     RTT::InputPort<base::samples::RigidBodyState>* cart_ref_port;
     RTT::InputPort<base::samples::Joints>* jnt_ref_port;
@@ -32,6 +33,7 @@ public:
 
     //Debug Ports
     RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port;
+    RTT::OutputPort<base::samples::Joints>* joint_state_out_port;
 
     base::samples::RigidBodyState cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */

@@ -147,16 +147,16 @@ void WbcVelocityTask::updateHook(){
         _actual_cycle_time.write((cur - stamp_).toSeconds());
     stamp_ = cur;
 
-    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
-        it->second->update();
-
-    _joint_weights.read(joint_weights_);
-
     if(_joint_state.read(joint_state_) == RTT::NoData){
         if(state() != WAITING_FOR_JOINT_STATE)
             state(WAITING_FOR_JOINT_STATE);
         return;
     }
+
+    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
+        it->second->update(joint_state_);
+
+    _joint_weights.read(joint_weights_);
 
     if(state() != RUNNING)
         state(RUNNING);
