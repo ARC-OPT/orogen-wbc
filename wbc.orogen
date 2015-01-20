@@ -40,16 +40,17 @@ task_context "WbcVelocityTask" do
         doc("Compute debug data like manipulability, condition numbers, error between solution and desired values etc.")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
-        doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraints:
+        doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
              Cartesian constraints:
-                 Reference Input (/base/samples/RigidBodyState):         ref_p<prio>_cart_<task_name>
-                 Weights (/base/VectorXd):                               weight_p<prio>_cart_<task_name>
-                 Activation function (double):                           activation_p<prio>_cart_<task_name>
-                 Constraint pose output (/base/samples/RigidBodyState):  pose_p<prio>_cart_<task_name>
+                 Reference Input (/base/samples/RigidBodyState):         ref_<task_name>
+                 Weights (/base/VectorXd):                               weight_<task_name>
+                 Activation function (double):                           activation_<task_name>
+                 Constraint pose output (/base/samples/RigidBodyState):  pose_<task_name>
              Joint Space constraints:
-                 Reference Input (/base/samples/Joints):                 ref_p<prio>_jnt_<task_name>
-                 Weights (/base/VectorXd):                               weight_p<prio>_jnt_<task_name>
-                 Activation function (double):                           activation_p<prio>_cart_<task_name>")
+                 Reference Input (/base/samples/Joints):                 ref_<task_name>
+                 Weights (/base/VectorXd):                               weight_<task_name>
+                 Activation function (double):                           activation_<task_name>
+                 Current joint state output (base/samples/Joints):       joint_state_<task_name>")
 
     property("task_timeout", "double", 1).
        doc("Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds.
@@ -62,13 +63,14 @@ task_context "WbcVelocityTask" do
     dynamic_input_port /.*/, "/base/VectorXd"
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
+    dynamic_output_port /.*/, "/base/samples/Joints"
 
 
     input_port("joint_weights", "base/VectorXd").
        doc("Online set new joint weights")
 
     input_port("joint_state", "base/samples/Joints").
-       doc("Current joint state of the robot. Right now, only position are required.")
+       doc("Current joint state of the robot. Right now, only positions are required.")
 
 
     output_port("ctrl_out", "base/commands/Joints").
@@ -78,7 +80,7 @@ task_context "WbcVelocityTask" do
        doc("Computation time for one cycle in seconds")
 
     output_port("actual_cycle_time", "double").
-       doc("Computation time for one cycle in seconds")
+       doc("Actual cycle time between two consecutive calls of updateHook() in seconds")
 
     output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
        doc("Constraint data for debugging and monitoring")
