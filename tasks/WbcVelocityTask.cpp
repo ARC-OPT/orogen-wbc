@@ -189,8 +189,8 @@ void WbcVelocityTask::updateHook(){
 
                 constraints_[prio][i].y_solution = constraints_[prio][i].A * solver_output_;
                 constraints_[prio][i].y = constraints_[prio][i].A * robot_vel_;
-                constraints_[prio][i].error_y_solution = constraints_[prio][i].y_ref - constraints_[prio][i].y_solution;
-                constraints_[prio][i].error_y = constraints_[prio][i].y_ref - constraints_[prio][i].y;
+                constraints_[prio][i].error_y_solution = constraints_[prio][i].y_ref_root - constraints_[prio][i].y_solution;
+                constraints_[prio][i].error_y = constraints_[prio][i].y_ref_root - constraints_[prio][i].y;
             }
 
             damping_[prio] = solver_->getPriorityData(prio).damping_;
