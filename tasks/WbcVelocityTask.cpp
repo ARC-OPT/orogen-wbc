@@ -229,6 +229,7 @@ void WbcVelocityTask::updateHook(){
     _computation_time.write((base::Time::now() - cur).toSeconds());
     _current_joint_weights.write(joint_weights_);
     _constraints.write(constraints_);
+    ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
 }
 
