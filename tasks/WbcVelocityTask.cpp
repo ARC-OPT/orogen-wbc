@@ -18,19 +18,23 @@ WbcVelocityTask::WbcVelocityTask(std::string const& name)
 WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine)
     : WbcVelocityTaskBase(name, engine){
 }
-
 bool WbcVelocityTask::configureHook(){
     if (! WbcVelocityTaskBase::configureHook())
         return false;
 
     std::vector<wbc::ConstraintConfig> wbc_config = _wbc_config.get();
-    std::vector<std::string> joint_names = _joint_names.get();
     joint_weights_ = _initial_joint_weights.get();
     compute_debug_ = _compute_debug.get();
+    std::vector<std::string> joint_names = _joint_names.get();
+    std::string base_frame = _base_frame.get();
 
-    //
-    // Configure WBC Library
-    //
+    // Load URDF Model:
+    KDL::Tree tree;
+    if(!kdl_parser::treeFromFile(_urdf.get(), tree))
+    {
+        LOG_ERROR("Unable to parse KDL Tree from URDF file %s", _urdf.get().c_str());
+        return false;
+    }
 
     wbc_ = new WbcVelocity();
     if(!wbc_->configure(wbc_config, joint_names, _task_timeout.get())){
@@ -39,47 +43,11 @@ bool WbcVelocityTask::configureHook(){
     }
     LOG_DEBUG("... Configured WBC");
 
-    //
-    // Configure Robot model
-    //
-
-    // Load URDF Model:
-    KDL::Tree full_tree, tree;
-    if(!kdl_parser::treeFromFile(_urdf.get(), full_tree))
-    {
-        LOG_ERROR("Unable to parse KDL Tree from URDF file %s", _urdf.get().c_str());
-        return false;
-    }
-
-    //Construct tree, if no reduced tree is given, use full tree
-    std::vector<wbc::SubChainConfig> reduced_tree = _reduced_tree.get();
-    if(reduced_tree.empty())
-        tree = full_tree;
-    else{
-        for(uint i = 0; i < reduced_tree.size(); i++){
-            KDL::Chain chain;
-            if(!full_tree.getChain(reduced_tree[i].root, reduced_tree[i].tip, chain))
-            {
-                LOG_ERROR("Could not extract sub chain between %s and %s from KDL tree", reduced_tree[i].root.c_str(), reduced_tree[i].tip.c_str());
-                return false;
-            }
-            //Root of first subchain will be root of whole KDL tree
-            if(i == 0)
-                tree.addSegment(KDL::Segment(reduced_tree[i].root, KDL::Joint(reduced_tree[i].root,KDL::Joint::None),KDL::Frame::Identity()), "root");
-            tree.addChain(chain, reduced_tree[i].root);
-        }
-    }
-
     //Create robot model and add task frames
-    robot_model_ = new RobotModelKDL(tree);
-    if(!robot_model_->addTaskFrames(wbc_->getTaskFrameIDs()))
-        return false;
+    robot_model_ = new RobotModelKDL(tree, _base_frame.get());
+    robot_model_->addTaskFrames(wbc_->getTaskFrameIDs());
+
     LOG_DEBUG("... Configured Robot Model");
-
-
-    //
-    // Configure Solver
-    //
 
     solver_ = new HierarchicalWDLSSolver();
     solver_->setNormMax(_norm_max.get());
@@ -91,6 +59,7 @@ bool WbcVelocityTask::configureHook(){
         LOG_ERROR("Unable to configure wbc solver");
         return false;
     }
+
     LOG_DEBUG("... Configured Solver");
 
     //
