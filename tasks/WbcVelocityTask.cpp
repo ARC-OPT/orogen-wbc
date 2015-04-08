@@ -44,6 +44,8 @@ bool WbcVelocityTask::configureHook(){
     LOG_DEBUG("... Configured WBC");
 
     //Create robot model and add task frames
+    if(base_frame.empty())
+        base_frame = tree.getRootSegment()->first;
     robot_model_ = new RobotModelKDL(tree, _base_frame.get());
     robot_model_->addTaskFrames(wbc_->getTaskFrameIDs());
 
