@@ -6,6 +6,7 @@
 #include "wbc/WbcVelocityTaskBase.hpp"
 #include "ConstraintInterface.hpp"
 #include <wbc/TaskFrameKDL.hpp>
+#include <base/commands/Joints.hpp>
 
 namespace wbc {
 
