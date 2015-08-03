@@ -1,0 +1,18 @@
+--- src/kdl_parser.cpp
++++ src/kdl_parser.cpp
+@@ -83,7 +83,14 @@
+         KDL::Vector axis = toKdl(jnt->axis);
+         return KDL::Joint(jnt->name, F_parent_jnt.p, F_parent_jnt.M * axis, KDL::Joint::TransAxis);
+     }
+-    default:{
++  case urdf::Joint::FOURLINKS:
++  {
++        KDL::Joint ret = KDL::Joint(jnt->name, F_parent_jnt, KDL::Joint::FourLinks,
++                                    jnt->description4l->r1, jnt->description4l->r2, jnt->description4l->d,
++                                    jnt->description4l->l, jnt->description4l->theta);
++        return ret;
++  }
++  default:{
+         LOG_ERROR("Converting unknown joint type of joint '%s' into a fixed joint", jnt->name.c_str());
+         return Joint(jnt->name, Joint::None);
+     }

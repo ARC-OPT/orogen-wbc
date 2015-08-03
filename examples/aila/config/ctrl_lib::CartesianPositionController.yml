@@ -1,0 +1,12 @@
+--- name:default
+# Minimum control error (dead zone). If one value falls below minimum, it will be set to zero. Default is zero.
+deadZone:
+  data: []
+
+# Maximum control output (saturation). If one output value exceeds maximum, all other values will be scaled accordingly. Default is infinite.
+maxControlOutput:
+  data: []
+
+# Proportional gain.
+propGain:
+  data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]

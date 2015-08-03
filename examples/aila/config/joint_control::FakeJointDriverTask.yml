@@ -1,0 +1,59 @@
+--- name:default
+# no documentation available for this property
+control_mode: velocity
+
+# Cycle time in second
+cycle_time: 0.01
+
+# Initial state of the fake driver. If left empty, zero for all values is assumed
+initial_joint_state:
+  names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
+          "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
+          "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
+          "J_Pan", "J_Tilt"]
+  elements: [{position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Foot
+             {position: 2.4, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Knees
+             {position: 2.4, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Hip
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Waist
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Shoulder1_r
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Shoulder2_r
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_UpperArm_r
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Elbow_r
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Forearm_r
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Wrist1_r
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Wrist2_r
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Shoulder1_l
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Shoulder2_l
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_UpperArm_l
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Elbow_l
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Forearm_l
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Wrist1_l
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Wrist2_l
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}, # J_Pan
+             {position: 0.0, speed: 0.0, effort: 0.0, acceleration: 0.0}] # J_Tilt
+
+# Measurement noise standard deviation. Defaults to zero
+meas_noise_std_dev: 1.0e-4
+
+# Position Controller PID values (Note: Right now, only kp is used)
+# This property determines the number of joints
+pos_pid: [{kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0},
+          {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0},
+          {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0},
+          {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}]
+
+
+# Velocity Controller PID values (Note: Right now, only kp is used)
+vel_pid: [{kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0},
+          {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0},
+          {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0},
+          {kp: 1.0, maxPWM: 1.0}, {kp: 1.0, maxPWM: 1.0}]
+
+# Initial state of the fake driver. If left empty, zero for all values is assumed
+velocity_timeout: 0.3
+
+--- name:position
+control_mode: position
+
+--- name:velocity
+control_mode: velocity

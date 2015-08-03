@@ -1,0 +1,58 @@
+--- name:default
+
+# URDF model file.
+urdf: aila.urdf
+
+# Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds. In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.
+task_timeout: 1.0
+
+# Compute debug data like manipulability, condition numbers, error between solution and desired values etc.
+compute_debug: true
+
+# Name of the robot base frame; all computations will be performed with respect to this frame
+base_frame: Rover_base
+
+# Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero
+epsilon: 1.0e-09
+
+# Maximum allowed norm of robot joint velocities in rad/sec. A very high value will provide an accurate solution, but also high joint velocities in singular configurations
+norm_max: 10.0
+
+# Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)
+svd_method: :svd_kdl
+
+# Define order of Joints that is used internally (for easier debugging)
+joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
+              "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
+              "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
+              "J_Pan", "J_Tilt"]
+
+# Initial values for the joint weights. If not set here, all values will be one. If not empty, size has to be same as no of joints
+initial_joint_weights: 
+    data: [0.002, 0.002, 0.002, 0.002,
+           1,1,1,1,1,1,1,
+           1,1,1,1,1,1,1,
+           1,1]  
+
+# Configuration of constraints
+wbc_config:  
+     
+   - name: cart_pos_ctrl_right_arm
+     type: cart
+     root: "Rover_base"
+     tip: "Hand_r"
+     ref_frame: "Rover_base"
+     priority: 0
+     weights: [1,1,1,1,1,1]
+     activation: 1
+     
+   - name: upper_joint_limits
+     type: jnt
+     priority: 1
+     joint_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
+                   "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
+                   "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
+                   "J_Pan", "J_Tilt"]
+     weights: [1,1,1,1,  1,1,1,1,1,1,1, 1,1,1,1,1,1,1, 1,1]
+     activation: 1
+     

@@ -1,0 +1,163 @@
+--- orocos_kdl/src/joint.cpp
++++ orocos_kdl/src/joint.cpp
+@@ -69,6 +69,78 @@
+       q_previous = 0;
+     }
+ 
++    Joint::Joint(const std::string& _name, const Frame& _pose, const JointType& _type,
++          const double& _r1, const double& _r2, const double& _d, const double& _l, const double& _theta,
++          const double& _scale, const double& _offset, const double& _inertia, const double& _damping,
++          const double& _stiffness)
++    {
++        name=_name;
++
++        fourlink_base_frame = _pose;
++        //joint_pose = _pose;
++
++        type=_type;
++        fourlink_r1=_r1;
++        fourlink_r2=_r2;
++        fourlink_d=_d;
++        fourlink_l=_l;
++        fourlink_theta=_theta;
++        scale=_scale;
++        offset=_offset;
++        inertia=_inertia;
++        damping=_damping;
++        stiffness=_stiffness;
++      if (type != FourLinks)
++      {
++          throw joint_type_ex;
++      }
++
++    }
++
++    Frame Joint::fourLinksForward(const double& t) const
++    {
++        double theta = this->fourlink_theta - t + offset; // TODO: maybe we need it to be +t
++        double l = this->fourlink_l;
++        double d = this->fourlink_d;
++        double r1 = this->fourlink_r1;
++        double r2 = this->fourlink_r2;
++
++        double W = l*l - d*d - r1*r1 + r2*r2;
++        double m =  d - l*cos(theta);
++        double n =  l * sin(theta);
++
++        double A = (n*n) + (m*m);
++        double B = W * m -2*d*(n*n);
++        double C = W*W/ 4 + d*d*n*n - r2*r2*n*n;
++        double Delta = fabs(B*B - 4 * A * C);
++
++        double x = (-B - sign(theta-3.14159265) * sqrt(Delta)) / (2 * A);
++        double y = sqrt(fabs(r2*r2 - (x-d)*(x-d)));
++
++        Vector T = Vector(x, y, 0);
++
++        double phi = atan2(l*cos(theta)-x, l*sin(theta)-y);
++
++        Rotation R = Rotation::RotZ(1.57079633-phi);
++
++
++        Frame tilt_trans = Frame(R,T);
++        Frame arm_tip = fourlink_base_frame * Frame(Vector(l*cos(theta), l*sin(theta), 0));
++
++        Frame ret = fourlink_base_frame * tilt_trans;
++
++        return ret;
++    }
++
++    void Joint::FourLinkParams(double& r1, double& r2, double& d, double& l, double& theta)
++    {
++        r1 = fourlink_r1;
++        r2 = fourlink_r2;
++        d = fourlink_d;
++        l = fourlink_l;
++        theta = fourlink_theta;
++    }
++
+     Joint::~Joint()
+     {
+     }
+@@ -97,6 +169,8 @@ 
+             return Frame(Vector(0.0,scale*q+offset,0.0));
+         case TransZ:
+             return Frame(Vector(0.0,0.0,scale*q+offset));
++        case FourLinks:
++            return fourLinksForward( q );
+         case None:
+             return Frame::Identity();
+         }
+@@ -122,6 +196,8 @@
+             return Twist(Vector(0.0,scale*qdot,0.0),Vector(0.0,0.0,0.0));
+         case TransZ:
+             return Twist(Vector(0.0,0.0,scale*qdot),Vector(0.0,0.0,0.0));
++        case FourLinks: //TODO: Do a proper twist computation! This is a hack to make twist computation at least not crash for the four link joint
++            return Twist(Vector(0.0,0.0,0.0),Vector(0.0,0.0,scale*qdot));
+         case None:
+             return Twist::Zero();
+         }
+
+--- orocos_kdl/src/joint.hpp
++++ orocos_kdl/src/joint.hpp
+@@ -44,7 +44,7 @@
+      */
+     class Joint {
+     public:
+-        typedef enum { RotAxis,RotX,RotY,RotZ,TransAxis,TransX,TransY,TransZ,None} JointType;
++        typedef enum { RotAxis,RotX,RotY,RotZ,TransAxis,TransX,TransY,TransZ,None,FourLinks} JointType;
+         /**
+          * Constructor of a joint.
+          *
+@@ -108,7 +108,15 @@ 
+          * default: 0
+          */
+         Joint(const Vector& _origin, const Vector& _axis, const JointType& type, const double& _scale=1, const double& _offset=0,
+-	      const double& _inertia=0, const double& _damping=0, const double& _stiffness=0);
++          const double& _inertia=0, const double& _damping=0, const double& _stiffness=0);
++
++        Frame fourLinksForward(const double& t) const;
++        Joint(const std::string& name, const Frame& _pose, const JointType& type,
++              const double& r1, const double& r2, const double& d, const double& l, const double& theta, const double& _scale=1,
++              const double& _offset=0, const double& _inertia=0, const double& _damping=0,
++              const double& _stiffness=0);
++        void FourLinkParams(double& r1, double& r2, double& d, double& l, double& theta);
++        inline Frame fourlinksBaseFrame() const {return fourlink_base_frame;}
+ 
+         /**
+          * Request the 6D-pose between the beginning and the end of
+@@ -185,6 +193,8 @@ 
+                 return "TransY";
+             case TransZ:
+                 return "TransZ";
++            case FourLinks:
++                return "FourLinks";
+             case None:
+                 return "None";
+             default:
+@@ -194,6 +204,14 @@ 
+ 
+         virtual ~Joint();
+ 
++    public:
++        double fourlink_r1;
++        double fourlink_r2;
++        double fourlink_l;
++        double fourlink_d;
++        double fourlink_theta;
++        Frame fourlink_base_frame;
++
+     private:
+         std::string name;
+         Joint::JointType type;
+
+--- orocos_kdl/src/segment.cpp
++++ orocos_kdl/src/segment.cpp
+@@ -56,6 +56,7 @@
+ 
+     Frame Segment::pose(const double& q)const
+     {
++        if (joint.getType() == Joint::FourLinks) return joint.pose(q);
+         return joint.pose(q)*f_tip;
+     }
+ 
