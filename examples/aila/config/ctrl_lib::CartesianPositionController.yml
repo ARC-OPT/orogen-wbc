@@ -1,4 +1,7 @@
 --- name:default
+# Name for each variable, e.g. joint names in case of joint space controller
+fieldNames: ["X", "Y", "Z", "rotZ", "rotY", "rotX"]
+
 # Minimum control error (dead zone). If one value falls below minimum, it will be set to zero. Default is zero.
 deadZone:
   data: []
