@@ -37,7 +37,7 @@ bool WbcVelocityTask::configureHook(){
     }
 
     wbc_ = new WbcVelocity();
-    if(!wbc_->configure(wbc_config, joint_names, _task_timeout.get())){
+    if(!wbc_->configure(wbc_config, joint_names)){
         LOG_ERROR("Unable to configure WBC");
         return false;
     }
