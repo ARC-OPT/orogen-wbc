@@ -53,10 +53,6 @@ task_context "WbcVelocityTask" do
                  Activation function (double):                           activation_<task_name>
                  Current joint state output (base/samples/Joints):       joint_state_<task_name>")
 
-    property("task_timeout", "double", 1).
-       doc("Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds.
-           In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.")
-
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
