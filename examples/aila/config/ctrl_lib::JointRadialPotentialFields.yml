@@ -1,23 +1,26 @@
 --- name:default
 # Minimum control error (dead zone). If one value falls below minimum, it will be set to zero. Default is zero.
-deadZone:
-  data: []
+initial_dead_zone:
+  data: [0,0,0,0, 
+         0,0,0,0,0,0,0,
+         0,0,0,0,0,0,0, 
+         0,0]
 
 # Name for each variable, e.g. joint names in case of joint space controller
-fieldNames: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
+field_names: ["J_Foot", "J_Knees", "J_Hip", "J_Waist", 
              "J_Shoulder1_r", "J_Shoulder2_r", "J_UpperArm_r", "J_Elbow_r", "J_Forearm_r", "J_Wrist1_r", "J_Wrist2_r", 
              "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
              "J_Pan", "J_Tilt"]
 
 # Maximum control output (saturation). If one output value exceeds maximum, all other values will be scaled accordingly. Default is infinite.
-maxControlOutput:
+initial_max_control_output:
   data: [0.05, 0.05, 0.05, 0.05, 
          0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 
          0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
          0.1, 0.1]
 
 # Maximum influence distance of the potential fields oer joint. For N joints, this vector has to have size N.
-maxInfluenceDistance:
+initial_influence_distance:
   data: [0.1, 0.05, 0.05, 0.1,
          0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,    
          0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
@@ -27,7 +30,7 @@ maxInfluenceDistance:
 order: 1.0
 
 # Proportional gain.
-propGain:
+initial_prop_gain:
   data: [0.1,0.1,0.1,0.1,
          1.0,1.0,1.0,1.0,1.0,1.0,1.0,
          1.0,1.0,1.0,1.0,1.0,1.0,1.0,
@@ -37,7 +40,7 @@ propGain:
 --- name:upper_limits
 
 # Initial center of the potential fields. For N joints this has to have size N.
-potFieldCenters:
+pot_field_centers:
   elements: [{position: 1.91}, {position: 2.70}, {position: 2.70}, {position: 1.04},
              {position: 3.10}, {position: 1.51}, {position: 2.93}, {position: 2.00}, {position: 2.6}, {position: -0.01}, {position: 0.61}, 
              {position: 3.10}, {position: 0.10}, {position: 2.93}, {position: 0.35}, {position: 2.6}, {position: -0.01}, {position: 0.61},

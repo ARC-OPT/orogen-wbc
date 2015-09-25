@@ -3,9 +3,6 @@
 # URDF model file.
 urdf: aila.urdf
 
-# Task timeout in seconds. A task will be considered as stopped, if no new data comes in for more than <task_timeout> seconds. In that case the task activation and its task velocity will be set to 0. If this value is set to .nan, no task timeout will be used.
-task_timeout: 1.0
-
 # Compute debug data like manipulability, condition numbers, error between solution and desired values etc.
 compute_debug: true
 
@@ -44,7 +41,7 @@ wbc_config:
      ref_frame: "Rover_base"
      priority: 0
      weights: [1,1,1,1,1,1]
-     activation: 1
+     activation: 0
      
    - name: upper_joint_limits
      type: jnt
@@ -64,5 +61,5 @@ wbc_config:
                    "J_Shoulder1_l", "J_Shoulder2_l", "J_UpperArm_l", "J_Elbow_l", "J_Forearm_l", "J_Wrist1_l", "J_Wrist2_l",
                    "J_Pan", "J_Tilt"]
      weights: [1,1,1,1,  1,1,1,1,1,1,1, 1,1,1,1,1,1,1, 1,1]
-     activation: 1
+     activation: 0
      
