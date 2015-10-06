@@ -36,7 +36,7 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
 
    # Connect constraints to controllers (Priority 1)
    wbc.port("ref_upper_joint_limits").connect_to upper_limit_avoidance.port("control_output")
-   joint_driver.port("joint_state").connect_to upper_limit_avoidance.port("feedback")
+   joint_driver.port("joint_state").connect_to upper_limit_avoidance.port("position")
 
    # Connect constraints to controllers (Priority 2)
    wbc.port("ref_joint_position_ctrl").connect_to joint_position_ctrl.port("control_output")
