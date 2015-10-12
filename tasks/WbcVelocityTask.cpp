@@ -204,6 +204,17 @@ void WbcVelocityTask::updateHook(){
     _ctrl_out.write(ctrl_out_);
 }
 
+
+void WbcVelocityTask::stopHook(){
+
+    //Set speed to zero
+    for(uint i = 0; i < ctrl_out_.size(); i++)
+        ctrl_out_[i].speed = 0.0;
+    _ctrl_out.write(ctrl_out_);
+
+    WbcVelocityTaskBase::stopHook();
+}
+
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();

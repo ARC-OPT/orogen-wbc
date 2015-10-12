@@ -46,7 +46,7 @@ public:
     bool startHook();
     void updateHook();
     void errorHook(){WbcVelocityTaskBase::errorHook();}
-    void stopHook(){WbcVelocityTaskBase::stopHook();}
+    void stopHook();
     void cleanupHook();
 };
 }
