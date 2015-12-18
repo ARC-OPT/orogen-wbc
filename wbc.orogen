@@ -3,7 +3,6 @@ name "wbc"
 import_types_from "wbcTypes.hpp"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
-import_types_from "wbc/SolverTypes.hpp"
 import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"
@@ -17,6 +16,9 @@ task_context "WbcVelocityTask" do
     property("urdf", "std/string").
         doc("URDF model file.")
 
+    property("urdf_models", "std/vector<wbc/URDFModel").
+        doc("Add multiple urdf models. Will be combined to one kdl tree internally.")
+
     property("base_frame", "std/string")
         doc("Name of the robot base frame; all computations will be performed with respect to this frame")
 
@@ -26,9 +28,6 @@ task_context "WbcVelocityTask" do
 
     property("norm_max", "double", 10.0).
        doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
-
-    property("svd_method", "wbc/svd_method", :svd_kdl).
-       doc("Type of Singular Value Decomposition used. Can be one of wbc/svd_eigen(0) and wbc/svd_kdl(1)")
 
     property("epsilon", "double", 1e-9).
        doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
@@ -97,11 +96,15 @@ task_context "WbcVelocityTask" do
     output_port("manipulability_pp", "base/VectorXd").
        doc("Manipulability measure, product of singular values")
 
+    operation("addURDFModel").
+       returns("bool").
+       argument("model", "wbc/URDFModel")
 
     periodic 0.01
 end
 
 typekit do
+   export_types "wbc/URDFModel"
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
    export_types "wbc/ConstraintsPerPrio"

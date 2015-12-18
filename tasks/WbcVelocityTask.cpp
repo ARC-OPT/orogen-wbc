@@ -3,10 +3,7 @@
 #include "WbcVelocityTask.hpp"
 #include "wbcTypes.hpp"
 #include <base/logging.h>
-#include <wbc/WbcVelocity.hpp>
 #include <kdl_parser/kdl_parser.hpp>
-#include <wbc/HierarchicalWDLSSolver.hpp>
-#include <wbc/RobotModelKDL.hpp>
 
 using namespace wbc;
 using namespace std;
@@ -26,38 +23,38 @@ bool WbcVelocityTask::configureHook(){
     joint_weights_ = _initial_joint_weights.get();
     compute_debug_ = _compute_debug.get();
     std::vector<std::string> joint_names = _joint_names.get();
-    std::string base_frame = _base_frame.get();
+    std::string urdf = _urdf.get();
+    std::vector<wbc::URDFModel> urdf_models = _urdf_models.get();
 
-    // Load URDF Model:
-    KDL::Tree tree;
-    if(!kdl_parser::treeFromFile(_urdf.get(), tree))
-    {
-        LOG_ERROR("Unable to parse KDL Tree from URDF file %s", _urdf.get().c_str());
-        return false;
-    }
-
-    wbc_ = new WbcVelocity();
-    if(!wbc_->configure(wbc_config, joint_names)){
+    // Configure wbc:
+    if(!wbc_.configure(wbc_config, joint_names)){
         LOG_ERROR("Unable to configure WBC");
         return false;
     }
     LOG_DEBUG("... Configured WBC");
 
-    //Create robot model and add task frames
-    if(base_frame.empty())
-        base_frame = tree.getRootSegment()->first;
-    robot_model_ = new RobotModelKDL(tree, base_frame);
-    robot_model_->addTaskFrames(wbc_->getTaskFrameIDs());
+    // Load URDF Models and add them to kinematic model:
+    if(urdf.empty()){
+        if(!addURDFModel(URDFModel(urdf)))
+            return false;
+    }
+    if(!urdf_models.empty()){
+        for(uint i = 0; i < urdf_models.size(); i++){
+            if(!addURDFModel(urdf_models[i]))
+                return false;
+        }
+    }
+
+    // Create robot model and add task frames
+    kinematic_model_.addTaskFrames(wbc_.getTaskFrameIDs());
 
     LOG_DEBUG("... Configured Robot Model");
 
-    solver_ = new HierarchicalWDLSSolver();
-    solver_->setNormMax(_norm_max.get());
-    solver_->setSVDMethod(_svd_method.get());
-    solver_->setEpsilon(_epsilon.get());
-
-    std::vector<int> nc_pp = wbc_->getNumberOfConstraintsPP();
-    if(!solver_->configure(nc_pp, wbc_->noOfJoints())){
+    // Configure solver
+    solver_.setNormMax(_norm_max.get());
+    solver_.setEpsilon(_epsilon.get());
+    std::vector<int> nc_pp = wbc_.getNumberOfConstraintsPP();
+    if(!solver_.configure(nc_pp, wbc_.noOfJoints())){
         LOG_ERROR("Unable to configure wbc solver");
         return false;
     }
@@ -70,26 +67,26 @@ bool WbcVelocityTask::configureHook(){
 
     for(uint i = 0; i < wbc_config.size(); i++)
     {
-        ConstraintInterface* ci = new ConstraintInterface(wbc_->constraint(wbc_config[i].name));
+        ConstraintInterface* ci = new ConstraintInterface(wbc_.constraint(wbc_config[i].name));
         ci->addPortsToTaskContext(this);
         constraint_interface_map_[wbc_config[i].name] = ci;
     }
 
     LOG_DEBUG("... Created ports");
 
-    if(joint_weights_.size() != wbc_->noOfJoints()){
-        LOG_ERROR("Number of configured joints is %i, but initial joint weights vector has size %i",  wbc_->noOfJoints(), joint_weights_.size());
+    if(joint_weights_.size() != wbc_.noOfJoints()){
+        LOG_ERROR("Number of configured joints is %i, but initial joint weights vector has size %i",  wbc_.noOfJoints(), joint_weights_.size());
         return false;
     }
 
     equations_.resize(nc_pp.size());
     for(uint prio = 0; prio < nc_pp.size(); prio++)
-        equations_[prio].resize(nc_pp[prio], wbc_->noOfJoints());
-    solver_output_.resize(wbc_->noOfJoints());
+        equations_[prio].resize(nc_pp[prio], wbc_.noOfJoints());
+    solver_output_.resize(wbc_.noOfJoints());
     solver_output_.setZero();
-    ctrl_out_.resize(wbc_->noOfJoints());
+    ctrl_out_.resize(wbc_.noOfJoints());
     ctrl_out_.names = joint_names;
-    robot_vel_.resize(wbc_->noOfJoints());
+    robot_vel_.resize(wbc_.noOfJoints());
     robot_vel_.setZero();
     singular_values_.resize(nc_pp.size());
     inv_condition_numbers_.resize(nc_pp.size());
@@ -133,17 +130,16 @@ void WbcVelocityTask::updateHook(){
         state(RUNNING);
 
     //Update Robot Model
-    robot_model_->update(joint_state_);
-    robot_model_->getTFVector(task_frames_);
+    kinematic_model_.updateJoints(joint_state_);
 
     // Prepare Equation system
-    wbc_->prepareEqSystem(task_frames_, equations_);
-    wbc_->getConstraintVector(constraints_);
+    wbc_.prepareEqSystem(kinematic_model_.getTaskFrameMap(), equations_);
+    wbc_.getConstraintVector(constraints_);
     for(uint prio  = 0; prio < equations_.size(); prio++)
         equations_[prio].W_col = joint_weights_;
 
     // Solve Equation System
-    solver_->solve(equations_, (Eigen::VectorXd& )solver_output_);
+    solver_.solve(equations_, (Eigen::VectorXd& )solver_output_);
     for(uint i = 0; i < ctrl_out_.size(); i++)
         ctrl_out_[i].speed = solver_output_(i);
 
@@ -164,8 +160,8 @@ void WbcVelocityTask::updateHook(){
                 constraints_[prio][i].error_y = constraints_[prio][i].y_ref_root - constraints_[prio][i].y;
             }
 
-            damping_[prio] = solver_->getPriorityData(prio).damping_;
-            singular_values_[prio] = solver_->getPriorityData(prio).singular_values_;
+            damping_[prio] = solver_.getPriorityData(prio).damping_;
+            singular_values_[prio] = solver_.getPriorityData(prio).singular_values_;
 
             //Find min and max singular value. Since some singular values might be zero due to deactivated
             //constraints (zero row weight). Only consider the singular values, which correspond to rows with non-zero weights
@@ -224,7 +220,14 @@ void WbcVelocityTask::cleanupHook()
         delete it->second;
     }
     constraint_interface_map_.clear();
-    delete wbc_;
-    delete solver_;
-    delete robot_model_;
+}
+
+bool WbcVelocityTask::addURDFModel(wbc::URDFModel const & model){
+
+    KDL::Tree tree;
+    if(!kdl_parser::treeFromFile(model.file, tree)){
+        LOG_ERROR("Unable to parse urdf file %s into kdl tree", model.file.c_str());
+        return false;
+    }
+    return kinematic_model_.addTree(tree, model.initial_pose, model.hook);
 }

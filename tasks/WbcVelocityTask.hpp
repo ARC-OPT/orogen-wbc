@@ -5,13 +5,14 @@
 
 #include "wbc/WbcVelocityTaskBase.hpp"
 #include "ConstraintInterface.hpp"
-#include <wbc/TaskFrameKDL.hpp>
 #include <base/commands/Joints.hpp>
+#include <wbc/KinematicModel.hpp>
+#include <wbc/WbcVelocity.hpp>
+#include <wbc/HierarchicalWDLSSolver.hpp>
 
 namespace wbc {
 
 class HierarchicalWDLSSolver;
-class RobotModelKDL;
 class WbcVelocity;
 
 class WbcVelocityTask : public WbcVelocityTaskBase
@@ -21,8 +22,7 @@ protected:
 
     ConstraintInterfaceMap constraint_interface_map_; /** Containts port interfaces for each constraint*/
     std::vector<ConstraintsPerPrio> constraints_;   /** Contains all constraints, sorted by priority */
-    std::vector<TaskFrameKDL> task_frames_; /** Task frames coming from the robot model*/
-    std::vector<LinearEqnSystem> equations_; /** Equation system, input for the solver*/
+    std::vector<LinearEquationSystem> equations_; /** Equation system, input for the solver*/
     base::VectorXd joint_weights_;
     base::commands::Joints ctrl_out_; /** Control output */
     base::samples::Joints joint_state_; /** Optional joint status input. Is used to compute the constraint status*/
@@ -33,9 +33,9 @@ protected:
     base::Time stamp_;
     bool compute_debug_;
 
-    WbcVelocity *wbc_; /** This will create the equation system for the solver*/
-    HierarchicalWDLSSolver* solver_;
-    RobotModelKDL *robot_model_;
+    WbcVelocity wbc_; /** This will create the equation system for the solver*/
+    HierarchicalWDLSSolver solver_;
+    KinematicModel kinematic_model_;
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
@@ -48,6 +48,9 @@ public:
     void errorHook(){WbcVelocityTaskBase::errorHook();}
     void stopHook();
     void cleanupHook();
+
+
+    virtual bool addURDFModel(::wbc::URDFModel const & model);
 };
 }
 
