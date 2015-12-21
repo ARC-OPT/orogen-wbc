@@ -90,10 +90,11 @@ void ConstraintInterface::update(const base::samples::Joints& joint_state){
 
     if(constraint->config.type == wbc::cart)
     {
-        kdl_conversions::KDL2RigidBodyState(((ExtendedConstraint*)constraint)->pose_ref_frame_in_root, constraint_pose_);
+        ExtendedConstraint* ext_c = ((ExtendedConstraint*)constraint);
+        kdl_conversions::KDL2RigidBodyState(ext_c->pose_ref_frame_in_root.Inverse() * ext_c->pose_tip_in_root, constraint_pose_);
         constraint_pose_.time = base::Time::now();
         constraint_pose_.sourceFrame = constraint->config.tip;
-        constraint_pose_.targetFrame = constraint->config.root;
+        constraint_pose_.targetFrame = constraint->config.ref_frame;
         pose_out_port->write(constraint_pose_);
     }
     else
