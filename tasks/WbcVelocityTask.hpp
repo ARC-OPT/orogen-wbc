@@ -5,6 +5,7 @@
 
 #include "wbc/WbcVelocityTaskBase.hpp"
 #include "ConstraintInterface.hpp"
+#include "KinematicModelInterface.hpp"
 #include <base/commands/Joints.hpp>
 #include <wbc/KinematicModel.hpp>
 #include <wbc/WbcVelocity.hpp>
@@ -20,7 +21,8 @@ class WbcVelocityTask : public WbcVelocityTaskBase
     friend class WbcVelocityTaskBase;
 protected:
 
-    ConstraintInterfaceMap constraint_interface_map_; /** Containts port interfaces for each constraint*/
+    std::vector<KinematicModelInterface*> kinematic_model_interfaces;
+    std::vector<ConstraintInterface*> constraint_interfaces_; /** Containts port interfaces for each constraint*/
     std::vector<ConstraintsPerPrio> constraints_;   /** Contains all constraints, sorted by priority */
     std::vector<LinearEquationSystem> equations_; /** Equation system, input for the solver*/
     base::VectorXd joint_weights_;

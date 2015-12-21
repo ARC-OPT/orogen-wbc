@@ -13,13 +13,11 @@ class Constraint;
 class ConstraintInterface
 {
 public:
-    ConstraintInterface(Constraint* config);
+    ConstraintInterface(Constraint* config, RTT::TaskContext* task);
     ~ConstraintInterface();
 
     void update(const base::samples::Joints& joint_state);
     void reset();
-    void addPortsToTaskContext(RTT::TaskContext* task);
-    void removePortsFromTaskContext(RTT::TaskContext* task);
 
     Constraint *constraint;
 
@@ -37,8 +35,9 @@ public:
 
     base::samples::RigidBodyState cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
+
+    RTT::TaskContext *task_context;
 };
-typedef std::map< std::string, ConstraintInterface* > ConstraintInterfaceMap;
 
 }
 

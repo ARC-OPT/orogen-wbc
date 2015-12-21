@@ -33,8 +33,9 @@ bool WbcVelocityTask::configureHook(){
     }
     LOG_DEBUG("... Configured WBC");
 
+
     // Load URDF Models and add them to kinematic model:
-    if(urdf.empty()){
+    if(!urdf.empty()){
         if(!addURDFModel(URDFModel(urdf)))
             return false;
     }
@@ -45,7 +46,7 @@ bool WbcVelocityTask::configureHook(){
         }
     }
 
-    // Create robot model and add task frames
+    // Add task frames
     kinematic_model_.addTaskFrames(wbc_.getTaskFrameIDs());
 
     LOG_DEBUG("... Configured Robot Model");
@@ -66,11 +67,7 @@ bool WbcVelocityTask::configureHook(){
     //
 
     for(uint i = 0; i < wbc_config.size(); i++)
-    {
-        ConstraintInterface* ci = new ConstraintInterface(wbc_.constraint(wbc_config[i].name));
-        ci->addPortsToTaskContext(this);
-        constraint_interface_map_[wbc_config[i].name] = ci;
-    }
+        constraint_interfaces_.push_back(new ConstraintInterface(wbc_.constraint(wbc_config[i].name), this));
 
     LOG_DEBUG("... Created ports");
 
@@ -101,8 +98,8 @@ bool WbcVelocityTask::startHook(){
         return false;
 
     //Clear all task references, weights etc. to have to secure initial state
-    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
-        it->second->reset();
+    for(uint i = 0; i < constraint_interfaces_.size(); i++)
+        constraint_interfaces_[i]->reset();
     stamp_.microseconds = 0;
     return true;
 }
@@ -121,8 +118,8 @@ void WbcVelocityTask::updateHook(){
         return;
     }
 
-    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++)
-        it->second->update(joint_state_);
+    for(uint i = 0; i < constraint_interfaces_.size(); i++)
+        constraint_interfaces_[i]->update(joint_state_);
 
     _joint_weights.read(joint_weights_);
 
@@ -130,6 +127,8 @@ void WbcVelocityTask::updateHook(){
         state(RUNNING);
 
     //Update Robot Model
+    for(uint i = 0; i <  kinematic_model_interfaces.size(); i++)
+        kinematic_model_interfaces[i]->update();
     kinematic_model_.updateJoints(joint_state_);
 
     // Prepare Equation system
@@ -215,11 +214,15 @@ void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
 
-    for(ConstraintInterfaceMap::iterator it = constraint_interface_map_.begin(); it != constraint_interface_map_.end(); it++){
-        it->second->removePortsFromTaskContext(this);
-        delete it->second;
-    }
-    constraint_interface_map_.clear();
+    // Clear constraint interfaces
+    for(uint i = 0; i < constraint_interfaces_.size(); i++)
+        delete constraint_interfaces_[i];
+    constraint_interfaces_.clear();
+
+    // Clear kinematic model interfaces
+    for(uint i = 0; i < kinematic_model_interfaces.size(); i++)
+        delete kinematic_model_interfaces[i];
+    kinematic_model_interfaces.clear();
 }
 
 bool WbcVelocityTask::addURDFModel(wbc::URDFModel const & model){
@@ -229,5 +232,6 @@ bool WbcVelocityTask::addURDFModel(wbc::URDFModel const & model){
         LOG_ERROR("Unable to parse urdf file %s into kdl tree", model.file.c_str());
         return false;
     }
+    kinematic_model_interfaces.push_back(new KinematicModelInterface(&kinematic_model_, tree.getRootSegment()->first, this));
     return kinematic_model_.addTree(tree, model.initial_pose, model.hook);
 }
