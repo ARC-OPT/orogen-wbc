@@ -34,6 +34,7 @@ protected:
     std::vector<base::VectorXd> singular_values_;
     base::Time stamp_;
     bool compute_debug_;
+    std::vector<base::samples::RigidBodyState> task_frames;
 
     WbcVelocity wbc_; /** This will create the equation system for the solver*/
     HierarchicalWDLSSolver solver_;

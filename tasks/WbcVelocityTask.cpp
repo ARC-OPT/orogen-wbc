@@ -4,6 +4,7 @@
 #include "wbcTypes.hpp"
 #include <base/logging.h>
 #include <kdl_parser/kdl_parser.hpp>
+#include <kdl_conversions/KDLConversions.hpp>
 
 using namespace wbc;
 using namespace std;
@@ -197,6 +198,23 @@ void WbcVelocityTask::updateHook(){
     _constraints.write(constraints_);
     ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
+
+    // Write task frames
+    const TaskFrameMap& tf_map = kinematic_model_.getTaskFrameMap();
+    if(task_frames.size() != tf_map.size())
+        task_frames.resize(tf_map.size());
+
+    uint i = 0;
+    base::Time t = base::Time::now();
+    for(TaskFrameMap::const_iterator it = tf_map.begin(); it != tf_map.end(); it++){
+        const TaskFrame& tf = it->second;
+        kdl_conversions::KDL2RigidBodyState(tf.pose, task_frames[i]);
+        task_frames[i].sourceFrame = tf.tipFrame();
+        task_frames[i].targetFrame = tf.rootFrame();
+        task_frames[i].time = t;
+        i++;
+    }
+    _task_frames.write(task_frames);
 }
 
 

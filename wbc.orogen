@@ -72,6 +72,9 @@ task_context "WbcVelocityTask" do
     output_port("ctrl_out", "base/commands/Joints").
        doc("Control solution")
 
+    output_port("task_frames", "std/vector<base/samples/RigidBodyState>").
+       doc("Poses of all task frames used in wbc.")
+
     output_port("computation_time", "double").
        doc("Computation time for one cycle in seconds")
 
