@@ -210,7 +210,7 @@ void WbcVelocityTask::updateHook(){
         const TaskFrame& tf = it->second;
         kdl_conversions::KDL2RigidBodyState(tf.pose, task_frames[i]);
         task_frames[i].sourceFrame = tf.tipFrame();
-        task_frames[i].targetFrame = tf.rootFrame();
+        task_frames[i].targetFrame = kinematic_model_.getRootName();
         task_frames[i].time = t;
         i++;
     }
