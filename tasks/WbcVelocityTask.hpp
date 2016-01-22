@@ -28,7 +28,7 @@ protected:
     base::VectorXd joint_weights_;
     base::commands::Joints ctrl_out_; /** Control output */
     base::samples::Joints joint_state_; /** Optional joint status input. Is used to compute the constraint status*/
-    base::VectorXd solver_output_; /** Solution coming from the solver*/
+    Eigen::VectorXd solver_output_; /** Solution coming from the solver*/
     base::VectorXd robot_vel_; /** Robot velocity, converted from joint_state*/
     base::VectorXd damping_, inv_condition_numbers_, manipulability_;
     std::vector<base::VectorXd> singular_values_;

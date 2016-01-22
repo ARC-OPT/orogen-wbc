@@ -134,12 +134,11 @@ void WbcVelocityTask::updateHook(){
 
     // Prepare Equation system
     wbc_.prepareEqSystem(kinematic_model_.getTaskFrameMap(), equations_);
-    wbc_.getConstraintVector(constraints_);
     for(uint prio  = 0; prio < equations_.size(); prio++)
         equations_[prio].W_col = joint_weights_;
 
     // Solve Equation System
-    solver_.solve(equations_, (Eigen::VectorXd& )solver_output_);
+    solver_.solve(equations_, solver_output_);
     for(uint i = 0; i < ctrl_out_.size(); i++)
         ctrl_out_[i].speed = solver_output_(i);
 
@@ -147,19 +146,13 @@ void WbcVelocityTask::updateHook(){
     //Compute debug data
     if(compute_debug_)
     {
-        for(uint prio = 0; prio < equations_.size(); prio++)
+        for(uint i = 0; i <ctrl_out_.size(); i++)
+            robot_vel_(i) = joint_state_.getElementByName(ctrl_out_.names[i]).speed;
+
+        wbc_.evaluateConstraints(solver_output_, robot_vel_);
+
+        for(uint prio = 0; prio < equations_.size(); prio++) // Loop priorities
         {
-            for(uint i = 0; i < constraints_[prio].size(); i++)
-            {
-                for(uint j = 0; j <ctrl_out_.size(); j++)
-                    robot_vel_(j) = joint_state_.getElementByName(ctrl_out_.names[j]).speed;
-
-                constraints_[prio][i].y_solution = constraints_[prio][i].A * solver_output_;
-                constraints_[prio][i].y = constraints_[prio][i].A * robot_vel_;
-                constraints_[prio][i].error_y_solution = constraints_[prio][i].y_ref_root - constraints_[prio][i].y_solution;
-                constraints_[prio][i].error_y = constraints_[prio][i].y_ref_root - constraints_[prio][i].y;
-            }
-
             damping_[prio] = solver_.getPriorityData(prio).damping_;
             singular_values_[prio] = solver_.getPriorityData(prio).singular_values_;
 
@@ -195,6 +188,7 @@ void WbcVelocityTask::updateHook(){
     // Write outputs
     _computation_time.write((base::Time::now() - cur).toSeconds());
     _current_joint_weights.write(joint_weights_);
+    wbc_.getConstraintVector(constraints_);
     _constraints.write(constraints_);
     ctrl_out_.time = base::Time::now();
     _ctrl_out.write(ctrl_out_);
