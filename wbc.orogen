@@ -87,8 +87,8 @@ task_context "WbcVelocityTask" do
     output_port("current_joint_weights", "base/VectorXd").
        doc("Currently used joint weights")
 
-    output_port("singular_values_pp", "std/vector<base/VectorXd>").
-       doc("Singular values for each priority")
+    #output_port("singular_values_pp", "std/vector<base/VectorXd>").
+    #   doc("Singular values for each priority")
 
     output_port("damping_pp", "base/VectorXd").
        doc("Damping coefficient for each priority")
@@ -111,4 +111,5 @@ typekit do
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
    export_types "wbc/ConstraintsPerPrio"
+   #export_types "std/vector<base/VectorXd>"
 end

@@ -181,7 +181,7 @@ void WbcVelocityTask::updateHook(){
 
         _inv_condition_number_pp.write(inv_condition_numbers_);
         _damping_pp.write(damping_);
-        _singular_values_pp.write(singular_values_);
+        //_singular_values_pp.write(singular_values_);
         _manipulability_pp.write(manipulability_);
     }
 
