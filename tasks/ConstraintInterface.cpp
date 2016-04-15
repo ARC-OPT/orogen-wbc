@@ -75,15 +75,15 @@ ConstraintInterface::~ConstraintInterface()
 void ConstraintInterface::update(const base::samples::Joints& joint_state){
 
     // Read
-    activation_port->read(constraint->activation);
-    weight_port->read(constraint->weights);
+    activation_port->readNewest(constraint->activation, false);
+    weight_port->readNewest(constraint->weights, false);
 
     if(cart_ref_port){
-        if(cart_ref_port->read(cart_ref) == RTT::NewData)
+        if(cart_ref_port->readNewest(cart_ref) == RTT::NewData)
             constraint->setReference(cart_ref);
     }
     else{
-        if(jnt_ref_port->read(jnt_ref) == RTT::NewData)
+        if(jnt_ref_port->readNewest(jnt_ref) == RTT::NewData)
             constraint->setReference(jnt_ref);
     }
     constraint->validate();
