@@ -36,6 +36,9 @@ task_context "WbcVelocityTask" do
         doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
              Size has to be same as joint_names")
 
+    property("max_solver_output", "base/VectorXd").
+        doc("Maximum joint velocity (in rad/sec) for each joint. If empty, infinite output will be allowed. If not empty, size has to be same as number of joints")
+
     property("compute_debug", "bool", false).
         doc("Compute debug data like manipulability, condition numbers, error between solution and desired values etc.")
 

@@ -60,6 +60,7 @@ bool WbcVelocityTask::configureHook(){
         LOG_ERROR("Unable to configure wbc solver");
         return false;
     }
+    solver_.setMaxSolverOutput(_max_solver_output.get());
 
     LOG_DEBUG("... Configured Solver");
 
@@ -141,7 +142,6 @@ void WbcVelocityTask::updateHook(){
     solver_.solve(equations_, solver_output_);
     for(uint i = 0; i < ctrl_out_.size(); i++)
         ctrl_out_[i].speed = solver_output_(i);
-
 
     //Compute debug data
     if(compute_debug_)
