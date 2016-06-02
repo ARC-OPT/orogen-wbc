@@ -12,11 +12,11 @@
 
 namespace wbc {
 
-struct URDFModel{
-    URDFModel(){
+struct RobotModelFromFile{
+    RobotModelFromFile(){
         initial_pose.setTransform(Eigen::Affine3d::Identity());
     }
-    URDFModel(const std::string _file,
+    RobotModelFromFile(const std::string _file,
               const base::samples::RigidBodyState _initial_pose = base::samples::RigidBodyState(),
               const std::string _hook = "") :
         file(_file),

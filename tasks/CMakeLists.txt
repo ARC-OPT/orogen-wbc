@@ -4,7 +4,7 @@ add_definitions(-DBASE_LOG_NAMESPACE=${PROJECT_NAME})
 
 include(wbcTaskLib)
 ADD_LIBRARY(${WBC_TASKLIB_NAME} SHARED 
-    ${WBC_TASKLIB_SOURCES} ConstraintInterface.cpp KinematicModelInterface.cpp)
+    ${WBC_TASKLIB_SOURCES} ConstraintInterface.cpp RobotModelInterface.cpp)
 add_dependencies(${WBC_TASKLIB_NAME}
     regen-typekit)
 include_directories(${PROJECT_SOURCE_DIR}/tasks)
@@ -19,6 +19,6 @@ INSTALL(TARGETS ${WBC_TASKLIB_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib/orocos)
 
-INSTALL(FILES ${WBC_TASKLIB_HEADERS} ConstraintInterface.hpp KinematicModelInterface.hpp
+INSTALL(FILES ${WBC_TASKLIB_HEADERS} ConstraintInterface.hpp RobotModelInterface.hpp
     DESTINATION include/orocos/wbc)
 

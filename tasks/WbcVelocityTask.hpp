@@ -4,41 +4,22 @@
 #define WBC_WBCVELOCITYTASK_TASK_HPP
 
 #include "wbc/WbcVelocityTaskBase.hpp"
-#include "ConstraintInterface.hpp"
-#include "KinematicModelInterface.hpp"
-#include <base/commands/Joints.hpp>
-#include <wbc/KinematicModel.hpp>
+#include <wbc/models/KinematicRobotModelKDL.hpp>
 #include <wbc/WbcVelocity.hpp>
-#include <wbc/HierarchicalWDLSSolver.hpp>
+#include <wbc/solvers/HierarchicalLeastSquaresSolver.hpp>
 
 namespace wbc {
-
-class HierarchicalWDLSSolver;
-class WbcVelocity;
 
 class WbcVelocityTask : public WbcVelocityTaskBase
 {
     friend class WbcVelocityTaskBase;
 protected:
-
-    std::vector<KinematicModelInterface*> kinematic_model_interfaces;
-    std::vector<ConstraintInterface*> constraint_interfaces_; /** Containts port interfaces for each constraint*/
-    std::vector<ConstraintsPerPrio> constraints_;   /** Contains all constraints, sorted by priority */
-    std::vector<LinearEquationSystem> equations_; /** Equation system, input for the solver*/
-    base::VectorXd joint_weights_;
-    base::commands::Joints ctrl_out_; /** Control output */
-    base::samples::Joints joint_state_; /** Optional joint status input. Is used to compute the constraint status*/
-    Eigen::VectorXd solver_output_; /** Solution coming from the solver*/
-    base::VectorXd robot_vel_; /** Robot velocity, converted from joint_state*/
-    base::VectorXd damping_, inv_condition_numbers_, manipulability_;
-    std::vector<base::VectorXd> singular_values_;
-    base::Time stamp_;
-    bool compute_debug_;
+    base::VectorXd joint_weights;
+    base::VectorXd robot_vel; /** Robot velocity, converted from joint_state*/
+    base::VectorXd damping, inv_condition_numbers, manipulability;
+    std::vector<base::VectorXd> singular_values;
+    bool compute_debug;
     std::vector<base::samples::RigidBodyState> task_frames;
-
-    WbcVelocity wbc_; /** This will create the equation system for the solver*/
-    HierarchicalWDLSSolver solver_;
-    KinematicModel kinematic_model_;
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
@@ -51,9 +32,6 @@ public:
     void errorHook(){WbcVelocityTaskBase::errorHook();}
     void stopHook();
     void cleanupHook();
-
-
-    virtual bool addURDFModel(::wbc::URDFModel const & model);
 };
 }
 

@@ -1,6 +1,6 @@
 #include "ConstraintInterface.hpp"
 #include <kdl_conversions/KDLConversions.hpp>
-#include <wbc/ExtendedConstraint.hpp>
+#include <wbc/constraints/ExtendedConstraint.hpp>
 
 namespace wbc{
 
@@ -44,6 +44,8 @@ ConstraintInterface::ConstraintInterface(Constraint* _constraint, RTT::TaskConte
     weight_port = new RTT::InputPort<base::VectorXd>("weight_" + config.name);
     task_context->ports()->addPort(weight_port->getName(), *(weight_port));
 
+    constraint_out_port = new RTT::OutputPort<wbc::Constraint>("constraint_" + config.name);
+    task_context->ports()->addPort(constraint_out_port->getName(), *(constraint_out_port));
 }
 
 ConstraintInterface::~ConstraintInterface()
@@ -54,6 +56,8 @@ ConstraintInterface::~ConstraintInterface()
     task_context->ports()->removePort(activation_port->getName());
     delete activation_port;
 
+    task_context->ports()->removePort(constraint_out_port->getName());
+    delete constraint_out_port;
 
     if(constraint->config.type == cart)
     {
@@ -115,6 +119,8 @@ void ConstraintInterface::update(const base::samples::Joints& joint_state){
         }
         joint_state_out_port->write(constraint_jnt_state_);
     }
+
+    constraint_out_port->write(*constraint);
 }
 
 void ConstraintInterface::reset()

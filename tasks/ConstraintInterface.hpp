@@ -32,6 +32,7 @@ public:
     //Debug Ports
     RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port;
     RTT::OutputPort<base::samples::Joints>* joint_state_out_port;
+    RTT::OutputPort<wbc::Constraint>* constraint_out_port;
 
     base::samples::RigidBodyState cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */

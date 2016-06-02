@@ -1,46 +1,30 @@
 name "wbc"
 
 import_types_from "wbcTypes.hpp"
-import_types_from "wbc/ConstraintConfig.hpp"
-import_types_from "wbc/Constraint.hpp"
+import_types_from "wbc/constraints/ConstraintConfig.hpp"
+import_types_from "wbc/constraints/Constraint.hpp"
 import_types_from "base"
 using_library "wbc"
 using_library "kdl_parser"
 using_library "kdl_conversions"
 
-task_context "WbcVelocityTask" do
+task_context "WbcTask" do abstract
     needs_configuration
 
-    runtime_states "WAITING_FOR_JOINT_STATE"
+    runtime_states "NO_JOINT_STATE"
 
-    property("urdf", "std/string").
-        doc("URDF model file.")
+    property("robot_model_file", "std/string").
+        doc("Set single robot model file.")
 
-    property("urdf_models", "std/vector<wbc/URDFModel").
-        doc("Add multiple urdf models. Will be combined to one kdl tree internally.")
+    property("robot_models", "std/vector<wbc/RobotModelFromFile>").
+        doc("Add multiple robot and/or object models.")
 
     property("base_frame", "std/string")
-        doc("Name of the robot base frame; all computations will be performed with respect to this frame")
+       doc("Name of the robot base frame; all computations will be performed with respect to this frame")
 
     property("joint_names", "std/vector<std/string>").
-        doc("Specify order of joints here. This order will be used in all Jacobians, in the joint weights, in the ctrl output and in all debug outputs.
-             All joints used in any constraint have to be specified here. Don't forget that the joints between the constraints' root frames and the robot's base frame also have to be specified.")
-
-    property("norm_max", "double", 10.0).
-       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
-
-    property("epsilon", "double", 1e-9).
-       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
-
-    property("initial_joint_weights", "base/VectorXd").
-        doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
-             Size has to be same as joint_names")
-
-    property("max_solver_output", "base/VectorXd").
-        doc("Maximum joint velocity (in rad/sec) for each joint. If empty, infinite output will be allowed. If not empty, size has to be same as number of joints")
-
-    property("compute_debug", "bool", false).
-        doc("Compute debug data like manipulability, condition numbers, error between solution and desired values etc.")
+           doc("Specify order of joints here. This order will be used in all Jacobians, in the joint weights, in the ctrl output and in all debug outputs.
+                All joints used in any constraint have to be specified here. Don't forget that the joints between the constraints' root frames and the robot's base frame also have to be specified.")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
@@ -64,13 +48,8 @@ task_context "WbcVelocityTask" do
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
     dynamic_output_port /.*/, "/base/samples/Joints"
 
-
-    input_port("joint_weights", "base/VectorXd").
-       doc("Online set new joint weights")
-
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required.")
-
 
     output_port("ctrl_out", "base/commands/Joints").
        doc("Control solution")
@@ -78,14 +57,39 @@ task_context "WbcVelocityTask" do
     output_port("task_frames", "std/vector<base/samples/RigidBodyState>").
        doc("Poses of all task frames used in wbc.")
 
+    output_port("constraints", "std/vector<wbc/Constraint>").
+       doc("Constraint data for debugging and monitoring")
+
     output_port("computation_time", "double").
        doc("Computation time for one cycle in seconds")
 
     output_port("actual_cycle_time", "double").
        doc("Actual cycle time between two consecutive calls of updateHook() in seconds")
 
-    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
-       doc("Constraint data for debugging and monitoring")
+    periodic 0.01
+end
+
+task_context "WbcVelocityTask" do subclasses "WbcTask"
+    needs_configuration
+
+    property("norm_max", "double", 10.0).
+       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
+
+    property("epsilon", "double", 1e-9).
+       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
+
+    property("initial_joint_weights", "base/VectorXd").
+        doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
+             Size has to be same as joint_names")
+
+    property("max_solver_output", "base/VectorXd").
+        doc("Maximum joint velocity (in rad/sec) for each joint. If empty, infinite output will be allowed. If not empty, size has to be same as number of joints")
+
+    property("compute_debug", "bool", false).
+        doc("Compute debug data like manipulability, condition numbers, error between solution and desired values etc.")
+
+    input_port("joint_weights", "base/VectorXd").
+       doc("Online set new joint weights")
 
     output_port("current_joint_weights", "base/VectorXd").
        doc("Currently used joint weights")
@@ -102,15 +106,11 @@ task_context "WbcVelocityTask" do
     output_port("manipulability_pp", "base/VectorXd").
        doc("Manipulability measure, product of singular values")
 
-    operation("addURDFModel").
-       returns("bool").
-       argument("model", "wbc/URDFModel")
-
     periodic 0.01
 end
 
 typekit do
-   export_types "wbc/URDFModel"
+   export_types "wbc/RobotModelFromFile"
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
    export_types "wbc/ConstraintsPerPrio"
