@@ -1,6 +1,6 @@
 #include "ConstraintInterface.hpp"
 #include <kdl_conversions/KDLConversions.hpp>
-#include <wbc/common/ExtendedConstraint.hpp>
+#include <wbc/common/KinematicConstraintKDL.hpp>
 
 namespace wbc{
 
@@ -94,7 +94,7 @@ void ConstraintInterface::update(const base::samples::Joints& joint_state){
 
     if(constraint->config.type == wbc::cart)
     {
-        ExtendedConstraint* ext_c = ((ExtendedConstraint*)constraint);
+        KinematicConstraintKDL* ext_c = ((KinematicConstraintKDL*)constraint);
         kdl_conversions::KDL2RigidBodyState(ext_c->pose_ref_frame_in_root.Inverse() * ext_c->pose_tip_in_root, constraint_pose_);
         constraint_pose_.time = base::Time::now();
         constraint_pose_.sourceFrame = constraint->config.tip;
