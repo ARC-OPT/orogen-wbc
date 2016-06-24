@@ -2,7 +2,7 @@
 
 #include "WbcTask.hpp"
 #include <wbc/Wbc.hpp>
-#include <wbc/models/RobotModel.hpp>
+#include <wbc/robot_models/RobotModel.hpp>
 #include <wbc/solvers/Solver.hpp>
 
 using namespace wbc;
@@ -26,53 +26,47 @@ bool WbcTask::configureHook()
     if (! WbcTaskBase::configureHook())
         return false;
 
-    // Configure WBC
+    // Load Models from file
+    robot_model_interface = new RobotModelInterface(robot_model, this);
+    std::vector<RobotModelConfig> robot_models = _robot_models.get();
+    for(uint i = 0; i < robot_models.size(); i++){
+        if(!robot_model->loadModel(robot_models[i]))
+            return false;
+
+        robot_model_interface->addPort(robot_models[i].hook);
+    }
+
+    // Add Task Frames
     std::vector<ConstraintConfig> wbc_config = _wbc_config.get();
-    std::vector<std::string> joint_names = _joint_names.get();
-    if(!wbc->configure(wbc_config, joint_names))
+    if(!robot_model->addTaskFrames(wbc->getTaskFrameIDs(wbc_config)))
+        return false;
+
+
+    LOG_DEBUG("... Configured Robot Model");
+
+
+    // Configure WBC
+    if(!wbc->configure(wbc_config, robot_model->getJointNames()))
         return false;
 
     // Create constraint interfaces
     for(uint i = 0; i < wbc_config.size(); i++)
         constraint_interfaces.push_back(new ConstraintInterface(wbc->getConstraint(wbc_config[i].name), this));
 
+
     LOG_DEBUG("... Configured WBC");
 
 
-    // Load Models
-    std::string model_file = _robot_model_file.get();
-    std::vector<RobotModelFromFile> robot_models = _robot_models.get();
-    if(!model_file.empty()){
-        base::samples::RigidBodyState dummy;
-        if(!robot_model->addModelFromFile(model_file, dummy))
-            return false;
-    }
-
-    robot_model_interface = new RobotModelInterface(robot_model, this);
-    if(!robot_models.empty()){
-        for(uint i = 0; i < robot_models.size(); i++){
-            if(!robot_model->addModelFromFile(robot_models[i].file, robot_models[i].initial_pose, robot_models[i].hook))
-                return false;
-
-            robot_model_interface->addPort(robot_models[i].hook);
-        }
-    }
-
-    // Add task frames
-    if(!robot_model->addTaskFrames(wbc->getTaskFrameIDs()))
-        return false;
-
-    LOG_DEBUG("... Configured Robot Models");
-
-
     // Configure Solver
-    if(!solver->configure(wbc->getNumberOfConstraintsPerPriority(), wbc->getJointNames().size()))
+    if(!solver->configure(wbc->getConstraintVariablesPerPrio(), robot_model->getJointNames().size()))
         return false;
+
 
     LOG_DEBUG("... Configured Solver");
 
-    ctrl_out.resize(wbc->getJointNames().size());
-    ctrl_out.names = wbc->getJointNames();
+
+    ctrl_out.resize(robot_model->getJointNames().size());
+    ctrl_out.names = robot_model->getJointNames();
 
     return true;
 }
@@ -86,6 +80,8 @@ bool WbcTask::startHook()
     for(uint i = 0; i < constraint_interfaces.size(); i++)
         constraint_interfaces[i]->reset();
     stamp.microseconds = 0;
+
+    solver_output.setConstant(robot_model->getJointNames().size(), 0);
 
     return true;
 }
@@ -113,16 +109,26 @@ void WbcTask::updateHook()
     for(uint i = 0; i < constraint_interfaces.size(); i++)
         constraint_interfaces[i]->update(joint_state);
 
-    //Update Robot Model
+    // Update Robot Model
     robot_model_interface->update(joint_state);
 
     // Prepare opt. Problem
-    wbc->setupOptProblem(robot_model->getTaskFrames(), opt_problem);
+    const std::vector<TaskFrame*> &task_frames = robot_model->getTaskFrames();
+    wbc->setupOptProblem(task_frames, opt_problem);
 
     // Solve opt. problem
     solver->solve(opt_problem, solver_output);
 
+    //Write Task Frames
+    task_frames_out.resize(task_frames.size());
+    for(size_t i = 0; i < task_frames.size(); i++){
+        task_frames_out[i] = *task_frames[i];
+    }
+    _task_frames.write(task_frames_out);
+
+    // Write computation time for one cycle
     _computation_time.write((base::Time::now() - cur).toSeconds());
+
 }
 
 void WbcTask::errorHook()

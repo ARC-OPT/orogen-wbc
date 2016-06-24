@@ -4,7 +4,6 @@
 #define WBC_WBC_TASK_HPP
 
 #include "wbc/WbcTaskBase.hpp"
-#include <wbc/constraints/ConstraintConfig.hpp>
 #include "ConstraintInterface.hpp"
 #include "RobotModelInterface.hpp"
 
@@ -31,6 +30,7 @@ protected:
     base::Time stamp;
     std::vector<OptProblem*> opt_problem;
     Eigen::VectorXd solver_output;
+    std::vector<TaskFrame> task_frames_out;
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

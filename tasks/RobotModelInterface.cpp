@@ -1,5 +1,5 @@
 #include "RobotModelInterface.hpp"
-#include <wbc/models/RobotModel.hpp>
+#include <wbc/robot_models/RobotModel.hpp>
 
 namespace wbc{
 
@@ -17,13 +17,13 @@ RobotModelInterface::~RobotModelInterface(){
 
 void RobotModelInterface::update(const base::samples::Joints& joint_state){
 
-    robot_model->update(joint_state);
-
     base::samples::RigidBodyState pose;
     for(size_t i = 0; i < pose_ports.size(); i++){
         if(pose_ports[i]->readNewest(pose) == RTT::NewData)
             robot_model->update(pose);
     }
+
+    robot_model->update(joint_state);
 }
 
 void RobotModelInterface::addPort(const std::string interface_name){

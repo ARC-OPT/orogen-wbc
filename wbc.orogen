@@ -1,43 +1,54 @@
 name "wbc"
 
-import_types_from "wbcTypes.hpp"
-import_types_from "wbc/constraints/ConstraintConfig.hpp"
-import_types_from "wbc/constraints/Constraint.hpp"
+import_types_from "wbc/common/ConstraintConfig.hpp"
+import_types_from "wbc/common/Constraint.hpp"
+import_types_from "wbc/common/TaskFrame.hpp"
+import_types_from "wbc/robot_models/RobotModelConfig.hpp"
 import_types_from "base"
 using_library "wbc"
-using_library "kdl_parser"
 using_library "kdl_conversions"
 
+#
+# Abstract WBC Task.
+#
+#  configureHook:
+#
+#  1. Load robot models and add task frames
+#  2. Configure constraints and create dynamic ports
+#  3. Conigure solver
+#
+#  updateHook:
+#
+#  1. Update constraints
+#  2. Update robot models
+#  3. Setup constraints for optimization problem
+#  4. Solve opt. problem
+#
 task_context "WbcTask" do abstract
     needs_configuration
 
     runtime_states "NO_JOINT_STATE"
 
-    property("robot_model_file", "std/string").
-        doc("Set single robot model file.")
-
-    property("robot_models", "std/vector<wbc/RobotModelFromFile>").
+    property("robot_models", "std/vector<wbc/RobotModelConfig>").
         doc("Add multiple robot and/or object models.")
 
     property("base_frame", "std/string")
        doc("Name of the robot base frame; all computations will be performed with respect to this frame")
 
-    property("joint_names", "std/vector<std/string>").
-           doc("Specify order of joints here. This order will be used in all Jacobians, in the joint weights, in the ctrl output and in all debug outputs.
-                All joints used in any constraint have to be specified here. Don't forget that the joints between the constraints' root frames and the robot's base frame also have to be specified.")
-
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
              Cartesian constraints:
-                 Reference Input (/base/samples/RigidBodyState):         ref_<task_name>
-                 Weights (/base/VectorXd):                               weight_<task_name>
-                 Activation function (double):                           activation_<task_name>
-                 Constraint pose output (/base/samples/RigidBodyState):  pose_<task_name>
+                 Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
+                 Weights (/base/VectorXd):                               weight_<constraint_name>
+                 Activation function (double):                           activation_<constraint_name>
+                 Constraint pose output (/base/samples/RigidBodyState):  pose_<constraint_name>
+                 Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
              Joint Space constraints:
                  Reference Input (/base/samples/Joints):                 ref_<task_name>
                  Weights (/base/VectorXd):                               weight_<task_name>
                  Activation function (double):                           activation_<task_name>
-                 Current joint state output (base/samples/Joints):       joint_state_<task_name>")
+                 Current joint state output (base/samples/Joints):       joint_state_<task_name>
+                 Constraint output port (wbc/Constraint)                 constraint_<constraint_name>")
 
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
@@ -54,8 +65,8 @@ task_context "WbcTask" do abstract
     output_port("ctrl_out", "base/commands/Joints").
        doc("Control solution")
 
-    output_port("task_frames", "std/vector<base/samples/RigidBodyState>").
-       doc("Poses of all task frames used in wbc.")
+    output_port("task_frames", "std/vector<wbc/TaskFrame>").
+       doc("All task frames used in wbc.")
 
     output_port("constraints", "std/vector<wbc/Constraint>").
        doc("Constraint data for debugging and monitoring")
@@ -69,6 +80,9 @@ task_context "WbcTask" do abstract
     periodic 0.01
 end
 
+#
+# Velocity based implementation of WBC. Uses KDL for kinematics computation
+#
 task_context "WbcVelocityTask" do subclasses "WbcTask"
     needs_configuration
 
@@ -110,9 +124,8 @@ task_context "WbcVelocityTask" do subclasses "WbcTask"
 end
 
 typekit do
-   export_types "wbc/RobotModelFromFile"
+   export_types "wbc/RobotModelConfig"
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
-   export_types "wbc/ConstraintsPerPrio"
-   #export_types "std/vector<base/VectorXd>"
+   export_types "wbc/TaskFrame"
 end

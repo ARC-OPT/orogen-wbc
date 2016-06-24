@@ -5,6 +5,10 @@
 #include <base/logging.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl_conversions/KDLConversions.hpp>
+#include <wbc/robot_models/KinematicRobotModelKDL.hpp>
+#include <wbc/WbcVelocity.hpp>
+#include <wbc/solvers/HierarchicalLeastSquaresSolver.hpp>
+
 
 using namespace wbc;
 using namespace std;
@@ -19,7 +23,7 @@ WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* 
 bool WbcVelocityTask::configureHook(){
 
     wbc = new WbcVelocity();
-    robot_model = new KinematicRobotModelKDL();
+    robot_model = new KinematicRobotModelKDL(_base_frame.get());
     solver = new HierarchicalLeastSquaresSolver();
 
     if (! WbcVelocityTaskBase::configureHook())
@@ -33,12 +37,12 @@ bool WbcVelocityTask::configureHook(){
     ((HierarchicalLeastSquaresSolver*)solver)->setEpsilon(_epsilon.get());
     ((HierarchicalLeastSquaresSolver*)solver)->setMaxSolverOutput(_max_solver_output.get());
 
-    if(joint_weights.size() != wbc->getJointNames().size()){
-        LOG_ERROR("Number of configured joints is %i, but initial joint weights vector has size %i",  wbc->getJointNames().size(), joint_weights.size());
+    if(joint_weights.size() != robot_model->getJointNames().size()){
+        LOG_ERROR("Number of configured joints is %i, but initial joint weights vector has size %i",  robot_model->getJointNames().size(), joint_weights.size());
         return false;
     }
 
-    robot_vel.resize(wbc->getJointNames().size());
+    robot_vel.resize(robot_model->getJointNames().size());
     robot_vel.setZero();
     singular_values.resize(((HierarchicalLeastSquaresSolver*)solver)->getNoPriorities());
     inv_condition_numbers.resize(((HierarchicalLeastSquaresSolver*)solver)->getNoPriorities());
@@ -111,18 +115,6 @@ void WbcVelocityTask::updateHook(){
         //_singular_values_pp.write(singular_values_);
         _manipulability_pp.write(manipulability_);*/
     }
-
-    // Write task frames
-   /* base::Time t = base::Time::now();
-    task_frames.resize(robot_model->getTaskFrames().size());
-    for(size_t i = 0; i < robot_model->getTaskFrames().size(); i++){
-        TaskFrame* tf = robot_model->getTaskFrames()[i];
-        task_frames[i] = tf->pose;
-        task_frames[i].sourceFrame = tf->tipFrame();
-        task_frames[i].targetFrame = robot_model->getRootName();
-        task_frames[i].time = t;
-    }
-    _task_frames.write(task_frames);*/
 }
 
 

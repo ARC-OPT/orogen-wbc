@@ -1,6 +1,6 @@
 #include "ConstraintInterface.hpp"
 #include <kdl_conversions/KDLConversions.hpp>
-#include <wbc/constraints/ExtendedConstraint.hpp>
+#include <wbc/common/ExtendedConstraint.hpp>
 
 namespace wbc{
 

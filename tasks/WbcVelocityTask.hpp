@@ -4,9 +4,6 @@
 #define WBC_WBCVELOCITYTASK_TASK_HPP
 
 #include "wbc/WbcVelocityTaskBase.hpp"
-#include <wbc/models/KinematicRobotModelKDL.hpp>
-#include <wbc/WbcVelocity.hpp>
-#include <wbc/solvers/HierarchicalLeastSquaresSolver.hpp>
 
 namespace wbc {
 
@@ -19,7 +16,7 @@ protected:
     base::VectorXd damping, inv_condition_numbers, manipulability;
     std::vector<base::VectorXd> singular_values;
     bool compute_debug;
-    std::vector<base::samples::RigidBodyState> task_frames;
+    std::vector<TaskFrame> task_frames;
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
