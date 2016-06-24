@@ -33,8 +33,8 @@ bool WbcVelocityTask::configureHook(){
     compute_debug = _compute_debug.get();
 
     // Configure solver
-    ((HierarchicalLeastSquaresSolver*)solver)->setNormMax(_norm_max.get());
-    ((HierarchicalLeastSquaresSolver*)solver)->setEpsilon(_epsilon.get());
+    ((HierarchicalLeastSquaresSolver*)solver)->setMaxSolverOutputNorm(_norm_max.get());
+    ((HierarchicalLeastSquaresSolver*)solver)->setMinEigenvalue(_epsilon.get());
     ((HierarchicalLeastSquaresSolver*)solver)->setMaxSolverOutput(_max_solver_output.get());
 
     if(joint_weights.size() != robot_model->getJointNames().size()){
@@ -44,10 +44,12 @@ bool WbcVelocityTask::configureHook(){
 
     robot_vel.resize(robot_model->getJointNames().size());
     robot_vel.setZero();
-    singular_values.resize(((HierarchicalLeastSquaresSolver*)solver)->getNoPriorities());
-    inv_condition_numbers.resize(((HierarchicalLeastSquaresSolver*)solver)->getNoPriorities());
-    damping.resize(((HierarchicalLeastSquaresSolver*)solver)->getNoPriorities());
-    manipulability.resize(((HierarchicalLeastSquaresSolver*)solver)->getNoPriorities());
+
+    uint n_prios = wbc->getConstraints().size();
+    singular_values.resize(n_prios);
+    inv_condition_numbers.resize(n_prios);
+    damping.resize(n_prios);
+    manipulability.resize(n_prios);
 
     return true;
 }
@@ -61,8 +63,8 @@ bool WbcVelocityTask::startHook(){
 void WbcVelocityTask::updateHook(){
 
     if(_joint_weights.readNewest(joint_weights) == RTT::NewData){
-        for(uint i = 0; i < ((HierarchicalLeastSquaresSolver*)solver)->getNoPriorities(); i++)
-            ((HierarchicalLeastSquaresSolver*)solver)->setColumnWeights(joint_weights, i);
+        for(uint i = 0; i < wbc->getNumberOfPriorities(); i++)
+            ((HierarchicalLeastSquaresSolver*)solver)->setJointWeights(joint_weights, i);
     }
 
     WbcVelocityTaskBase::updateHook();
