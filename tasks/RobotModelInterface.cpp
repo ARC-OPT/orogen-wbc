@@ -17,13 +17,14 @@ RobotModelInterface::~RobotModelInterface(){
 
 void RobotModelInterface::update(const base::samples::Joints& joint_state){
 
+    std::vector<base::samples::RigidBodyState> poses;
     base::samples::RigidBodyState pose;
     for(size_t i = 0; i < pose_ports.size(); i++){
         if(pose_ports[i]->readNewest(pose) == RTT::NewData)
-            robot_model->update(pose);
+            poses.push_back(pose);
     }
 
-    robot_model->update(joint_state);
+    robot_model->update(joint_state, poses);
 }
 
 void RobotModelInterface::addPort(const std::string interface_name){
