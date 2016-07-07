@@ -6,13 +6,14 @@
 #include "wbc/WbcTaskBase.hpp"
 #include "ConstraintInterface.hpp"
 #include "RobotModelInterface.hpp"
+#include <wbc/common/OptProblem.hpp>
+#include <wbc/common/TaskFrame.hpp>
 
 namespace wbc {
 
 class Wbc;
 class RobotModel;
 class Solver;
-class OptProblem;
 
 class WbcTask : public WbcTaskBase
 {
@@ -28,7 +29,7 @@ protected:
     base::commands::Joints ctrl_out;
     base::samples::Joints joint_state;
     base::Time stamp;
-    std::vector<OptProblem*> opt_problem;
+    HierarchicalWeightedLS opt_problem;
     Eigen::VectorXd solver_output;
     std::vector<TaskFrame> task_frames_out;
 
