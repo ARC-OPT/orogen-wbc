@@ -8,36 +8,45 @@
 
 namespace wbc{
 
+class Wbc;
+class RobotModel;
 class Constraint;
 
 class ConstraintInterface
 {
 public:
-    ConstraintInterface(Constraint* config, RTT::TaskContext* task);
+    ConstraintInterface(const std::string &constraint_name,
+                        Wbc* wbc,
+                        RobotModel* robot_model,
+                        RTT::TaskContext* task_context);
     ~ConstraintInterface();
 
-    void update(const base::samples::Joints& joint_state);
-    void reset();
+    Wbc* wbc;
+    RobotModel* robot_model;
 
-    Constraint *constraint;
+    base::samples::RigidBodyState constraint_cart_state;
+    base::samples::Joints constraint_jnt_state;
+    std::string constraint_name;
 
-    base::samples::RigidBodyState constraint_pose_;
-    base::samples::Joints constraint_jnt_state_;
-
+    // Ports
     RTT::InputPort<base::samples::RigidBodyState>* cart_ref_port;
     RTT::InputPort<base::samples::Joints>* jnt_ref_port;
+    RTT::OutputPort<base::samples::RigidBodyState>* cart_state_out_port;
+    RTT::OutputPort<base::samples::Joints>* jnt_state_out_port;
+    RTT::OutputPort<wbc::Constraint>* constraint_out_port;
     RTT::InputPort<base::VectorXd>* weight_port;
     RTT::InputPort<double>* activation_port;
 
-    //Debug Ports
-    RTT::OutputPort<base::samples::RigidBodyState>* pose_out_port;
-    RTT::OutputPort<base::samples::Joints>* joint_state_out_port;
-    RTT::OutputPort<wbc::Constraint>* constraint_out_port;
-
     base::samples::RigidBodyState cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
+    base::VectorXd weights;                 /** Current constraint weights*/
+    double activation;                      /** Current constraint activation*/
 
     RTT::TaskContext *task_context;
+
+    void update();
+    void reset();
+
 };
 
 }

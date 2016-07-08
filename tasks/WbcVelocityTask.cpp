@@ -35,7 +35,8 @@ bool WbcVelocityTask::configureHook(){
     // Configure solver
     ((HierarchicalLeastSquaresSolver*)solver)->setMaxSolverOutputNorm(_norm_max.get());
     ((HierarchicalLeastSquaresSolver*)solver)->setMinEigenvalue(_epsilon.get());
-    ((HierarchicalLeastSquaresSolver*)solver)->setMaxSolverOutput(_max_solver_output.get());
+    if(_max_solver_output.get().size() > 0)
+        ((HierarchicalLeastSquaresSolver*)solver)->setMaxSolverOutput(_max_solver_output.get());
 
     if(joint_weights.size() != robot_model->getJointNames().size()){
         LOG_ERROR("Number of configured joints is %i, but initial joint weights vector has size %i",  robot_model->getJointNames().size(), joint_weights.size());
@@ -77,14 +78,17 @@ void WbcVelocityTask::updateHook(){
     _current_joint_weights.write(joint_weights);
 
     //Compute debug data
+    if(state() == RUNNING){
+        for(uint i = 0; i <ctrl_out.size(); i++)
+            robot_vel(i) = joint_state.getElementByName(ctrl_out.names[i]).speed;
+        ((WbcVelocity*)wbc)->evaluateConstraints(solver_output, robot_vel);
+    }
+
+
+    /*
     if(compute_debug)
     {
-        /*for(uint i = 0; i <ctrl_out_.size(); i++)
-            robot_vel(i) = joint_state.getElementByName(ctrl_out.names[i]).speed;
-
-        wbc->evaluateConstraints(solver_output, robot_vel);
-
-        for(uint prio = 0; prio < equations_.size(); prio++) // Loop priorities
+        /*for(uint prio = 0; prio < equations_.size(); prio++) // Loop priorities
         {
             damping[prio] = solver_.getPriorityData(prio).damping;
             singular_values[prio] = solver_.getPriorityData(prio).singular_values;
@@ -115,8 +119,8 @@ void WbcVelocityTask::updateHook(){
         _inv_condition_number_pp.write(inv_condition_numbers_);
         _damping_pp.write(damping_);
         //_singular_values_pp.write(singular_values_);
-        _manipulability_pp.write(manipulability_);*/
-    }
+        _manipulability_pp.write(manipulability_);
+    }*/
 }
 
 

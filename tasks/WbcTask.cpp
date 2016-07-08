@@ -36,8 +36,14 @@ bool WbcTask::configureHook()
         robot_model_interface->addPort(robot_models[i].hook);
     }
 
-    // Add Task Frames
+    // Check if wbc config is valid
     std::vector<ConstraintConfig> wbc_config = _wbc_config.get();
+    for(size_t i = 0; i < wbc_config.size(); i++){
+        if(!wbc_config[i].isValid())
+            return false;
+    }
+
+    // Add Task Frames
     if(!robot_model->addTaskFrames(wbc->getTaskFrameIDs(wbc_config)))
         return false;
 
@@ -51,7 +57,7 @@ bool WbcTask::configureHook()
 
     // Create constraint interfaces
     for(uint i = 0; i < wbc_config.size(); i++)
-        constraint_interfaces.push_back(new ConstraintInterface(wbc->getConstraint(wbc_config[i].name), this));
+        constraint_interfaces.push_back(new ConstraintInterface(wbc_config[i].name, wbc, robot_model,this));
 
 
     LOG_DEBUG("... Configured WBC");
@@ -85,6 +91,7 @@ bool WbcTask::startHook()
 
     return true;
 }
+
 void WbcTask::updateHook()
 {
     WbcTaskBase::updateHook();
@@ -105,12 +112,12 @@ void WbcTask::updateHook()
     if(state() != RUNNING)
         state(RUNNING);
 
-    // Update constraints
-    for(uint i = 0; i < constraint_interfaces.size(); i++)
-        constraint_interfaces[i]->update(joint_state);
-
     // Update Robot Model
     robot_model_interface->update(joint_state);
+
+    // Update constraints
+    for(uint i = 0; i < constraint_interfaces.size(); i++)
+        constraint_interfaces[i]->update();
 
     // Prepare opt. Problem
     const std::vector<TaskFrame*> &task_frames = robot_model->getTaskFrames();
@@ -128,7 +135,6 @@ void WbcTask::updateHook()
 
     // Write computation time for one cycle
     _computation_time.write((base::Time::now() - cur).toSeconds());
-
 }
 
 void WbcTask::errorHook()
