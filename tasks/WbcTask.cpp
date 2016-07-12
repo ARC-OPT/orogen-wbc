@@ -155,3 +155,9 @@ void WbcTask::cleanupHook()
         delete constraint_interfaces[i];
     constraint_interfaces.clear();
 }
+std::vector<std::string> WbcTask::getJointNames(){
+    if(robot_model)
+        return robot_model->getJointNames();
+    else
+        return std::vector<std::string>();
+}

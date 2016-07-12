@@ -19,8 +19,8 @@ using_library "kdl_conversions"
 #
 #  updateHook:
 #
-#  1. Update constraints
-#  2. Update robot models
+#  1. Update robot models
+#  2. Update constraints
 #  3. Setup constraints for optimization problem
 #  4. Solve opt. problem
 #
@@ -74,6 +74,9 @@ task_context "WbcTask" do abstract
 
     output_port("actual_cycle_time", "double").
        doc("Actual cycle time between two consecutive calls of updateHook() in seconds")
+
+    operation("getJointNames").
+       returns("std/vector<std/string>")
 
     periodic 0.01
 end
