@@ -137,4 +137,8 @@ void WbcVelocityTask::stopHook(){
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
+
+    delete wbc;
+    delete solver;
+    delete robot_model;
 }
