@@ -75,9 +75,6 @@ task_context "WbcTask" do abstract
     output_port("actual_cycle_time", "double").
        doc("Actual cycle time between two consecutive calls of updateHook() in seconds")
 
-    operation("getJointNames").
-       returns("std/vector<std/string>")
-
     periodic 0.01
 end
 
