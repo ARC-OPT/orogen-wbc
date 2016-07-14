@@ -15,16 +15,24 @@ using namespace std;
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name)
     : WbcVelocityTaskBase(name){
+
+    wbc = new WbcVelocity();
+    robot_model = new KinematicRobotModelKDL();
+    solver = new HierarchicalLeastSquaresSolver();
 }
+
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine)
     : WbcVelocityTaskBase(name, engine){
 }
-bool WbcVelocityTask::configureHook(){
 
-    wbc = new WbcVelocity();
-    robot_model = new KinematicRobotModelKDL(_base_frame.get());
-    solver = new HierarchicalLeastSquaresSolver();
+WbcVelocityTask::~WbcVelocityTask(){
+    delete wbc;
+    delete solver;
+    delete robot_model;
+}
+
+bool WbcVelocityTask::configureHook(){
 
     if (! WbcVelocityTaskBase::configureHook())
         return false;
@@ -137,8 +145,4 @@ void WbcVelocityTask::stopHook(){
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
-
-    delete wbc;
-    delete solver;
-    delete robot_model;
 }

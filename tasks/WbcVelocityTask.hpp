@@ -21,7 +21,7 @@ protected:
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
     WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine);
-    ~WbcVelocityTask(){}
+    ~WbcVelocityTask();
 
     bool configureHook();
     bool startHook();

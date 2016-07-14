@@ -12,9 +12,10 @@ class RobotModel;
 
 class RobotModelInterface{
 public:
-    RobotModelInterface(RobotModel *model, RTT::TaskContext* task);
+    RobotModelInterface(RTT::TaskContext* task);
     ~RobotModelInterface();
 
+    void setRobotModel(RobotModel *model);
     void update(const base::samples::Joints& joint_state);
     void addPort(const std::string interface_name);
 

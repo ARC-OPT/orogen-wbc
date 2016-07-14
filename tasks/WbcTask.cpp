@@ -10,15 +10,24 @@ using namespace wbc;
 WbcTask::WbcTask(std::string const& name)
     : WbcTaskBase(name)
 {
+    robot_model_interface = new RobotModelInterface(this);
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
     : WbcTaskBase(name, engine)
 {
+    robot_model_interface = new RobotModelInterface(this);
 }
 
 WbcTask::~WbcTask()
 {
+    // clear interfaces
+    delete robot_model_interface;
+
+    ConstraintInterfaceMap::const_iterator it;
+    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
+        delete it->second;
+    constraint_interfaces.clear();
 }
 
 bool WbcTask::configureHook()
@@ -26,27 +35,18 @@ bool WbcTask::configureHook()
     if (! WbcTaskBase::configureHook())
         return false;
 
-    // Load Models from file
-    robot_model_interface = new RobotModelInterface(robot_model, this);
-    std::vector<RobotModelConfig> robot_models = _robot_models.get();
-    for(uint i = 0; i < robot_models.size(); i++){
-        if(!robot_model->loadModel(robot_models[i]))
-            return false;
-
-        robot_model_interface->addPort(robot_models[i].hook);
-    }
-
-    // Check if wbc config is valid
+    // Get wbc config and check validity
     std::vector<ConstraintConfig> wbc_config = _wbc_config.get();
-    for(size_t i = 0; i < wbc_config.size(); i++){
-        if(!wbc_config[i].isValid())
-            return false;
-    }
-
-    // Add Task Frames
-    if(!robot_model->addTaskFrames(wbc->getTaskFrameIDs(wbc_config)))
+    if(!Wbc::isValid(wbc_config))
         return false;
 
+    // Load robot Models and add task frames
+    if(!robot_model->configure(_robot_models.get(),
+                               wbc->getTaskFrameIDs(wbc_config),
+                               _base_frame.get()))
+        return false;
+
+    robot_model_interface->setRobotModel(robot_model);
 
     LOG_DEBUG("... Configured Robot Model");
 
@@ -55,10 +55,18 @@ bool WbcTask::configureHook()
     if(!wbc->configure(wbc_config, robot_model->getJointNames()))
         return false;
 
-    // Create constraint interfaces
-    for(uint i = 0; i < wbc_config.size(); i++)
-        constraint_interfaces.push_back(new ConstraintInterface(wbc_config[i].name, wbc, robot_model,this));
-
+    // Create constraint interfaces. Don't recreate existing interfaces.
+    // TODO: Is this safe from the control point of view???
+    for(uint i = 0; i < wbc_config.size(); i++){
+        if(constraint_interfaces.count(wbc_config[i].name) == 0)
+            constraint_interfaces[wbc_config[i].name] = new ConstraintInterface(wbc_config[i].name, wbc, robot_model, this);
+    }
+    // Remove constraint interfaces that are not required anymore
+    ConstraintInterfaceMap::const_iterator it;
+    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++){
+        if(!wbc->hasConstraint(it->first))
+            constraint_interfaces.erase(it->first);
+    }
 
     LOG_DEBUG("... Configured WBC");
 
@@ -83,8 +91,9 @@ bool WbcTask::startHook()
         return false;
 
     //Clear all task references, weights etc. to have to secure initial state
-    for(uint i = 0; i < constraint_interfaces.size(); i++)
-        constraint_interfaces[i]->reset();
+    ConstraintInterfaceMap::const_iterator it;
+    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
+        it->second->reset();
     stamp.microseconds = 0;
 
     solver_output.setConstant(robot_model->getJointNames().size(), 0);
@@ -116,8 +125,9 @@ void WbcTask::updateHook()
     robot_model_interface->update(joint_state);
 
     // Update constraints
-    for(uint i = 0; i < constraint_interfaces.size(); i++)
-        constraint_interfaces[i]->update();
+    ConstraintInterfaceMap::const_iterator it;
+    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
+        it->second->update();
 
     // Prepare opt. Problem
     const std::vector<TaskFrame*> &task_frames = robot_model->getTaskFrames();
@@ -148,10 +158,4 @@ void WbcTask::stopHook()
 void WbcTask::cleanupHook()
 {
     WbcTaskBase::cleanupHook();
-
-    // clear interfaces
-    delete robot_model_interface;
-    for(uint i = 0; i < constraint_interfaces.size(); i++)
-        delete constraint_interfaces[i];
-    constraint_interfaces.clear();
 }
