@@ -5,25 +5,29 @@
 #include <rtt/TaskContext.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <base/samples/Joints.hpp>
+#include <wbc/robot_models/RobotModelConfig.hpp>
 
 namespace wbc{
-
-class RobotModel;
 
 class RobotModelInterface{
 public:
     RobotModelInterface(RTT::TaskContext* task);
     ~RobotModelInterface();
 
-    void setRobotModel(RobotModel *model);
-    void update(const base::samples::Joints& joint_state);
-    void addPort(const std::string interface_name);
+    void configure(const std::vector<RobotModelConfig> &config);
+    std::vector<base::samples::RigidBodyState> update();
 
 protected:
-    std::vector< RTT::InputPort<base::samples::RigidBodyState>* > pose_ports;
+    typedef RTT::InputPort<base::samples::RigidBodyState> PosePort;
+    typedef std::map< std::string, PosePort* > PosePortMap;
+
+    PosePortMap pose_ports;
+    PosePortMap::iterator it;
     base::samples::RigidBodyState model_pose;
-    RobotModel* robot_model;
     RTT::TaskContext* task_context;
+
+    void addPort(const std::string interface_name);
+    void removePort(const std::string port_name);
 };
 
 }

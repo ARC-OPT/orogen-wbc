@@ -46,7 +46,7 @@ bool WbcTask::configureHook()
                                _base_frame.get()))
         return false;
 
-    robot_model_interface->setRobotModel(robot_model);
+    robot_model_interface->configure(_robot_models.get());
 
     LOG_DEBUG("... Configured Robot Model");
 
@@ -56,7 +56,6 @@ bool WbcTask::configureHook()
         return false;
 
     // Create constraint interfaces. Don't recreate existing interfaces.
-    // TODO: Is this safe from the control point of view???
     for(uint i = 0; i < wbc_config.size(); i++){
         if(constraint_interfaces.count(wbc_config[i].name) == 0)
             constraint_interfaces[wbc_config[i].name] = new ConstraintInterface(wbc_config[i].name, wbc, robot_model, this);
@@ -122,7 +121,7 @@ void WbcTask::updateHook()
         state(RUNNING);
 
     // Update Robot Model
-    robot_model_interface->update(joint_state);
+    robot_model->update(joint_state, robot_model_interface->update());
 
     // Update constraints
     ConstraintInterfaceMap::const_iterator it;
