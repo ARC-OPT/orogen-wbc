@@ -1,0 +1,9 @@
+--- name:default
+# no documentation available for this property
+control_mode: velocity
+# Cycle time in second
+cycle_time: 0.01
+# Measurement noise standard deviation. Defaults to zero
+meas_noise_std_dev: 1.0e-4
+# Path to urdf model. If not empty this will be used for configuring the driver
+urdf: "./models/kuka_lbr.urdf"
