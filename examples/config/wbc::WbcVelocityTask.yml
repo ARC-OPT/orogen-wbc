@@ -16,13 +16,13 @@ robot_models:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
 #                  Weights (/base/VectorXd):                               weight_<constraint_name>
 #                  Activation function (double):                           activation_<constraint_name>
-#                  Constraint pose output (/base/samples/RigidBodyState):  pose_<constraint_name>
+#                  Constraint pose output (/base/samples/RigidBodyState):  state_<constraint_name>
 #                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
 #              Joint Space constraints:
 #                  Reference Input (/base/samples/Joints):                 ref_<task_name>
 #                  Weights (/base/VectorXd):                               weight_<task_name>
 #                  Activation function (double):                           activation_<task_name>
-#                  Current joint state output (base/samples/Joints):       joint_state_<task_name>
+#                  Current joint state output (base/samples/Joints):       state_<task_name>
 #                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
 wbc_config:
     - name: "cart_position_ctrl_right"
@@ -31,6 +31,14 @@ wbc_config:
       root: "kuka_lbr_base"
       tip:  "kuka_lbr_r_tcp"
       ref_frame: "kuka_lbr_base"
+      weights: [1,1,1,1,1,1]
+
+    - name: "cart_force_ctrl_right"
+      priority: 0
+      type: cart
+      root: "kuka_lbr_base"
+      tip:  "kuka_lbr_r_tcp"
+      ref_frame: "kuka_lbr_r_tcp"
       weights: [1,1,1,1,1,1]
 
     - name: "joint_limit_avoidance"

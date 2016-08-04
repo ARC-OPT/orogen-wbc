@@ -1,0 +1,21 @@
+--- name:default
+
+# Unique name for each variable, e.g. joint names in case of a joint space controller.
+field_names: ["Fx", "Fy", "Fz", "Tx", "Ty", "Tz"]
+# Type of activation function used. See ctrl_lib/ActivationFunction.hpp for details.
+activation_function:
+  threshold: 0.0
+  type: :STEP_ACTIVATION
+# Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
+dead_zone:
+  data: [1.0,1.0,1.0,1.0,1.0,1.0]
+# Maximum control output (saturation). If one output value exceeds maximum, all
+# other values will be scaled accordingly. Size has to be the same as size of field_names.
+max_control_output:
+  data: [0.2,0.2,0.2, 0.1,0.1,0.1]
+# Proportional gain. Size has to be the same as size of field_names.
+prop_gain:
+  data: [-0.01, -0.01, -0.01, -0.01, -0.01, -0.01]
+# Feedforward gain. Size has to be the same as size of field_names.
+ff_gain:
+  data: [0,0,0,0,0,0]

@@ -1,0 +1,16 @@
+--- name:default
+# Measurement noise standard deviation. Defaults to zero
+meas_noise_std_dev: 1.0e-4
+
+# Offste that is added to the output wrench
+wrench_offset:
+  force:
+    data:
+    - 0.0
+    - 0.0
+    - 0.0
+  torque:
+    data:
+    - 0.0
+    - 0.0
+    - 0.0

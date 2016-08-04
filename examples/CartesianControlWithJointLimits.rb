@@ -21,17 +21,23 @@ Orocos.conf.load_dir('config')
 
 Orocos.run "wbc::WbcVelocityTask" => "wbc",
            "ctrl_lib::CartesianPositionController" => "cartesian_controller",
+           "ctrl_lib::CartesianForceController"    => "force_controller",
            "ctrl_lib::JointLimitAvoidance"         => "joint_limit_avoidance",
-           "joint_control::FakeJointDriverTask"    => "driver" do
+           "joint_control::FakeJointDriverTask"    => "driver",
+           "joint_control::FakeForceDriverTask"    => "force_sensor" do
 
     cartesian_controller  = Orocos::TaskContext.get "cartesian_controller"
+    force_controller      = Orocos::TaskContext.get "force_controller"
     joint_limit_avoidance = Orocos::TaskContext.get "joint_limit_avoidance"
     wbc                   = Orocos::TaskContext.get "wbc"
     driver                = Orocos::TaskContext.get "driver"
+    force_sensor          = Orocos::TaskContext.get "force_sensor"
 
     Orocos.conf.apply(wbc,    ["default"], true)
     Orocos.conf.apply(driver, ["default"], true)
+    Orocos.conf.apply(force_sensor, ["default"], true)
     Orocos.conf.apply(cartesian_controller,  ["default"], true)
+    Orocos.conf.apply(force_controller,      ["default"], true)
     Orocos.conf.apply(joint_limit_avoidance, ["default"], true)
 
     # Configure already here to create dynamic ports for the constraints
@@ -43,25 +49,39 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     driver.port("joint_state").connect_to wbc.port("joint_state")
     wbc.port("ctrl_out").connect_to driver.port("command")
 
-    # Priority 0: Cartesian Position control
+    # Priority 0:
+
+    # Cartesian Position control
     constraint_name = "cart_position_ctrl_right"
     cartesian_controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
     wbc.port("state_" + constraint_name).connect_to cartesian_controller.port("feedback")
 
-    # Priority 1: Joint Limit avoidance
+    # Force control
+    constraint_name = "cart_force_ctrl_right"
+    force_controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
+    force_controller.port("activation").connect_to wbc.port("weight_" + constraint_name)
+    force_sensor.port("wrench").connect_to force_controller.port("feedback") # Don't connect to wbc here, since the state-port provides RigidBodyState!
+
+    # Priority 1:
+
+    # Joint Limit avoidance
     constraint_name = "joint_limit_avoidance"
     joint_limit_avoidance.port("control_output").connect_to wbc.port("ref_" + constraint_name)
     joint_limit_avoidance.port("activation").connect_to wbc.port("weight_" + constraint_name)
     wbc.port("state_" + constraint_name).connect_to joint_limit_avoidance.port("feedback")
 
     cartesian_controller.configure
+    force_controller.configure
     joint_limit_avoidance.configure
     driver.configure
+    force_sensor.configure
 
     # Run
 
     driver.start
+    force_sensor.start
     cartesian_controller.start
+    force_controller.start
     joint_limit_avoidance.start
     wbc.start
 
