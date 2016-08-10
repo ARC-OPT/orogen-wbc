@@ -48,7 +48,7 @@ bool WbcTask::configureHook()
     if(!robot_model->configure(robot_models,
                                wbc->getTaskFrameIDs(wbc_config),
                                _base_frame.get(),
-                               _joint_names.get()));
+                               _joint_names.get()))
         return false;
 
     robot_model_interface->configure(robot_models);
