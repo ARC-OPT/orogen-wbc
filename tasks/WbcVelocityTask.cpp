@@ -5,9 +5,9 @@
 #include <base/logging.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl_conversions/KDLConversions.hpp>
-#include <wbc/robot_models/KinematicRobotModelKDL.hpp>
+#include <wbc/KinematicRobotModelKDL.hpp>
 #include <wbc/WbcVelocity.hpp>
-#include <wbc/solvers/HierarchicalLeastSquaresSolver.hpp>
+#include <wbc/HierarchicalLeastSquaresSolver.hpp>
 
 
 using namespace wbc;

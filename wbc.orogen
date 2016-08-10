@@ -1,9 +1,9 @@
 name "wbc"
 
-import_types_from "wbc/common/ConstraintConfig.hpp"
-import_types_from "wbc/common/Constraint.hpp"
-import_types_from "wbc/common/TaskFrame.hpp"
-import_types_from "wbc/robot_models/RobotModelConfig.hpp"
+import_types_from "wbc/ConstraintConfig.hpp"
+import_types_from "wbc/Constraint.hpp"
+import_types_from "wbc/TaskFrame.hpp"
+import_types_from "wbc/RobotModelConfig.hpp"
 import_types_from "base"
 using_library "wbc"
 using_library "kdl_conversions"

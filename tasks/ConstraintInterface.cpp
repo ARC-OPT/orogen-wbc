@@ -1,8 +1,8 @@
 #include "ConstraintInterface.hpp"
 #include <kdl_conversions/KDLConversions.hpp>
-#include <wbc/common/Constraint.hpp>
+#include <wbc/Constraint.hpp>
 #include <wbc/Wbc.hpp>
-#include <wbc/robot_models/RobotModel.hpp>
+#include <wbc/RobotModel.hpp>
 
 namespace wbc{
 

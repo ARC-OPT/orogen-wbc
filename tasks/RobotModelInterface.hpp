@@ -5,7 +5,7 @@
 #include <rtt/TaskContext.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <base/samples/Joints.hpp>
-#include <wbc/robot_models/RobotModelConfig.hpp>
+#include <wbc/RobotModelConfig.hpp>
 
 namespace wbc{
 

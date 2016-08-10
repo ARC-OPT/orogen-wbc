@@ -6,8 +6,8 @@
 #include "wbc/WbcTaskBase.hpp"
 #include "ConstraintInterface.hpp"
 #include "RobotModelInterface.hpp"
-#include <wbc/common/OptProblem.hpp>
-#include <wbc/common/TaskFrame.hpp>
+#include <wbc/OptProblem.hpp>
+#include <wbc/TaskFrame.hpp>
 
 namespace wbc {
 

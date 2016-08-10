@@ -2,8 +2,8 @@
 
 #include "WbcTask.hpp"
 #include <wbc/Wbc.hpp>
-#include <wbc/robot_models/RobotModel.hpp>
-#include <wbc/solvers/Solver.hpp>
+#include <wbc/RobotModel.hpp>
+#include <wbc/Solver.hpp>
 
 using namespace wbc;
 
