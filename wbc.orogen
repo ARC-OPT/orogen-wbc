@@ -29,11 +29,17 @@ task_context "WbcTask" do abstract
 
     runtime_states "NO_JOINT_STATE"
 
-    property("robot_models", "std/vector<wbc/RobotModelConfig>").
+    property("urdf_models", "std/vector<wbc/RobotModelConfig>").
         doc("Add multiple robot and/or object models.")
 
     property("base_frame", "std/string")
        doc("Name of the robot base frame; all computations will be performed with respect to this frame")
+
+    property("urdf", "std/string").
+        doc("Path to single urdf model. This is only for backward compatibility! Rather use the urdf_models property.")
+
+    property("joint_names", "std/vector<std/string>").
+       doc("Optionally set the order of joints here. If empty, order will be arbitrary.")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:

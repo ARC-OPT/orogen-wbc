@@ -41,12 +41,17 @@ bool WbcTask::configureHook()
         return false;
 
     // Load robot Models and add task frames
-    if(!robot_model->configure(_robot_models.get(),
+    std::vector<RobotModelConfig> robot_models = _urdf_models.get();
+    if(!_urdf.get().empty()) // If single urdf is given, insert it as first element. Deprecated feature.
+        robot_models.insert(robot_models.begin(), RobotModelConfig(_urdf.get()));
+
+    if(!robot_model->configure(robot_models,
                                wbc->getTaskFrameIDs(wbc_config),
-                               _base_frame.get()))
+                               _base_frame.get(),
+                               _joint_names.get()));
         return false;
 
-    robot_model_interface->configure(_robot_models.get());
+    robot_model_interface->configure(robot_models);
 
     LOG_DEBUG("... Configured Robot Model");
 
