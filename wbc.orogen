@@ -131,5 +131,6 @@ typekit do
    export_types "wbc/RobotModelConfig"
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
+   export_types "wbc/ConstraintsPerPrio"
    export_types "wbc/TaskFrame"
 end
