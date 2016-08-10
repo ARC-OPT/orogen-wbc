@@ -27,7 +27,7 @@ ConstraintInterface::ConstraintInterface(const std::string &_constraint_name,
         cart_ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + constraint_name);
         task_context->ports()->addPort(cart_ref_port->getName(), *(cart_ref_port));
 
-        cart_state_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("state_" + constraint_name);
+        cart_state_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + constraint_name);
         task_context->ports()->addPort(cart_state_out_port->getName(), *(cart_state_out_port));
 
         kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref);
@@ -36,7 +36,7 @@ ConstraintInterface::ConstraintInterface(const std::string &_constraint_name,
         jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + constraint_name);
         task_context->ports()->addPort((jnt_ref_port)->getName(), *(jnt_ref_port));
 
-        jnt_state_out_port = new RTT::OutputPort<base::samples::Joints>("state_" + constraint_name);
+        jnt_state_out_port = new RTT::OutputPort<base::samples::Joints>("joint_state_" + constraint_name);
         task_context->ports()->addPort((jnt_state_out_port)->getName(), *(jnt_state_out_port));
 
         jnt_ref.resize(cfg.joint_names.size());
