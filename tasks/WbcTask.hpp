@@ -8,6 +8,7 @@
 #include "RobotModelInterface.hpp"
 #include <wbc/OptProblem.hpp>
 #include <wbc/TaskFrame.hpp>
+#include <base/commands/Joints.hpp>
 
 namespace wbc {
 

@@ -2,7 +2,7 @@
 
 #include "WbcVelocityTask.hpp"
 #include "wbcTypes.hpp"
-#include <base/logging.h>
+#include <base/Logging.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl_conversions/KDLConversions.hpp>
 #include <wbc/KinematicRobotModelKDL.hpp>
