@@ -64,7 +64,6 @@ task_context "WbcTask" do abstract
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
     dynamic_output_port /.*/, "/base/samples/Joints"
-    dynamic_output_port /.*/, "/wbc/Constraint"
 
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required.")
@@ -80,6 +79,8 @@ task_context "WbcTask" do abstract
 
     output_port("actual_cycle_time", "double").
        doc("Actual cycle time between two consecutive calls of updateHook() in seconds")
+
+    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>")
 
     periodic 0.01
 end

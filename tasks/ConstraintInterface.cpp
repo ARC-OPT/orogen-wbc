@@ -52,9 +52,6 @@ ConstraintInterface::ConstraintInterface(const std::string &_constraint_name,
 
     weight_port = new RTT::InputPort<base::VectorXd>("weight_" + constraint_name);
     task_context->ports()->addPort(weight_port->getName(), *(weight_port));
-
-    constraint_out_port = new RTT::OutputPort<wbc::Constraint>("constraint_" + constraint_name);
-    task_context->ports()->addPort(constraint_out_port->getName(), *(constraint_out_port));
 }
 
 ConstraintInterface::~ConstraintInterface(){
@@ -64,9 +61,6 @@ ConstraintInterface::~ConstraintInterface(){
 
     task_context->ports()->removePort(activation_port->getName());
     delete activation_port;
-
-    task_context->ports()->removePort(constraint_out_port->getName());
-    delete constraint_out_port;
 
     if(cart_state_out_port){
         task_context->ports()->removePort(cart_state_out_port->getName());
@@ -111,8 +105,6 @@ void ConstraintInterface::update(){
         robot_model->getState(cfg.joint_names, constraint_jnt_state);
         jnt_state_out_port->write(constraint_jnt_state);
     }
-
-    constraint_out_port->write(*wbc->getConstraint(constraint_name));
 }
 
 void ConstraintInterface::reset(){

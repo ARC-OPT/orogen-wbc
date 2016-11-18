@@ -142,10 +142,11 @@ void WbcTask::updateHook()
 
     //Write Task Frames
     task_frames_out.resize(task_frames.size());
-    for(size_t i = 0; i < task_frames.size(); i++){
+    for(size_t i = 0; i < task_frames.size(); i++)
         task_frames_out[i] = *task_frames[i];
-    }
     _task_frames.write(task_frames_out);
+
+    _constraints.write(wbc->getConstraints());
 
     // Write computation time for one cycle
     _computation_time.write((base::Time::now() - cur).toSeconds());
@@ -162,4 +163,6 @@ void WbcTask::stopHook()
 void WbcTask::cleanupHook()
 {
     WbcTaskBase::cleanupHook();
+
+    ctrl_out.clear();
 }
