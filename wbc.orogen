@@ -5,6 +5,7 @@ import_types_from "wbc/Constraint.hpp"
 import_types_from "wbc/TaskFrame.hpp"
 import_types_from "wbc/RobotModelConfig.hpp"
 import_types_from "base"
+using_library "base-logging"
 using_library "wbc"
 using_library "kdl_conversions"
 

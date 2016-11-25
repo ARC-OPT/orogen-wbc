@@ -7,6 +7,7 @@
   <url>http://</url>
   <logo>http://</logo>
   <tags>stable</tags>
+  <depend package="base/logging"/>
   <depend package="control/wbc"/>
   <depend package="control/urdfdom"/>
   <depend package="control/kdl_conversions"/>
