@@ -16,6 +16,3 @@ max_control_output:
 # Proportional gain. Size has to be the same as size of field_names.
 prop_gain:
   data: [-0.01, -0.01, -0.01, -0.01, -0.01, -0.01]
-# Feedforward gain. Size has to be the same as size of field_names.
-ff_gain:
-  data: [0,0,0,0,0,0]

@@ -8,7 +8,7 @@ initial_joint_weights:
   data: [1,1,1,1,1,1,1]
 
 # Add multiple robot and/or object models.
-robot_models:
+urdf_models:
     - file: "./models/kuka_lbr.urdf"
 
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:

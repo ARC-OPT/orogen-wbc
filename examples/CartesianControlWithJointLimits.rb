@@ -1,4 +1,6 @@
 require 'orocos'
+require 'readline'
+require 'pry'
 
 #
 # For this example to run, you will need to install orogen/ctrl_lib and orogen/joint_control!
@@ -54,7 +56,7 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     # Cartesian Position control
     constraint_name = "cart_position_ctrl_right"
     cartesian_controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    wbc.port("state_" + constraint_name).connect_to cartesian_controller.port("feedback")
+    wbc.port("pose_" + constraint_name).connect_to cartesian_controller.port("feedback")
 
     # Force control
     constraint_name = "cart_force_ctrl_right"
@@ -68,7 +70,7 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     constraint_name = "joint_limit_avoidance"
     joint_limit_avoidance.port("control_output").connect_to wbc.port("ref_" + constraint_name)
     joint_limit_avoidance.port("activation").connect_to wbc.port("weight_" + constraint_name)
-    wbc.port("state_" + constraint_name).connect_to joint_limit_avoidance.port("feedback")
+    wbc.port("joint_state_" + constraint_name).connect_to joint_limit_avoidance.port("feedback")
 
     cartesian_controller.configure
     force_controller.configure
@@ -85,7 +87,7 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     joint_limit_avoidance.start
     wbc.start
 
-    Readline.readline("Press Enter to move to a target pose")
+    Readline.readline("Press Enter to start motion")
 
     # Set target pose for Cartesian Controller
     target_pose = Types::Base::Samples::RigidBodyState.new

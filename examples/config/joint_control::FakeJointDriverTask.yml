@@ -1,9 +1,68 @@
 --- name:default
-# no documentation available for this property
-control_mode: velocity
 # Cycle time in second
 cycle_time: 0.01
 # Measurement noise standard deviation. Defaults to zero
 meas_noise_std_dev: 1.0e-4
-# Path to urdf model. If not empty this will be used for configuring the driver
-urdf: "./models/kuka_lbr.urdf"
+# Initial state of the fake driver. If left empty, zero for all values is assumed
+initial_joint_state:
+  names: ["kuka_lbr_r_joint_1",
+          "kuka_lbr_r_joint_2",
+          "kuka_lbr_r_joint_3",
+          "kuka_lbr_r_joint_4",
+          "kuka_lbr_r_joint_5",
+          "kuka_lbr_r_joint_6",
+          "kuka_lbr_r_joint_7",
+          "kuka_lbr_l_joint_1",
+          "kuka_lbr_l_joint_2",
+          "kuka_lbr_l_joint_3",
+          "kuka_lbr_l_joint_4",
+          "kuka_lbr_l_joint_5",
+          "kuka_lbr_l_joint_6",
+          "kuka_lbr_l_joint_7"]
+  elements: [{position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_1
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_2
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_3
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_4
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_5
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_6
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_7
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_1
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_2
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_3
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_4
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_5
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_6
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}] # kuka_lbr_l_joint_7 
+
+# Position Controller PID values (Note: Right now, only p_gain is used)
+# This property determines the number of joints
+pos_ctrl_params: [{p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_1
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_2
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_3
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_4
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_5
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_6
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_7
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_1
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_2
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_3
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_4
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_5
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_6
+                  {p_gain: 1.0, max_ctrl_out: 1.0}]  # kuka_lbr_l_joint_7]  
+
+# Velocity Controller PID values (Note: Right now, only p_gain is used)
+vel_ctrl_params: [{p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_1
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_2
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_3
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_4
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_5
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_6
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_r_joint_7
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_1
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_2
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_3
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_4
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_5
+                  {p_gain: 1.0, max_ctrl_out: 1.0},  # kuka_lbr_l_joint_6
+                  {p_gain: 1.0, max_ctrl_out: 1.0}]  # kuka_lbr_l_joint_7] 
