@@ -92,7 +92,7 @@ void ConstraintInterface::update(){
     }
     else{
         if(jnt_ref_port->readNewest(jnt_ref) == RTT::NewData)
-            ((JointConstraint)*constraint)->setReference(jnt_ref);
+            ((JointConstraint*)constraint)->setReference(jnt_ref);
     }
 
     const ConstraintConfig& cfg = constraint->config;

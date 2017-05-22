@@ -6,6 +6,7 @@ import_types_from "base"
 import_types_from "wbcTypes.hpp"
 using_library "base-logging"
 using_library "wbc"
+using_library "kdl_parser"
 
 #
 # Abstract WBC Task.

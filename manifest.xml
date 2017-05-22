@@ -11,4 +11,5 @@
   <depend package="control/wbc"/>
   <depend package="control/urdfdom"/>
   <depend package="control/kdl_conversions"/>
+  <depend package="control/kdl_parser"/>
 </package>
