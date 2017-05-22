@@ -1,19 +1,18 @@
 #include "ConstraintInterface.hpp"
 #include <kdl_conversions/KDLConversions.hpp>
-#include <wbc/Constraint.hpp>
+#include <wbc/CartesianConstraint.hpp>
+#include <wbc/JointConstraint.hpp>
 #include <wbc/Wbc.hpp>
 #include <wbc/RobotModel.hpp>
 
 namespace wbc{
 
-ConstraintInterface::ConstraintInterface(const std::string &_constraint_name,
-                                         Wbc* _wbc,
+ConstraintInterface::ConstraintInterface(Constraint* _constraint,
                                          RobotModel* _robot_model,
                                          RTT::TaskContext* _task_context){
 
-    wbc = _wbc;
+    constraint = _constraint;
     robot_model = _robot_model;
-    constraint_name = _constraint_name;
     task_context = _task_context;
 
     jnt_ref_port = 0;
@@ -21,22 +20,22 @@ ConstraintInterface::ConstraintInterface(const std::string &_constraint_name,
     cart_ref_port = 0;
     cart_state_out_port = 0;
 
-    const ConstraintConfig& cfg = wbc->getConstraint(constraint_name)->config;
+    const ConstraintConfig &cfg = constraint->config;
 
-    if(cfg.type == wbc::cart){
-        cart_ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + constraint_name);
+    if(constraint->config.type == cart){
+        cart_ref_port = new RTT::InputPort<base::samples::RigidBodyState>("ref_" + cfg.name);
         task_context->ports()->addPort(cart_ref_port->getName(), *(cart_ref_port));
 
-        cart_state_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + constraint_name);
+        cart_state_out_port = new RTT::OutputPort<base::samples::RigidBodyState>("pose_" + cfg.name);
         task_context->ports()->addPort(cart_state_out_port->getName(), *(cart_state_out_port));
 
         kdl_conversions::KDL2RigidBodyState(KDL::Twist::Zero(), cart_ref);
     }
     else{
-        jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + constraint_name);
+        jnt_ref_port = new RTT::InputPort<base::samples::Joints>("ref_" + cfg.name);
         task_context->ports()->addPort((jnt_ref_port)->getName(), *(jnt_ref_port));
 
-        jnt_state_out_port = new RTT::OutputPort<base::samples::Joints>("joint_state_" + constraint_name);
+        jnt_state_out_port = new RTT::OutputPort<base::samples::Joints>("joint_state_" + cfg.name);
         task_context->ports()->addPort((jnt_state_out_port)->getName(), *(jnt_state_out_port));
 
         jnt_ref.resize(cfg.joint_names.size());
@@ -47,10 +46,10 @@ ConstraintInterface::ConstraintInterface(const std::string &_constraint_name,
         constraint_jnt_state.names = cfg.joint_names;
     }
 
-    activation_port = new RTT::InputPort<double>("activation_" + constraint_name);
+    activation_port = new RTT::InputPort<double>("activation_" + cfg.name);
     task_context->ports()->addPort(activation_port->getName(), *(activation_port));
 
-    weight_port = new RTT::InputPort<base::VectorXd>("weight_" + constraint_name);
+    weight_port = new RTT::InputPort<base::VectorXd>("weight_" + cfg.name);
     task_context->ports()->addPort(weight_port->getName(), *(weight_port));
 }
 
@@ -83,31 +82,27 @@ ConstraintInterface::~ConstraintInterface(){
 void ConstraintInterface::update(){
 
     if(activation_port->readNewest(activation) == RTT::NewData)
-        wbc->setConstraintActivation(constraint_name, activation);
+        constraint->setActivation(activation);
     if(weight_port->readNewest(weights) == RTT::NewData)
-        wbc->setConstraintWeights(constraint_name, weights);
+        constraint->setWeights(weights);
 
     if(cart_ref_port){
         if(cart_ref_port->readNewest(cart_ref) == RTT::NewData)
-            wbc->setReference(constraint_name, cart_ref);
+            ((CartesianConstraint*)constraint)->setReference(cart_ref);
     }
     else{
         if(jnt_ref_port->readNewest(jnt_ref) == RTT::NewData)
-            wbc->setReference(constraint_name, jnt_ref);
+            ((JointConstraint)*constraint)->setReference(jnt_ref);
     }
 
-    const ConstraintConfig& cfg = wbc->getConstraint(constraint_name)->config;
-    if(cfg.type == cart){
-        robot_model->getState(cfg.ref_frame, cfg.tip, constraint_cart_state);
-        cart_state_out_port->write(constraint_cart_state);
-    }
-    else{
-        robot_model->getState(cfg.joint_names, constraint_jnt_state);
-        jnt_state_out_port->write(constraint_jnt_state);
-    }
+    const ConstraintConfig& cfg = constraint->config;
+    if(cfg.type == cart)
+        cart_state_out_port->write(robot_model->rigidBodyState(cfg.ref_frame, cfg.tip));
+    else
+        jnt_state_out_port->write(robot_model->jointState(cfg.joint_names));
 }
 
 void ConstraintInterface::reset(){
-    wbc->getConstraint(constraint_name)->reset();
+    constraint->reset();
 }
 }

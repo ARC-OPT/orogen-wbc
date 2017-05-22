@@ -8,25 +8,22 @@
 
 namespace wbc{
 
-class Wbc;
-class RobotModel;
 class Constraint;
+class RobotModel;
 
 class ConstraintInterface
 {
 public:
-    ConstraintInterface(const std::string &constraint_name,
-                        Wbc* wbc,
-                        RobotModel* robot_model,
+    ConstraintInterface(Constraint* constraint,
+                        RobotModel* _robot_model,
                         RTT::TaskContext* task_context);
     ~ConstraintInterface();
 
-    Wbc* wbc;
+    Constraint* constraint;
     RobotModel* robot_model;
 
     base::samples::RigidBodyState constraint_cart_state;
     base::samples::Joints constraint_jnt_state;
-    std::string constraint_name;
 
     // Ports
     RTT::InputPort<base::samples::RigidBodyState>* cart_ref_port;

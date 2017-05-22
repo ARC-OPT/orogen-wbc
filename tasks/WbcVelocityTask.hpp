@@ -16,7 +16,6 @@ protected:
     base::VectorXd damping, inv_condition_numbers, manipulability;
     std::vector<base::VectorXd> singular_values;
     bool compute_debug;
-    std::vector<TaskFrame> task_frames;
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");

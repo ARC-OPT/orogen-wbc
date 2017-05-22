@@ -2,12 +2,10 @@ name "wbc"
 
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
-import_types_from "wbc/TaskFrame.hpp"
-import_types_from "wbc/RobotModelConfig.hpp"
 import_types_from "base"
+import_types_from "wbcTypes.hpp"
 using_library "base-logging"
 using_library "wbc"
-using_library "kdl_conversions"
 
 #
 # Abstract WBC Task.
@@ -30,17 +28,14 @@ task_context "WbcTask" do abstract
 
     runtime_states "NO_JOINT_STATE"
 
-    property("urdf_models", "std/vector<wbc/RobotModelConfig>").
-        doc("Add multiple robot and/or object models.")
+    property("joint_names", "std/vector<std/string>").
+       doc("Optionally set the order of joints here. If empty, order will be arbitrary.")
 
     property("base_frame", "std/string")
        doc("Name of the robot base frame; all computations will be performed with respect to this frame")
 
-    property("urdf", "std/string").
-        doc("Path to single urdf model. This is only for backward compatibility! Rather use the urdf_models property.")
-
-    property("joint_names", "std/vector<std/string>").
-       doc("Optionally set the order of joints here. If empty, order will be arbitrary.")
+    property("robot_models", "std/vector<wbc/RobotModelConfig>").
+        doc("Add multiple robot and/or object models.")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
@@ -72,22 +67,20 @@ task_context "WbcTask" do abstract
     output_port("ctrl_out", "base/commands/Joints").
        doc("Control solution")
 
-    output_port("task_frames", "std/vector<wbc/TaskFrame>").
-       doc("All task frames used in wbc.")
-
     output_port("computation_time", "double").
        doc("Computation time for one cycle in seconds")
 
     output_port("actual_cycle_time", "double").
        doc("Actual cycle time between two consecutive calls of updateHook() in seconds")
 
-    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>")
+    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
+       doc("Vector with status information for all constraints. For debuggin purpose")
 
     periodic 0.01
 end
 
 #
-# Velocity based implementation of WBC. Uses KDL for kinematics computation
+# Velocity based implementation of WBC. Uses KDL for kinematics computation and URDF for model parsing
 #
 task_context "WbcVelocityTask" do subclasses "WbcTask"
     needs_configuration
@@ -105,26 +98,11 @@ task_context "WbcVelocityTask" do subclasses "WbcTask"
     property("max_solver_output", "base/VectorXd").
         doc("Maximum joint velocity (in rad/sec) for each joint. If empty, infinite output will be allowed. If not empty, size has to be same as number of joints")
 
-    property("compute_debug", "bool", false).
-        doc("Compute debug data like manipulability, condition numbers, error between solution and desired values etc.")
-
     input_port("joint_weights", "base/VectorXd").
        doc("Online set new joint weights")
 
     output_port("current_joint_weights", "base/VectorXd").
        doc("Currently used joint weights")
-
-    #output_port("singular_values_pp", "std/vector<base/VectorXd>").
-    #   doc("Singular values for each priority")
-
-    output_port("damping_pp", "base/VectorXd").
-       doc("Damping coefficient for each priority")
-
-    output_port("inv_condition_number_pp", "base/VectorXd").
-       doc("Inverse Condition number (ratio smallest to biggest singular value) for each priority")
-
-    output_port("manipulability_pp", "base/VectorXd").
-       doc("Manipulability measure, product of singular values")
 
     periodic 0.01
 end
@@ -134,5 +112,4 @@ typekit do
    export_types "wbc/Constraint"
    export_types "wbc/ConstraintConfig"
    export_types "wbc/ConstraintsPerPrio"
-   export_types "wbc/TaskFrame"
 end

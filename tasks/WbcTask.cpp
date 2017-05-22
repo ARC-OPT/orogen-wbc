@@ -1,33 +1,27 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcTask.hpp"
-#include <wbc/Wbc.hpp>
+#include <wbc/WbcScene.hpp>
 #include <wbc/RobotModel.hpp>
 #include <wbc/Solver.hpp>
+#include "ConstraintInterface.hpp"
+#include "RobotModelInterface.hpp"
+#include <base-logging/Logging.hpp>
 
 using namespace wbc;
 
 WbcTask::WbcTask(std::string const& name)
     : WbcTaskBase(name)
 {
-    robot_model_interface = new RobotModelInterface(this);
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
     : WbcTaskBase(name, engine)
 {
-    robot_model_interface = new RobotModelInterface(this);
 }
 
 WbcTask::~WbcTask()
 {
-    // clear interfaces
-    delete robot_model_interface;
-
-    ConstraintInterfaceMap::const_iterator it;
-    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-        delete it->second;
-    constraint_interfaces.clear();
 }
 
 bool WbcTask::configureHook()
@@ -35,56 +29,24 @@ bool WbcTask::configureHook()
     if (! WbcTaskBase::configureHook())
         return false;
 
-    // Get wbc config and check validity
     std::vector<ConstraintConfig> wbc_config = _wbc_config.get();
-    if(!Wbc::isValid(wbc_config))
-        return false;
-
-    // Load robot Models and add task frames
-    std::vector<RobotModelConfig> robot_models = _urdf_models.get();
-    if(!_urdf.get().empty()) // If single urdf is given, insert it as first element. Deprecated feature.
-        robot_models.insert(robot_models.begin(), RobotModelConfig(_urdf.get()));
-
-    if(!robot_model->configure(robot_models,
-                               wbc->getTaskFrameIDs(wbc_config),
-                               _base_frame.get(),
-                               _joint_names.get()))
-        return false;
-
-    robot_model_interface->configure(robot_models);
-
-    LOG_DEBUG("... Configured Robot Model");
-
-
-    // Configure WBC
-    if(!wbc->configure(wbc_config, robot_model->getJointNames()))
-        return false;
 
     // Create constraint interfaces. Don't recreate existing interfaces.
-    for(uint i = 0; i < wbc_config.size(); i++){
+    for(uint i = 0; i < wbc_config.size(); i++)
         if(constraint_interfaces.count(wbc_config[i].name) == 0)
-            constraint_interfaces[wbc_config[i].name] = new ConstraintInterface(wbc_config[i].name, wbc, robot_model, this);
-    }
+            constraint_interfaces[wbc_config[i].name] = new ConstraintInterface(wbc_scene->getConstraint(wbc_config[i].name), robot_model, this);
+
     // Remove constraint interfaces that are not required anymore
     ConstraintInterfaceMap::const_iterator it;
     for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++){
-        if(!wbc->hasConstraint(it->first))
+        if(!wbc_scene->hasConstraint(it->first))
             constraint_interfaces.erase(it->first);
     }
 
-    LOG_DEBUG("... Configured WBC");
+    robot_model_interface->configure(_robot_models.get());
 
-
-    // Configure Solver
-    if(!solver->configure(wbc->getConstraintVariablesPerPrio(), robot_model->getJointNames().size()))
-        return false;
-
-
-    LOG_DEBUG("... Configured Solver");
-
-
-    ctrl_out.resize(robot_model->getJointNames().size());
-    ctrl_out.names = robot_model->getJointNames();
+    ctrl_out.resize(robot_model->jointNames().size());
+    ctrl_out.names = robot_model->jointNames();
 
     return true;
 }
@@ -99,8 +61,6 @@ bool WbcTask::startHook()
     for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
         it->second->reset();
     stamp.microseconds = 0;
-
-    solver_output.setConstant(robot_model->getJointNames().size(), 0);
 
     return true;
 }
@@ -133,20 +93,11 @@ void WbcTask::updateHook()
     for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
         it->second->update();
 
-    // Prepare opt. Problem
-    const std::vector<TaskFrame*> &task_frames = robot_model->getTaskFrames();
-    wbc->setupOptProblem(task_frames, opt_problem);
-
     // Solve opt. problem
-    solver->solve(opt_problem, solver_output);
+    wbc_scene->solve(ctrl_out);
 
-    //Write Task Frames
-    task_frames_out.resize(task_frames.size());
-    for(size_t i = 0; i < task_frames.size(); i++)
-        task_frames_out[i] = *task_frames[i];
-    _task_frames.write(task_frames_out);
-
-    _constraints.write(wbc->getConstraints());
+    _ctrl_out.write(ctrl_out);
+    _constraints.write(wbc_scene->getConstraints());
 
     // Write computation time for one cycle
     _computation_time.write((base::Time::now() - cur).toSeconds());
@@ -165,4 +116,10 @@ void WbcTask::cleanupHook()
     WbcTaskBase::cleanupHook();
 
     ctrl_out.clear();
+
+    // clear interfaces
+    delete robot_model_interface;
+    for(ConstraintInterfaceMap::const_iterator it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
+        delete it->second;
+    constraint_interfaces.clear();
 }
