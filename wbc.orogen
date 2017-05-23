@@ -13,15 +13,16 @@ using_library "kdl_parser"
 #
 #  configureHook:
 #
-#  1. Load robot models and add task frames
-#  2. Configure constraints and create dynamic ports
-#  3. Conigure solver
+#  1. Load and configure robot models
+#  2. Conigure solver
+#  3. Configure wbc scene
+#  4. Create dynamic ports
 #
 #  updateHook:
 #
-#  1. Update robot models
-#  2. Update constraints
-#  3. Setup constraints for optimization problem
+#  1. Read input ports
+#  2. Update robot models
+#  3. Update constraints
 #  4. Solve opt. problem
 #
 task_context "WbcTask" do abstract
@@ -30,14 +31,14 @@ task_context "WbcTask" do abstract
     runtime_states "NO_JOINT_STATE"
 
     property("joint_names", "std/vector<std/string>").
-       doc("Optionally set the order of joints here. If empty, order will be arbitrary.")
+       doc("Optionally set the order of joints here. If empty, order will be as in the robot model.")
 
     property("initial_joint_weights", "base/VectorXd").
         doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
-             Size has to be same as joint_names")
+             Size has to be same as number of robot joints")
 
     property("base_frame", "std/string")
-       doc("Name of the robot base frame; all computations will be performed with respect to this frame")
+       doc("Name of the robot base frame; all computations will be performed with respect to this frame. If empty, base frame will be the base frame of the first given robot model.")
 
     property("robot_models", "std/vector<wbc/RobotModelConfig>").
         doc("Add multiple robot and/or object models.")
@@ -67,13 +68,13 @@ task_context "WbcTask" do abstract
     dynamic_output_port /.*/, "/base/samples/Joints"
 
     input_port("joint_state", "base/samples/Joints").
-       doc("Current joint state of the robot. Right now, only positions are required.")
+       doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
 
     input_port("joint_weights", "base/VectorXd").
-       doc("Online set new joint weights")
+       doc("Online set new joint weights. Size has to be same number of joints.")
 
     output_port("ctrl_out", "base/commands/Joints").
-       doc("Control solution")
+       doc("Control solution. Size will be same as number of joints.")
 
     output_port("computation_time", "double").
        doc("Computation time for one cycle in seconds")
@@ -82,22 +83,23 @@ task_context "WbcTask" do abstract
        doc("Actual cycle time between two consecutive calls of updateHook() in seconds")
 
     output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
-       doc("Vector with status information for all constraints. For debuggin purpose")
+       doc("Debug: Vector with status information for all constraints.")
 
     output_port("current_joint_weights", "base/VectorXd").
-       doc("Currently used joint weights")
+       doc("Debug: Currently used joint weights")
 
     periodic 0.01
 end
 
 #
-# Velocity based implementation of WBC. Uses KDL for kinematics computation and URDF for model parsing
+# Velocity based implementation of WBC. This implementation uses KDL for kinematics computation and URDF for model parsing.
 #
 task_context "WbcVelocityTask" do subclasses "WbcTask"
     needs_configuration
 
     property("norm_max", "double", 10.0).
-       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution")
+       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution. A lower value will prevent unbounded
+            control velocities near singular configurations.")
 
     property("epsilon", "double", 1e-9).
        doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
