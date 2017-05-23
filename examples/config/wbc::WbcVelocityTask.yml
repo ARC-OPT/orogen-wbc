@@ -8,9 +8,10 @@ initial_joint_weights:
   data: [1,1,1,1,1,1,1]
 
 # Add multiple robot and/or object models.
-urdf_models:
+robot_models:
     - file: "./models/kuka_lbr.urdf"
 
+joint_names: ["kuka_lbr_r_joint_1","kuka_lbr_r_joint_2","kuka_lbr_r_joint_3","kuka_lbr_r_joint_4","kuka_lbr_r_joint_5","kuka_lbr_r_joint_6","kuka_lbr_r_joint_7"]
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
@@ -31,14 +32,6 @@ wbc_config:
       root: "kuka_lbr_base"
       tip:  "kuka_lbr_r_tcp"
       ref_frame: "kuka_lbr_base"
-      weights: [1,1,1,1,1,1]
-
-    - name: "cart_force_ctrl_right"
-      priority: 0
-      type: cart
-      root: "kuka_lbr_base"
-      tip:  "kuka_lbr_r_tcp"
-      ref_frame: "kuka_lbr_r_tcp"
       weights: [1,1,1,1,1,1]
 
     - name: "joint_limit_avoidance"
