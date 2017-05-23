@@ -30,6 +30,7 @@ protected:
     base::commands::Joints ctrl_out;              /** Control output vector.*/
     base::samples::Joints joint_state;            /** Current joint state of the whole robot*/
     base::Time stamp;                             /** Timestamp for cycle time computation*/
+    base::VectorXd joint_weights;                 /** Joint weights of the whole robot*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

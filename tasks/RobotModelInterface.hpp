@@ -4,11 +4,10 @@
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
 #include <base/samples/RigidBodyState.hpp>
-#include <base/samples/Joints.hpp>
-#include <wbc/RobotModelConfig.hpp>
-#include <wbcTypes.hpp>
 
 namespace wbc{
+
+class RobotModelConfig;
 
 class RobotModelInterface{
 public:

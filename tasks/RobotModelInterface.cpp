@@ -1,4 +1,5 @@
 #include "RobotModelInterface.hpp"
+#include <wbc/RobotModelConfig.hpp>
 
 namespace wbc{
 
@@ -15,10 +16,9 @@ RobotModelInterface::~RobotModelInterface(){
 
 void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config){
 
-    for(size_t i = 0; i < config.size(); i++){
+    for(size_t i = 0; i < config.size(); i++)
         if(!config[i].hook.empty())  // Don't create an input port if the hook is empty
             addPort(config[i].hook + "_pose");
-    }
 
     // Remove ports which are not required anymore. This is required
     // if wbc is re-configured with different constraints

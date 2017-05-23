@@ -13,6 +13,8 @@ using namespace wbc;
 WbcTask::WbcTask(std::string const& name)
     : WbcTaskBase(name)
 {
+    robot_model_interface = new RobotModelInterface(this);
+    robot_model_interface->configure(_robot_models.get());
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
@@ -22,6 +24,11 @@ WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
 
 WbcTask::~WbcTask()
 {
+    // Delete port interfaces here, so that the ports are not erased when WBC is (re-)configured
+    delete robot_model_interface;
+    for(ConstraintInterfaceMap::const_iterator it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
+        delete it->second;
+    constraint_interfaces.clear();
 }
 
 bool WbcTask::configureHook()
@@ -30,6 +37,23 @@ bool WbcTask::configureHook()
         return false;
 
     std::vector<ConstraintConfig> wbc_config = _wbc_config.get();
+
+    if(!robot_model->configure(_robot_models.get(), _joint_names.get(), _base_frame.get()))
+            return false;
+
+    LOG_DEBUG("... Configured Robot Model");
+
+    if(!solver->configure(WbcScene::getNConstraintVariablesPerPrio(wbc_config), robot_model->noOfJoints()))
+        return false;
+    joint_weights = _initial_joint_weights.get();
+    solver->setJointWeights(joint_weights);
+
+    LOG_DEBUG("... Configured Solver");
+
+    if(!wbc_scene->configure(wbc_config))
+        return false;
+
+    LOG_DEBUG("... Configured WBC Scene");
 
     // Create constraint interfaces. Don't recreate existing interfaces.
     for(uint i = 0; i < wbc_config.size(); i++)
@@ -43,7 +67,10 @@ bool WbcTask::configureHook()
             constraint_interfaces.erase(it->first);
     }
 
+    // Configure robot model interface
     robot_model_interface->configure(_robot_models.get());
+
+    LOG_DEBUG("... Created ports");
 
     ctrl_out.resize(robot_model->jointNames().size());
     ctrl_out.names = robot_model->jointNames();
@@ -75,7 +102,10 @@ void WbcTask::updateHook()
         _actual_cycle_time.write((cur - stamp).toSeconds());
     stamp = cur;
 
-    // Read joint status
+    if(_joint_weights.readNewest(joint_weights) == RTT::NewData)
+        solver->setJointWeights(joint_weights);
+    _current_joint_weights.write(joint_weights);
+
     if(_joint_state.readNewest(joint_state) == RTT::NoData){
         if(state() != NO_JOINT_STATE)
             state(NO_JOINT_STATE);
@@ -98,8 +128,6 @@ void WbcTask::updateHook()
 
     _ctrl_out.write(ctrl_out);
     _constraints.write(wbc_scene->getConstraints());
-
-    // Write computation time for one cycle
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 
@@ -114,12 +142,5 @@ void WbcTask::stopHook()
 void WbcTask::cleanupHook()
 {
     WbcTaskBase::cleanupHook();
-
     ctrl_out.clear();
-
-    // clear interfaces
-    delete robot_model_interface;
-    for(ConstraintInterfaceMap::const_iterator it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-        delete it->second;
-    constraint_interfaces.clear();
 }

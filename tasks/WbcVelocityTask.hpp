@@ -11,11 +11,7 @@ class WbcVelocityTask : public WbcVelocityTaskBase
 {
     friend class WbcVelocityTaskBase;
 protected:
-    base::VectorXd joint_weights;
-    base::VectorXd robot_vel; /** Robot velocity, converted from joint_state*/
-    base::VectorXd damping, inv_condition_numbers, manipulability;
-    std::vector<base::VectorXd> singular_values;
-    bool compute_debug;
+    base::VectorXd robot_vel;       /** Current robot velocity, converted from joint_state*/
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
