@@ -22,30 +22,34 @@ Orocos.conf.load_dir('config')
 
 Orocos.run "wbc::WbcVelocityTask" => "wbc",
            "ctrl_lib::CartesianPositionController" => "cartesian_controller",
-           "ctrl_lib::JointLimitAvoidance"         => "joint_limit_avoidance",
-           "joint_control::FakeJointDriverTask"    => "driver" do
+           "ctrl_lib::CartesianForceController"    => "force_controller",
+           "joint_control::FakeJointDriverTask"    => "joint_driver",
+           "joint_control::FakeForceDriverTask"    => "force_sensor" do
 
-    cartesian_controller  = Orocos::TaskContext.get "cartesian_controller"
-    joint_limit_avoidance = Orocos::TaskContext.get "joint_limit_avoidance"
-    wbc                   = Orocos::TaskContext.get "wbc"
-    driver                = Orocos::TaskContext.get "driver"
+    cartesian_controller = Orocos::TaskContext.get "cartesian_controller"
+    force_controller     = Orocos::TaskContext.get "force_controller"
+    wbc                  = Orocos::TaskContext.get "wbc"
+    joint_driver         = Orocos::TaskContext.get "joint_driver"
+    force_sensor         = Orocos::TaskContext.get "force_sensor"
 
-    Orocos.conf.apply(wbc,    ["default", "cart_control_with_joint_limits"], true)
-    Orocos.conf.apply(driver, ["default"], true)
+    Orocos.conf.apply(wbc,    ["default", "position_force_control"], true)
+    Orocos.conf.apply(joint_driver, ["default"], true)
+    Orocos.conf.apply(force_sensor, ["default"], true)
     Orocos.conf.apply(cartesian_controller,  ["default"], true)
-    Orocos.conf.apply(joint_limit_avoidance, ["default"], true)
+    Orocos.conf.apply(force_controller, ["default"], true)
 
     # Note: WBC will create dynamic ports for the constraints on configuration, so configure already here
     wbc.configure
     cartesian_controller.configure
-    joint_limit_avoidance.configure
-    driver.configure
+    force_controller.configure
+    joint_driver.configure
+    force_sensor.configure
 
     # Connect ports
 
     # Connect WBC with your robot's joint interface. In this case the joint driver
-    driver.port("joint_state").connect_to wbc.port("joint_state")
-    wbc.port("ctrl_out").connect_to driver.port("command")
+    joint_driver.port("joint_state").connect_to wbc.port("joint_state")
+    wbc.port("ctrl_out").connect_to joint_driver.port("command")
 
     # Priority 0:
 
@@ -54,19 +58,18 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     cartesian_controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
     wbc.port("pose_" + constraint_name).connect_to cartesian_controller.port("feedback")
 
-    # Priority 1:
-
-    # Joint Limit avoidance
-    constraint_name = "joint_limit_avoidance"
-    joint_limit_avoidance.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    joint_limit_avoidance.port("activation").connect_to wbc.port("weight_" + constraint_name)
-    wbc.port("joint_state_" + constraint_name).connect_to joint_limit_avoidance.port("feedback")
+    # Cartesian Force Control
+    constraint_name = "cart_force_ctrl_right"
+    force_controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
+    force_controller.port("activation").connect_to wbc.port("weight_" + constraint_name)
+    force_sensor.port("wrench").connect_to force_controller.port("feedback")
 
     # Run
 
-    driver.start
+    joint_driver.start
     cartesian_controller.start
-    joint_limit_avoidance.start
+    force_controller.start
+    force_sensor.start
     wbc.start
 
     Readline.readline("Press Enter to start motion")

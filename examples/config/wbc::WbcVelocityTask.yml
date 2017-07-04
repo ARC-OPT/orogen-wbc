@@ -12,6 +12,8 @@ robot_models:
     - file: "./models/kuka_lbr.urdf"
 
 joint_names: ["kuka_lbr_r_joint_1","kuka_lbr_r_joint_2","kuka_lbr_r_joint_3","kuka_lbr_r_joint_4","kuka_lbr_r_joint_5","kuka_lbr_r_joint_6","kuka_lbr_r_joint_7"]
+
+--- name:cart_control_with_joint_limits
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
@@ -39,3 +41,35 @@ wbc_config:
       type: jnt
       joint_names: ["kuka_lbr_r_joint_1","kuka_lbr_r_joint_2","kuka_lbr_r_joint_3","kuka_lbr_r_joint_4","kuka_lbr_r_joint_5","kuka_lbr_r_joint_6","kuka_lbr_r_joint_7"]
       weights: [1,1,1,1,1,1,1]
+
+
+--- name:position_force_control
+# Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
+#              Cartesian constraints:
+#                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
+#                  Weights (/base/VectorXd):                               weight_<constraint_name>
+#                  Activation function (double):                           activation_<constraint_name>
+#                  Constraint pose output (/base/samples/RigidBodyState):  state_<constraint_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+#              Joint Space constraints:
+#                  Reference Input (/base/samples/Joints):                 ref_<task_name>
+#                  Weights (/base/VectorXd):                               weight_<task_name>
+#                  Activation function (double):                           activation_<task_name>
+#                  Current joint state output (base/samples/Joints):       state_<task_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+wbc_config:
+    - name: "cart_position_ctrl_right"
+      priority: 0
+      type: cart
+      root: "kuka_lbr_base"
+      tip:  "kuka_lbr_r_tcp"
+      ref_frame: "kuka_lbr_base"
+      weights: [1,1,1,1,1,1]
+
+    - name: "cart_force_ctrl_right"
+      priority: 0
+      type: cart
+      root: "kuka_lbr_base"
+      tip:  "kuka_lbr_r_tcp"
+      ref_frame: "kuka_lbr_r_tcp"
+      weights: [1,1,1,1,1,1]
