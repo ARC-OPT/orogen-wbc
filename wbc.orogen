@@ -50,13 +50,11 @@ task_context "WbcTask" do abstract
                  Weights (/base/VectorXd):                               weight_<constraint_name>
                  Activation function (double):                           activation_<constraint_name>
                  Constraint pose output (/base/samples/RigidBodyState):  pose_<constraint_name>
-                 Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
              Joint Space constraints:
                  Reference Input (/base/samples/Joints):                 ref_<task_name>
                  Weights (/base/VectorXd):                               weight_<task_name>
                  Activation function (double):                           activation_<task_name>
                  Current joint state output (base/samples/Joints):       joint_state_<task_name>
-                 Constraint output port (wbc/Constraint)                 constraint_<constraint_name>")
 
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
