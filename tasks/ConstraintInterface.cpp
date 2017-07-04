@@ -2,7 +2,6 @@
 #include <kdl_conversions/KDLConversions.hpp>
 #include <wbc/CartesianConstraint.hpp>
 #include <wbc/JointConstraint.hpp>
-#include <wbc/Wbc.hpp>
 #include <wbc/RobotModel.hpp>
 
 namespace wbc{
