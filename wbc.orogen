@@ -54,7 +54,7 @@ task_context "WbcTask" do abstract
                  Reference Input (/base/samples/Joints):                 ref_<task_name>
                  Weights (/base/VectorXd):                               weight_<task_name>
                  Activation function (double):                           activation_<task_name>
-                 Current joint state output (base/samples/Joints):       joint_state_<task_name>
+                 Current joint state output (base/samples/Joints):       joint_state_<task_name>")
 
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
