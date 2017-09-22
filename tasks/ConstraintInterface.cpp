@@ -6,8 +6,8 @@
 
 namespace wbc{
 
-ConstraintInterface::ConstraintInterface(Constraint* _constraint,
-                                         RobotModel* _robot_model,
+ConstraintInterface::ConstraintInterface(ConstraintPtr _constraint,
+                                         RobotModelPtr _robot_model,
                                          RTT::TaskContext* _task_context){
 
     constraint = _constraint;
@@ -86,12 +86,16 @@ void ConstraintInterface::update(){
         constraint->setWeights(weights);
 
     if(cart_ref_port){
-        if(cart_ref_port->readNewest(cart_ref) == RTT::NewData)
-            ((CartesianConstraint*)constraint)->setReference(cart_ref);
+        if(cart_ref_port->readNewest(cart_ref) == RTT::NewData){
+            std::shared_ptr<CartesianConstraint> ptr = std::static_pointer_cast<CartesianConstraint>(constraint);
+            ptr->setReference(cart_ref);
+        }
     }
     else{
-        if(jnt_ref_port->readNewest(jnt_ref) == RTT::NewData)
-            ((JointConstraint*)constraint)->setReference(jnt_ref);
+        if(jnt_ref_port->readNewest(jnt_ref) == RTT::NewData){
+            std::shared_ptr<JointConstraint> ptr = std::static_pointer_cast<JointConstraint>(constraint);
+            ptr->setReference(jnt_ref);
+        }
     }
 
     const ConstraintConfig& cfg = constraint->config;

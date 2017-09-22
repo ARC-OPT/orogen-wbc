@@ -11,16 +11,19 @@ namespace wbc{
 class Constraint;
 class RobotModel;
 
+typedef std::shared_ptr<Constraint> ConstraintPtr;
+typedef std::shared_ptr<RobotModel> RobotModelPtr;
+
 class ConstraintInterface
 {
 public:
-    ConstraintInterface(Constraint* constraint,
-                        RobotModel* _robot_model,
+    ConstraintInterface(ConstraintPtr constraint,
+                        RobotModelPtr _robot_model,
                         RTT::TaskContext* task_context);
     ~ConstraintInterface();
 
-    Constraint* constraint;
-    RobotModel* robot_model;
+    ConstraintPtr constraint;
+    RobotModelPtr robot_model;
 
     base::samples::RigidBodyState constraint_cart_state;
     base::samples::Joints constraint_jnt_state;
@@ -38,7 +41,7 @@ public:
     base::VectorXd weights;                 /** Current constraint weights*/
     double activation;                      /** Current constraint activation*/
 
-    RTT::TaskContext *task_context;
+    RTT::TaskContext* task_context;
 
     void update();
     void reset();

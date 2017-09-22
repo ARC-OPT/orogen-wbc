@@ -13,7 +13,7 @@ using namespace wbc;
 WbcTask::WbcTask(std::string const& name)
     : WbcTaskBase(name)
 {
-    robot_model_interface = new RobotModelInterface(this);
+    robot_model_interface = std::make_shared<RobotModelInterface>(this);
     robot_model_interface->configure(_robot_models.get());
 }
 
@@ -25,9 +25,9 @@ WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
 WbcTask::~WbcTask()
 {
     // Delete port interfaces here, so that the ports are not erased when WBC is (re-)configured
-    delete robot_model_interface;
+    robot_model_interface.reset();
     for(ConstraintInterfaceMap::const_iterator it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-        delete it->second;
+        it->second->reset();
     constraint_interfaces.clear();
 }
 
@@ -58,7 +58,7 @@ bool WbcTask::configureHook()
     // Create constraint interfaces. Don't recreate existing interfaces.
     for(uint i = 0; i < wbc_config.size(); i++)
         if(constraint_interfaces.count(wbc_config[i].name) == 0)
-            constraint_interfaces[wbc_config[i].name] = new ConstraintInterface(wbc_scene->getConstraint(wbc_config[i].name), robot_model, this);
+            constraint_interfaces[wbc_config[i].name] = std::make_shared<ConstraintInterface>(wbc_scene->getConstraint(wbc_config[i].name), robot_model, this);
 
     // Remove constraint interfaces that are not required anymore
     ConstraintInterfaceMap::const_iterator it;
@@ -127,7 +127,8 @@ void WbcTask::updateHook()
     wbc_scene->solve(ctrl_out);
 
     _ctrl_out.write(ctrl_out);
-    _constraints.write(wbc_scene->getConstraints());
+    //wbc_scene->getConstraints(constraint_vector);
+    //_constraints.write(constraint_vector);
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 
