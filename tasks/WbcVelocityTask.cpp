@@ -14,21 +14,26 @@ using namespace std;
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name)
     : WbcVelocityTaskBase(name){
-}
-
-WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine)
-    : WbcVelocityTaskBase(name, engine){
-}
-
-WbcVelocityTask::~WbcVelocityTask(){
-}
-
-bool WbcVelocityTask::configureHook(){
-
     robot_model = std::make_shared<KinematicRobotModelKDL>();
     solver = std::make_shared<HierarchicalLeastSquaresSolver>();
     wbc_scene = std::make_shared<WbcVelocityScene>(robot_model, solver);
 
+}
+
+WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine)
+    : WbcVelocityTaskBase(name, engine){
+    robot_model = std::make_shared<KinematicRobotModelKDL>();
+    solver = std::make_shared<HierarchicalLeastSquaresSolver>();
+    wbc_scene = std::make_shared<WbcVelocityScene>(robot_model, solver);
+}
+
+WbcVelocityTask::~WbcVelocityTask(){    
+    wbc_scene.reset();
+    robot_model.reset();
+    solver.reset();
+}
+
+bool WbcVelocityTask::configureHook(){
     if (! WbcVelocityTaskBase::configureHook())
         return false;
 
@@ -76,8 +81,4 @@ void WbcVelocityTask::stopHook(){
 void WbcVelocityTask::cleanupHook()
 {
     WbcVelocityTaskBase::cleanupHook();
-
-    wbc_scene.reset();
-    robot_model.reset();
-    solver.reset();
 }
