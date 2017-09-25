@@ -106,7 +106,8 @@ void WbcTask::updateHook()
         solver->setJointWeights(joint_weights);
     _current_joint_weights.write(joint_weights);
 
-    if(_joint_state.readNewest(joint_state) == RTT::NoData){
+    _joint_state.readNewest(joint_state);
+    if(joint_state.empty()){
         if(state() != NO_JOINT_STATE)
             state(NO_JOINT_STATE);
         return;
@@ -144,4 +145,5 @@ void WbcTask::cleanupHook()
 {
     WbcTaskBase::cleanupHook();
     ctrl_out.clear();
+    joint_state.clear();
 }
