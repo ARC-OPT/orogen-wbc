@@ -128,8 +128,8 @@ void WbcTask::updateHook()
     wbc_scene->solve(ctrl_out);
 
     _ctrl_out.write(ctrl_out);
-    //wbc_scene->getConstraints(constraint_vector);
-    //_constraints.write(constraint_vector);
+    wbc_scene->getConstraints(constraint_vector);
+    _constraints.write(constraint_vector);
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 
