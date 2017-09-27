@@ -56,9 +56,12 @@ bool WbcTask::configureHook()
     LOG_DEBUG("... Configured WBC Scene");
 
     // Create constraint interfaces. Don't recreate existing interfaces.
-    for(uint i = 0; i < wbc_config.size(); i++)
+    for(uint i = 0; i < wbc_config.size(); i++){
         if(constraint_interfaces.count(wbc_config[i].name) == 0)
             constraint_interfaces[wbc_config[i].name] = std::make_shared<ConstraintInterface>(wbc_scene->getConstraint(wbc_config[i].name), robot_model, this);
+        else
+            constraint_interfaces[wbc_config[i].name]->constraint = wbc_scene->getConstraint(wbc_config[i].name);
+    }
 
     // Remove constraint interfaces that are not required anymore
     ConstraintInterfaceMap::const_iterator it;
