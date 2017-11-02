@@ -86,6 +86,13 @@ task_context "WbcTask" do abstract
     output_port("current_joint_weights", "base/VectorXd").
        doc("Debug: Currently used joint weights")
 
+    operation("activateConstraint").
+       argument("constraint_name", "std/string")
+
+    operation("deactivateConstraint").
+       argument("constraint_name", "std/string")
+       
+
     periodic 0.01
 end
 

@@ -48,6 +48,9 @@ public:
     void errorHook();
     void stopHook();
     void cleanupHook();
+
+    virtual void activateConstraint(const std::string& constraint_name);
+    virtual void deactivateConstraint(const std::string& constraint_name);
 };
 }
 

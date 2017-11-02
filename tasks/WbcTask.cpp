@@ -150,3 +150,13 @@ void WbcTask::cleanupHook()
     ctrl_out.clear();
     joint_state.clear();
 }
+
+void WbcTask::activateConstraint(const std::string& constraint_name)
+{
+    wbc_scene->getConstraint(constraint_name)->setActivation(1.0);
+}
+
+void WbcTask::deactivateConstraint(const std::string& constraint_name)
+{
+    wbc_scene->getConstraint(constraint_name)->setActivation(0.0);
+}
