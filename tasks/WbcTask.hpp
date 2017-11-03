@@ -37,6 +37,7 @@ protected:
     base::Time stamp;                                  /** Timestamp for cycle time computation*/
     base::VectorXd joint_weights;                      /** Joint weights of the whole robot*/
     std::vector<ConstraintsPerPrio> constraint_vector; /** For debug purposes*/
+    std::vector<ConstraintConfig> wbc_config;          /** Current constraint configuration*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");
@@ -49,8 +50,8 @@ public:
     void stopHook();
     void cleanupHook();
 
-    virtual void activateConstraint(const std::string& constraint_name);
-    virtual void deactivateConstraint(const std::string& constraint_name);
+    virtual void activateConstraint(const std::string& constraint_name, bool activate);
+    virtual void deactivateAllConstraints();
 };
 }
 

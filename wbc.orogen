@@ -87,11 +87,10 @@ task_context "WbcTask" do abstract
        doc("Debug: Currently used joint weights")
 
     operation("activateConstraint").
-       argument("constraint_name", "std/string")
+       argument("constraint_name", "std/string").
+       argument("activate", "bool")
 
-    operation("deactivateConstraint").
-       argument("constraint_name", "std/string")
-       
+    operation("deactivateAllConstraints")       
 
     periodic 0.01
 end

@@ -36,7 +36,7 @@ bool WbcTask::configureHook()
     if (! WbcTaskBase::configureHook())
         return false;
 
-    std::vector<ConstraintConfig> wbc_config = _wbc_config.get();
+    wbc_config = _wbc_config.get();
 
     if(!robot_model->configure(_robot_models.get(), _joint_names.get(), _base_frame.get()))
             return false;
@@ -151,12 +151,14 @@ void WbcTask::cleanupHook()
     joint_state.clear();
 }
 
-void WbcTask::activateConstraint(const std::string& constraint_name)
+void WbcTask::activateConstraint(const std::string& constraint_name, bool activate)
 {
-    wbc_scene->getConstraint(constraint_name)->setActivation(1.0);
+    wbc_scene->getConstraint(constraint_name)->setActivation((int)activate);
 }
 
-void WbcTask::deactivateConstraint(const std::string& constraint_name)
+void WbcTask::deactivateAllConstraints()
 {
-    wbc_scene->getConstraint(constraint_name)->setActivation(0.0);
+    for(auto constraint : wbc_config)
+        wbc_scene->getConstraint(constraint.name)->setActivation(0);
 }
+
