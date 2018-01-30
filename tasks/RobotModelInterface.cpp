@@ -24,8 +24,8 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
     for(size_t i = 0; i < config.size(); i++)
         if(!config[i].hook.empty()){  // Don't create an input port if the hook is empty
-            addInputPort(config[i].initial_pose.targetFrame + "_pose");
-            addOutputPort("current_" + config[i].initial_pose.targetFrame + "_pose");
+            addInputPort(config[i].initial_pose.sourceFrame + "_pose");
+            addOutputPort("current_" + config[i].initial_pose.sourceFrame + "_pose");
         }
 
     // Remove ports which are not required anymore. This is required
@@ -35,7 +35,7 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
         bool is_port_required = false;
         for(size_t j = 0; j < config.size(); j++){
-            if(it->first == (config[j].initial_pose.targetFrame + "_pose"))
+            if(it->first == (config[j].initial_pose.sourceFrame + "_pose"))
                 is_port_required = true;
         }
         if(!is_port_required){
@@ -48,7 +48,7 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
         bool is_port_required = false;
         for(size_t j = 0; j < config.size(); j++){
-            if(iit->first == ("current_" + config[j].initial_pose.targetFrame + "_pose"))
+            if(iit->first == ("current_" + config[j].initial_pose.sourceFrame + "_pose"))
                 is_port_required = true;
         }
         if(!is_port_required){
