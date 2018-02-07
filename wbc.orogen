@@ -1,12 +1,14 @@
 name "wbc"
 
-using_library "base-logging"
-using_library "wbc"
-using_library "kdl_parser"
+using_library "wbc-core"
+using_library "wbc-robot_models"
+using_library "wbc-scenes"
+using_library "wbc-solvers"
+using_library "wbc-tools"
 
-import_types_from "wbc/ConstraintConfig.hpp"
-import_types_from "wbc/Constraint.hpp"
-import_types_from "wbc/RobotModelConfig.hpp"
+import_types_from "wbc/core/ConstraintConfig.hpp"
+import_types_from "wbc/core/Constraint.hpp"
+import_types_from "wbc/core/RobotModelConfig.hpp"
 import_types_from "base"
 
 #
