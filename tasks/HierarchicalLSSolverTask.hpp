@@ -28,7 +28,7 @@ namespace wbc{
 	friend class HierarchicalLSSolverTaskBase;
     protected:
 
-        HierarchicalLSSolver solver;
+        std::shared_ptr<HierarchicalLSSolver> solver;
         HierarchicalLEConstraints constraints_prio;
         base::VectorXd solver_output_raw;
 

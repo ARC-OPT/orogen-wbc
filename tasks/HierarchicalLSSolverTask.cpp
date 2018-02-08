@@ -19,10 +19,11 @@ bool HierarchicalLSSolverTask::configureHook(){
     if (! HierarchicalLSSolverTaskBase::configureHook())
         return false;
 
-    solver.setMaxSolverOutputNorm(_norm_max.get());
-    solver.setMinEigenvalue(_epsilon.get());
+    solver = std::make_shared<HierarchicalLSSolver>();
+    solver->setMaxSolverOutputNorm(_norm_max.get());
+    solver->setMinEigenvalue(_epsilon.get());
     if(_max_solver_output.get().size() > 0)
-        solver.setMaxSolverOutput(_max_solver_output.get());
+        solver->setMaxSolverOutput(_max_solver_output.get());
 
     return true;
 }
@@ -50,12 +51,13 @@ void HierarchicalLSSolverTask::stopHook(){
 
 void HierarchicalLSSolverTask::cleanupHook(){
     HierarchicalLSSolverTaskBase::cleanupHook();
+    solver.reset();
 }
 
 void HierarchicalLSSolverTask::computeSolverOutput(base::commands::Joints& solver_output){
 
     if(_constraints_prio.readNewest(constraints_prio) == RTT::NewData){
-        solver.solve(constraints_prio.constraints, solver_output_raw);
+        solver->solve(constraints_prio.constraints, solver_output_raw);
 
         solver_output.resize(constraints_prio.joint_names.size());
         solver_output.names = constraints_prio.joint_names;
