@@ -1,9 +1,8 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcTask.hpp"
-#include <wbc/core/WbcScene.hpp>
-#include <wbc/core/RobotModel.hpp>
-#include <wbc/core/Solver.hpp>
+#include <wbc/WbcScene.hpp>
+#include <wbc/RobotModel.hpp>
 #include "ConstraintInterface.hpp"
 #include "RobotModelInterface.hpp"
 #include <base-logging/Logging.hpp>
@@ -11,19 +10,16 @@
 using namespace wbc;
 
 WbcTask::WbcTask(std::string const& name)
-    : WbcTaskBase(name)
-{
+    : WbcTaskBase(name){
     robot_model_interface = std::make_shared<RobotModelInterface>(this);
     robot_model_interface->configure(_robot_models.get());
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
-    : WbcTaskBase(name, engine)
-{
+    : WbcTaskBase(name, engine){
 }
 
-WbcTask::~WbcTask()
-{
+WbcTask::~WbcTask(){
     // Delete port interfaces here, so that the ports are not erased when WBC is (re-)configured
     robot_model_interface.reset();
     for(ConstraintInterfaceMap::const_iterator it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
@@ -31,8 +27,7 @@ WbcTask::~WbcTask()
     constraint_interfaces.clear();
 }
 
-bool WbcTask::configureHook()
-{
+bool WbcTask::configureHook(){
     if (! WbcTaskBase::configureHook())
         return false;
 
@@ -42,13 +37,6 @@ bool WbcTask::configureHook()
             return false;
 
     LOG_DEBUG("... Configured Robot Model");
-
-    if(!solver->configure(WbcScene::getNConstraintVariablesPerPrio(wbc_config), robot_model->noOfJoints()))
-        return false;
-    joint_weights = _initial_joint_weights.get();
-    solver->setJointWeights(joint_weights);
-
-    LOG_DEBUG("... Configured Solver");
 
     if(!wbc_scene->configure(wbc_config))
         return false;
@@ -75,14 +63,10 @@ bool WbcTask::configureHook()
 
     LOG_DEBUG("... Created ports");
 
-    ctrl_out.resize(robot_model->jointNames().size());
-    ctrl_out.names = robot_model->jointNames();
-
     return true;
 }
 
-bool WbcTask::startHook()
-{
+bool WbcTask::startHook(){
     if (! WbcTaskBase::startHook())
         return false;
 
@@ -95,19 +79,14 @@ bool WbcTask::startHook()
     return true;
 }
 
-void WbcTask::updateHook()
-{
-    WbcTaskBase::updateHook();
-
+void WbcTask::updateHook(){
     // Compute cycle time
     base::Time cur = base::Time::now();
     if(!stamp.isNull())
         _actual_cycle_time.write((cur - stamp).toSeconds());
     stamp = cur;
 
-    if(_joint_weights.readNewest(joint_weights) == RTT::NewData)
-        solver->setJointWeights(joint_weights);
-    _current_joint_weights.write(joint_weights);
+    WbcTaskBase::updateHook();
 
     _joint_state.readNewest(joint_state);
     if(joint_state.empty()){
@@ -127,37 +106,36 @@ void WbcTask::updateHook()
     for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
         it->second->update();
 
-    // Solve opt. problem
-    wbc_scene->solve(ctrl_out);
+    // Create opt problem
+    wbc_scene->update();
 
-    _ctrl_out.write(ctrl_out);
-    wbc_scene->getConstraints(constraint_vector);
-    _constraints.write(constraint_vector);
+    // Write debug output
+    if(_solver_output.readNewest(solver_output) == RTT::NewData){
+        wbc_scene->evaluateConstraints(solver_output, joint_state);
+        wbc_scene->getConstraints(constraint_vector);
+        _constraints.write(constraint_vector);
+    }
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 
-void WbcTask::errorHook()
-{
+void WbcTask::errorHook(){
     WbcTaskBase::errorHook();
 }
-void WbcTask::stopHook()
-{
+
+void WbcTask::stopHook(){
     WbcTaskBase::stopHook();
 }
-void WbcTask::cleanupHook()
-{
+
+void WbcTask::cleanupHook(){
     WbcTaskBase::cleanupHook();
-    ctrl_out.clear();
     joint_state.clear();
 }
 
-void WbcTask::activateConstraint(const std::string& constraint_name, bool activate)
-{
+void WbcTask::activateConstraint(const std::string& constraint_name, bool activate){
     wbc_scene->getConstraint(constraint_name)->setActivation((int)activate);
 }
 
-void WbcTask::deactivateAllConstraints()
-{
+void WbcTask::deactivateAllConstraints(){
     for(auto constraint : wbc_config)
         wbc_scene->getConstraint(constraint.name)->setActivation(0);
 }

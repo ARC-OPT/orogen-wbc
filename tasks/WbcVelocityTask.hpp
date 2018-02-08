@@ -4,14 +4,19 @@
 #define WBC_WBCVELOCITYTASK_TASK_HPP
 
 #include "wbc/WbcVelocityTaskBase.hpp"
+#include <wbcTypes.hpp>
 
 namespace wbc {
+
+class WbcVelocityScene;
 
 class WbcVelocityTask : public WbcVelocityTaskBase
 {
     friend class WbcVelocityTaskBase;
 protected:
     base::VectorXd robot_vel;       /** Current robot velocity, converted from joint_state*/
+    std::shared_ptr<WbcVelocityScene> wbc_vel_scene;
+    HierarchicalLEConstraints constraints_prio;
 
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");

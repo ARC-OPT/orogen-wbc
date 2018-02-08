@@ -1,5 +1,5 @@
 #include "RobotModelInterface.hpp"
-#include <wbc/core/RobotModelConfig.hpp>
+#include <wbc/RobotModelConfig.hpp>
 
 namespace wbc{
 
