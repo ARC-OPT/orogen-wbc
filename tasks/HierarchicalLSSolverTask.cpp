@@ -23,7 +23,8 @@ bool HierarchicalLSSolverTask::configureHook(){
     solver->setMaxSolverOutputNorm(_norm_max.get());
     solver->setMinEigenvalue(_epsilon.get());
     if(_max_solver_output.get().size() > 0)
-        solver->setMaxSolverOutput(_max_solver_output.get());
+        solver->setMaxSolverOutput(_max_solver_output.get());    
+    joint_weights = _initial_joint_weights.get();
 
     return true;
 }
@@ -57,6 +58,10 @@ void HierarchicalLSSolverTask::cleanupHook(){
 void HierarchicalLSSolverTask::computeSolverOutput(base::commands::Joints& solver_output){
 
     if(_constraints_prio.readNewest(constraints_prio) == RTT::NewData){
+
+        if(_joint_weights.readNewest(joint_weights) == RTT::NewData)
+            solver->setJointWeights(joint_weights);
+
         solver->solve(constraints_prio.constraints, solver_output_raw);
 
         solver_output.resize(constraints_prio.joint_names.size());
@@ -64,4 +69,6 @@ void HierarchicalLSSolverTask::computeSolverOutput(base::commands::Joints& solve
         for(size_t i = 0; i < solver_output.size(); i++)
             solver_output[i].speed = solver_output_raw(i);
     }
+
+    _current_joint_weights.write(joint_weights);
 }

@@ -106,16 +106,6 @@ end
 task_context "WbcVelocityTask" do subclasses "WbcTask"
     needs_configuration
 
-    property("initial_joint_weights", "base/VectorXd").
-        doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
-             Size has to be same as number of robot joints")
-
-    input_port("joint_weights", "base/VectorXd").
-       doc("Online set new joint weights. Size has to be same number of joints.")
-
-    output_port("current_joint_weights", "base/VectorXd").
-       doc("Debug: The current joint weight vector")
-
     output_port("constraints_prio", "wbc/HierarchicalLEConstraints").
         doc("Constraints for the solver. WEighted, linear equality constraints with priorities.")
 
@@ -137,6 +127,10 @@ end
 task_context "HierarchicalLSSolverTask" do subclasses "SolverTask"
     needs_configuration
 
+    property("initial_joint_weights", "base/VectorXd").
+        doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
+             Size has to be same as number of robot joints")
+
     property("norm_max", "double", 10.0).
        doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution. A lower value will prevent unbounded
             control velocities near singular configurations.")
@@ -147,8 +141,14 @@ task_context "HierarchicalLSSolverTask" do subclasses "SolverTask"
     property("max_solver_output", "base/VectorXd").
         doc("Maximum joint velocity (in rad/sec) for each joint. If empty, infinite output will be allowed. If not empty, size has to be same as number of joints")
 
+    input_port("joint_weights", "base/VectorXd").
+       doc("Online set new joint weights. Size has to be same number of joints.")
+
     input_port("constraints_prio", "wbc/HierarchicalLEConstraints").
         doc("Constraints input from WBC Scene. Weighted, linear equality constraints with priorities.")
+
+    output_port("current_joint_weights", "base/VectorXd").
+       doc("Debug: The current joint weight vector")
 
     port_driven "constraints_prio"
 end

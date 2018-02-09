@@ -29,7 +29,6 @@ bool WbcVelocityTask::configureHook(){
         return false;
 
     wbc_vel_scene = std::static_pointer_cast<WbcVelocityScene>(wbc_scene);
-    joint_weights = _initial_joint_weights.get();
 
     return true;
 }
@@ -45,15 +44,9 @@ void WbcVelocityTask::updateHook(){
     WbcVelocityTaskBase::updateHook();
     if(state() == RUNNING){
 
-        _joint_weights.readNewest(joint_weights);
-        _current_joint_weights.write(joint_weights);
-
         constraints_prio.time = robot_model->lastUpdate();
         constraints_prio.joint_names = robot_model->jointNames();
         constraints_prio.constraints = wbc_vel_scene->getConstraintsByPrio();
-        for(size_t i = 0; i < constraints_prio.constraints.size(); i++)
-            constraints_prio.constraints[i].Wq = joint_weights;
-
         _constraints_prio.write(constraints_prio);
     }
 }

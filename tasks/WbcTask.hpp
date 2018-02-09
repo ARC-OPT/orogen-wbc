@@ -32,7 +32,6 @@ protected:
     base::commands::Joints solver_output;              /** Solver output vector.*/
     base::samples::Joints joint_state;                 /** Current joint state of the whole robot*/
     base::Time stamp;                                  /** Timestamp for cycle time computation*/
-    base::VectorXd joint_weights;                      /** Joint weights of the whole robot*/
     std::vector<ConstraintsPerPrio> constraint_vector; /** For debug purposes*/
     std::vector<ConstraintConfig> wbc_config;          /** Current constraint configuration*/
 
