@@ -26,6 +26,7 @@ bool SolverTask::startHook(){
         return false;
     return true;
 }
+
 void SolverTask::updateHook(){    
     // Compute cycle time
     base::Time cur = base::Time::now();

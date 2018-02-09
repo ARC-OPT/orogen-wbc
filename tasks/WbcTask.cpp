@@ -94,7 +94,6 @@ void WbcTask::updateHook(){
             state(NO_JOINT_STATE);
         return;
     }
-
     if(state() != RUNNING)
         state(RUNNING);
 
@@ -106,8 +105,9 @@ void WbcTask::updateHook(){
     for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
         it->second->update();
 
-    // Create opt problem
+    // UPdate constraints for opt. problem
     wbc_scene->update();
+    updateConstraints();
 
     // Write debug output
     if(_solver_output.readNewest(solver_output) == RTT::NewData){

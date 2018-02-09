@@ -14,9 +14,8 @@ import_types_from "base"
 #  configureHook:
 #
 #  1. Load and configure robot models
-#  2. Conigure solver
-#  3. Configure wbc scene
-#  4. Create dynamic ports
+#  2. Configure wbc scene
+#  3. Create dynamic ports
 #
 #  updateHook:
 #

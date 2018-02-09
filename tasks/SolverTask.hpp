@@ -7,26 +7,32 @@
 #include <base/commands/Joints.hpp>
 
 namespace wbc{
-    class SolverTask : public SolverTaskBase
-    {
-	friend class SolverTaskBase;
-    protected:    
-        base::commands::Joints solver_output;
-        base::Time stamp;
 
-        virtual void computeSolverOutput(base::commands::Joints& solver_output) = 0;
+/**
+ * @brief The SolverTask class is the base task for all solvers
+ */
+class SolverTask : public SolverTaskBase
+{
+friend class SolverTaskBase;
+protected:
+    base::commands::Joints solver_output; /** Control solution. Depending on the implementation, this can be joint velocities or torques*/
+    base::Time stamp;
 
-    public:
-        SolverTask(std::string const& name = "wbc::SolverTask");
-        SolverTask(std::string const& name, RTT::ExecutionEngine* engine);
-        ~SolverTask();
-        bool configureHook();
-        bool startHook();
-        void updateHook();
-        void errorHook();
-        void stopHook();
-        void cleanupHook();
-    };
+    /** Compute and write the control solution*/
+    virtual void computeSolverOutput(base::commands::Joints& solver_output) = 0;
+
+public:
+    SolverTask(std::string const& name = "wbc::SolverTask");
+    SolverTask(std::string const& name, RTT::ExecutionEngine* engine);
+    ~SolverTask();
+    bool configureHook();
+    bool startHook();
+    void updateHook();
+    void errorHook();
+    void stopHook();
+    void cleanupHook();
+};
+
 }
 
 #endif

@@ -9,6 +9,9 @@ namespace wbc{
 
 class RobotModelConfig;
 
+/**
+ * @brief The RobotModelInterface class contains I/O ports for the robot model(s)
+ */
 class RobotModelInterface{
 public:
     RobotModelInterface(RTT::TaskContext* task);

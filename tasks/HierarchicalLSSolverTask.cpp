@@ -1,6 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "HierarchicalLSSolverTask.hpp"
+#include <wbc/HierarchicalLSSolver.hpp>
 
 using namespace wbc;
 

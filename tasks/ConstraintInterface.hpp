@@ -14,6 +14,9 @@ class RobotModel;
 typedef std::shared_ptr<Constraint> ConstraintPtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
 
+/**
+ * @brief The ConstraintInterface class contains I/O ports for each constraint
+ */
 class ConstraintInterface
 {
 public:
