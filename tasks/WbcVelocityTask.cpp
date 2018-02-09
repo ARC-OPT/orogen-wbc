@@ -50,7 +50,7 @@ void WbcVelocityTask::updateHook(){
 
         constraints_prio.time = robot_model->lastUpdate();
         constraints_prio.joint_names = robot_model->jointNames();
-        constraints_prio.constraints = wbc_vel_scene->getHierarhicalLEConstraints();
+        constraints_prio.constraints = wbc_vel_scene->getConstraintsByPrio();
         for(size_t i = 0; i < constraints_prio.constraints.size(); i++)
             constraints_prio.constraints[i].Wq = joint_weights;
 
