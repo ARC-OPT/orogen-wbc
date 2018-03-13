@@ -21,31 +21,37 @@ Orocos.initialize
 Orocos.conf.load_dir('config')
 
 Orocos.run "wbc::WbcVelocityTask" => "wbc",
+           "wbc::HierarchicalLSSolverTask" => "solver",
            "ctrl_lib::CartesianPositionController" => "cartesian_controller",
            "ctrl_lib::JointLimitAvoidance"         => "joint_limit_avoidance",
-           "joint_control::FakeJointDriverTask"    => "driver" do
+           "joint_control::FakeJointDriverTask"    => "joint_driver" do
 
     cartesian_controller  = Orocos::TaskContext.get "cartesian_controller"
     joint_limit_avoidance = Orocos::TaskContext.get "joint_limit_avoidance"
     wbc                   = Orocos::TaskContext.get "wbc"
-    driver                = Orocos::TaskContext.get "driver"
+    solver                = Orocos::TaskContext.get "solver"
+    joint_driver          = Orocos::TaskContext.get "joint_driver"
 
     Orocos.conf.apply(wbc,    ["default", "cart_control_with_joint_limits"], true)
-    Orocos.conf.apply(driver, ["default"], true)
+    Orocos.conf.apply(solver, ["default"], true)
+    Orocos.conf.apply(joint_driver, ["default"], true)
     Orocos.conf.apply(cartesian_controller,  ["default"], true)
     Orocos.conf.apply(joint_limit_avoidance, ["default"], true)
 
     # Note: WBC will create dynamic ports for the constraints on configuration, so configure already here
     wbc.configure
+    solver.configure
     cartesian_controller.configure
     joint_limit_avoidance.configure
-    driver.configure
+    joint_driver.configure
 
     # Connect ports
 
     # Connect WBC with your robot's joint interface. In this case the joint driver
-    driver.port("joint_state").connect_to wbc.port("joint_state")
-    wbc.port("ctrl_out").connect_to driver.port("command")
+    joint_driver.port("joint_state").connect_to wbc.port("joint_state")
+    solver.port("solver_output").connect_to joint_driver.port("command")
+    wbc.port("constraints_prio").connect_to solver.port("constraints_prio")
+    solver.port("solver_output").connect_to wbc.port("solver_output")
 
     # Priority 0:
 
@@ -64,10 +70,11 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
 
     # Run
 
-    driver.start
+    joint_driver.start
     cartesian_controller.start
     joint_limit_avoidance.start
     wbc.start
+    solver.start
 
     Readline.readline("Press Enter to start motion")
 

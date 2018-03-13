@@ -21,6 +21,7 @@ Orocos.initialize
 Orocos.conf.load_dir('config')
 
 Orocos.run "wbc::WbcVelocityTask" => "wbc",
+           "wbc::HierarchicalLSSolverTask" => "solver",
            "ctrl_lib::CartesianPositionController" => "cartesian_controller",
            "ctrl_lib::CartesianForceController"    => "force_controller",
            "joint_control::FakeJointDriverTask"    => "joint_driver",
@@ -29,10 +30,12 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     cartesian_controller = Orocos::TaskContext.get "cartesian_controller"
     force_controller     = Orocos::TaskContext.get "force_controller"
     wbc                  = Orocos::TaskContext.get "wbc"
+    solver                = Orocos::TaskContext.get "solver"
     joint_driver         = Orocos::TaskContext.get "joint_driver"
     force_sensor         = Orocos::TaskContext.get "force_sensor"
 
     Orocos.conf.apply(wbc,    ["default", "position_force_control"], true)
+    Orocos.conf.apply(solver, ["default"], true)
     Orocos.conf.apply(joint_driver, ["default"], true)
     Orocos.conf.apply(force_sensor, ["default"], true)
     Orocos.conf.apply(cartesian_controller,  ["default"], true)
@@ -40,6 +43,7 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
 
     # Note: WBC will create dynamic ports for the constraints on configuration, so configure already here
     wbc.configure
+    solver.configure
     cartesian_controller.configure
     force_controller.configure
     joint_driver.configure
@@ -49,7 +53,9 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
 
     # Connect WBC with your robot's joint interface. In this case the joint driver
     joint_driver.port("joint_state").connect_to wbc.port("joint_state")
-    wbc.port("ctrl_out").connect_to joint_driver.port("command")
+    solver.port("solver_output").connect_to joint_driver.port("command")
+    wbc.port("constraints_prio").connect_to solver.port("constraints_prio")
+    solver.port("solver_output").connect_to wbc.port("solver_output")
 
     # Priority 0:
 
@@ -71,6 +77,7 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     force_controller.start
     force_sensor.start
     wbc.start
+    solver.start
 
     Readline.readline("Press Enter to start motion")
 
