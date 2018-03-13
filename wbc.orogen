@@ -38,17 +38,19 @@ task_context "WbcTask" do abstract
         doc("Add multiple robot and/or object models.")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
-        doc("Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
+        doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
              Cartesian constraints:
-                 Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
-                 Weights (/base/VectorXd):                               weight_<constraint_name>
-                 Activation function (double):                           activation_<constraint_name>
-                 Constraint pose output (/base/samples/RigidBodyState):  pose_<constraint_name>
+                 [in] Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
+                 [in] Weights (/base/VectorXd):                               weight_<constraint_name>
+                 [in] Activation function (double):                           activation_<constraint_name>
+                 [out] Constraint pose output (/base/samples/RigidBodyState): pose_<constraint_name>
+                 [out] Constraint output (/wbc/Constraint):                   constraint_<constraint_name>
              Joint Space constraints:
-                 Reference Input (/base/samples/Joints):                 ref_<task_name>
-                 Weights (/base/VectorXd):                               weight_<task_name>
-                 Activation function (double):                           activation_<task_name>
-                 Current joint state output (base/samples/Joints):       joint_state_<task_name>")
+                 [in] Reference Input (/base/samples/Joints):                 ref_<task_name>
+                 [in] Weights (/base/VectorXd):                               weight_<task_name>
+                 [in] Activation function (double):                           activation_<task_name>
+                 [out] Current joint state output (base/samples/Joints):      joint_state_<task_name>
+                 [out] Constraint output (/wbc/Constraint):                   constraint_<constraint_name>")
 
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
@@ -58,6 +60,7 @@ task_context "WbcTask" do abstract
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
     dynamic_output_port /.*/, "/base/samples/Joints"
+    dynamic_output_port /.*/, "/wbc/Constraint"
 
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
@@ -70,9 +73,6 @@ task_context "WbcTask" do abstract
 
     output_port("actual_cycle_time", "double").
        doc("Debug: Actual cycle time between two consecutive calls of updateHook() in seconds")
-
-    output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
-       doc("Debug: Vector with status information for all constraints.")
 
     operation("activateConstraint").
        argument("constraint_name", "std/string").
