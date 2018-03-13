@@ -22,6 +22,14 @@ public:
 
     /** Names of the joints in the same order as in the constraint matrix and the weight vector Wq of each priority*/
     std::vector<std::string> joint_names;
+
+    std::vector<int> nConstraintsPerPrio(){
+        std::vector<int> nc_pp;
+        for(auto c : constraints)
+            nc_pp.push_back(c.A.rows());
+        return nc_pp;
+    }
+    uint nJoints(){return joint_names.size();}
 };
 }
 

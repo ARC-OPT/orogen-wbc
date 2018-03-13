@@ -23,8 +23,7 @@ bool HierarchicalLSSolverTask::configureHook(){
     solver = std::make_shared<HierarchicalLSSolver>();
     solver->setMaxSolverOutputNorm(_norm_max.get());
     solver->setMinEigenvalue(_epsilon.get());
-    if(_max_solver_output.get().size() > 0)
-        solver->setMaxSolverOutput(_max_solver_output.get());    
+    max_solver_output = _max_solver_output.get();
     joint_weights = _initial_joint_weights.get();
 
     return true;
@@ -59,6 +58,13 @@ void HierarchicalLSSolverTask::cleanupHook(){
 void HierarchicalLSSolverTask::computeSolverOutput(base::commands::Joints& solver_output){
 
     if(_constraints_prio.readNewest(constraints_prio) == RTT::NewData){
+
+        if(!solver->isConfigured()){
+            solver->configure(constraints_prio.nConstraintsPerPrio(), constraints_prio.nJoints());
+            solver->setJointWeights(joint_weights);
+            if(max_solver_output.size() > 0)
+                solver->setMaxSolverOutput(max_solver_output);
+        }
 
         if(_joint_weights.readNewest(joint_weights) == RTT::NewData)
             solver->setJointWeights(joint_weights);

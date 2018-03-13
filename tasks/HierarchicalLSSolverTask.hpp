@@ -32,6 +32,7 @@ protected:
     HierarchicalLEConstraints constraints_prio;   /** Input constraints, sorted by priority*/
     base::VectorXd solver_output_raw;             /** Raw output of the solver: Joint velocities*/
     base::VectorXd joint_weights;                 /** Joint weights of the whole robot*/
+    base::VectorXd max_solver_output;             /** Maximum joint velocity (in rad/sec) for each joint*/
 
     /** Compute and write the control solution*/
     virtual void computeSolverOutput(base::commands::Joints& solver_output);
