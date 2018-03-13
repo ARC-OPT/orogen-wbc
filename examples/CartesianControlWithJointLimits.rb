@@ -86,20 +86,23 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     pose_writer.write(target_pose)
 
     # Activate Cartesian Constraint
-    activation_writer = wbc.port("activation_cart_position_ctrl_right")
-    activation_writer.write(1.0)
+    wbc.activateConstraint("cart_position_ctrl_right", true)
 
     # Check if current pose == target pose in a loop
     reached = false
     reader = cartesian_controller.port("current_feedback").reader
+    reader_ctrl_out = solver.solver_output.reader
     feedback = Types::Base::Samples::RigidBodyState.new
     while not reached
        feedback = reader.read
-       if feedback
+       solver_output = reader_ctrl_out.read
+       if feedback && solver_output
           print "Target position:  "
           target_pose.position.data.each do |v| print "#{'%.04f' % v} " end
           print "\nCurrent position: "
           feedback.position.data.each do |v| print "#{'%.04f' % v} " end
+          print "\nSolver output: "
+          solver_output.elements.each do |v| print "#{'%.04f' % v.speed} " end
           print "\n\n"
 
           if (target_pose.position - feedback.position).norm < 1e-3
