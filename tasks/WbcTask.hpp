@@ -66,6 +66,7 @@ public:
     void cleanupHook();
 
     virtual void activateConstraint(const std::string& constraint_name, bool activate);
+    virtual void activateConstraints(const std::vector<std::string>& constraint_names, bool activate);
     virtual void deactivateAllConstraints();
 };
 }

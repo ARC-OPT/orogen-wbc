@@ -135,6 +135,11 @@ void WbcTask::activateConstraint(const std::string& constraint_name, bool activa
     wbc_scene->getConstraint(constraint_name)->setActivation((int)activate);
 }
 
+void WbcTask::activateConstraints(const std::vector<std::string>& constraint_names, bool activate){
+    for(auto name : constraint_names)
+         wbc_scene->getConstraint(name)->setActivation((int)activate);
+}
+
 void WbcTask::deactivateAllConstraints(){
     for(auto constraint : wbc_config)
         wbc_scene->getConstraint(constraint.name)->setActivation(0);

@@ -78,6 +78,10 @@ task_context "WbcTask" do abstract
        argument("constraint_name", "std/string").
        argument("activate", "bool")
 
+    operation("activateConstraints").
+       argument("constraint_names", "std/vector<std/string>").
+       argument("activate", "bool")
+
     operation("deactivateAllConstraints")
 
     periodic 0.01
