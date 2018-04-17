@@ -1,0 +1,30 @@
+# This file is a template, and might need editing before it works on your project.
+# Full project: https://gitlab.com/pages/doxygen
+image: alpine
+
+pages:
+  environment: api
+  before_script:
+  - apk add --no-cache doxygen
+  script:
+  - doxygen Doxyfile.in
+  - rm -rf /home/www/htdocs/apis/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+  - mkdir -p /home/www/htdocs/apis/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+  - mv doc_html/* /home/www/htdocs/apis/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
+
+software_catalogue_entry:
+  image: d-reg.hb.dfki.de:5000/ubuntu:overview_generator
+  stage: deploy
+  script:
+  - apt update
+  - apt install -y wget
+  - wget http://bob.dfki.uni-bremen.de/software_overview/generate.sh
+  - sh generate.sh $CI_PROJECT_NAMESPACE $CI_PROJECT_NAME $CI_PROJECT_URL
+  only:
+  - master
+
