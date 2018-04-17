@@ -75,6 +75,7 @@ void HierarchicalLSSolverTask::computeSolverOutput(base::commands::Joints& solve
         solver_output.names = constraints_prio.joint_names;
         for(size_t i = 0; i < solver_output.size(); i++)
             solver_output[i].speed = solver_output_raw(i);
+        solver_output.time = base::Time::now();
     }
 
     _current_joint_weights.write(joint_weights);
