@@ -65,8 +65,8 @@ public:
     void stopHook();
     void cleanupHook();
 
-    virtual void activateConstraint(const std::string& constraint_name, bool activate);
-    virtual void activateConstraints(const std::vector<std::string>& constraint_names, bool activate);
+    virtual void activateConstraint(const std::string& constraint_name, double activation);
+    virtual void activateConstraints(const std::vector<std::string>& constraint_names, double activation);
     virtual void deactivateAllConstraints();
 };
 }

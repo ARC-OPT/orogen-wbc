@@ -76,11 +76,11 @@ task_context "WbcTask" do abstract
 
     operation("activateConstraint").
        argument("constraint_name", "std/string").
-       argument("activate", "bool")
+       argument("activation", "double")
 
     operation("activateConstraints").
        argument("constraint_names", "std/vector<std/string>").
-       argument("activate", "bool")
+       argument("activation", "double")
 
     operation("deactivateAllConstraints")
 

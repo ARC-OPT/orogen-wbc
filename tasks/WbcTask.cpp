@@ -131,13 +131,13 @@ void WbcTask::cleanupHook(){
     joint_state.clear();
 }
 
-void WbcTask::activateConstraint(const std::string& constraint_name, bool activate){
-    wbc_scene->getConstraint(constraint_name)->setActivation((int)activate);
+void WbcTask::activateConstraint(const std::string& constraint_name, double activation){
+    wbc_scene->getConstraint(constraint_name)->setActivation(activation);
 }
 
-void WbcTask::activateConstraints(const std::vector<std::string>& constraint_names, bool activate){
+void WbcTask::activateConstraints(const std::vector<std::string>& constraint_names, double activation){
     for(auto name : constraint_names)
-         wbc_scene->getConstraint(name)->setActivation((int)activate);
+         wbc_scene->getConstraint(name)->setActivation(activation);
 }
 
 void WbcTask::deactivateAllConstraints(){
