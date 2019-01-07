@@ -22,19 +22,14 @@ public:
 
 protected:
     typedef RTT::InputPort<base::samples::RigidBodyState> PoseInPort;
-    typedef RTT::OutputPort<base::samples::RigidBodyState> PoseOutPort;
     typedef std::map< std::string, PoseInPort* > PoseInPortMap;
-    typedef std::map< std::string, PoseOutPort* > PoseOutPortMap;
 
     PoseInPortMap pose_in_ports;
-    PoseOutPortMap pose_out_ports;
     base::samples::RigidBodyState model_pose;
     RTT::TaskContext* task_context;
 
     void addInputPort(const std::string interface_name);
-    void addOutputPort(const std::string interface_name);
     void removeInputPort(const std::string port_name);
-    void removeOutputPort(const std::string port_name);
 };
 
 }
