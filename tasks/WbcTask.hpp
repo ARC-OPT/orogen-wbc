@@ -50,6 +50,7 @@ protected:
     base::samples::Joints joint_state;                 /** Current joint state of the whole robot*/
     base::Time stamp;                                  /** Timestamp for cycle time computation*/
     std::vector<ConstraintConfig> wbc_config;          /** Current constraint configuration*/
+    std::vector<ConstraintsPerPrio> constraints;       /** Current constraint status*/
 
     /** Update constraints and send them to the solver*/
     virtual void updateConstraints() = 0;
