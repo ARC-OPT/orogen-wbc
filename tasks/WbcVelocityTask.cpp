@@ -47,14 +47,3 @@ void WbcVelocityTask::stopHook(){
 void WbcVelocityTask::cleanupHook(){
     WbcVelocityTaskBase::cleanupHook();
 }
-
-void  WbcVelocityTask::updateConstraints(){
-    if(state() == RUNNING){
-        std::shared_ptr<WbcVelocityScene> wbc_vel_scene = std::static_pointer_cast<WbcVelocityScene>(wbc_scene);
-
-        constraints_prio.time = robot_model->lastUpdate();
-        constraints_prio.joint_names = robot_model->jointNames();
-        constraints_prio.constraints = wbc_vel_scene->getConstraintsByPrio();
-        _constraints_prio.write(constraints_prio);
-    }
-}

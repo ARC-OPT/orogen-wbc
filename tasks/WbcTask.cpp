@@ -61,6 +61,14 @@ bool WbcTask::configureHook(){
     // Configure robot model interface
     robot_model_interface->configure(_robot_models.get());
 
+    joint_weights = _initial_joint_weights.get();
+    if(joint_weights.size() == 0)
+        joint_weights.setOnes(robot_model->noOfJoints());
+    else if(joint_weights.size() != robot_model->noOfJoints()){
+        LOG_ERROR("Number of joint weights is %i but number of robot joints is %i", joint_weights.size(), robot_model->noOfJoints());
+        return false;
+    }
+
     LOG_DEBUG("... Created ports");
 
     return true;
@@ -96,7 +104,6 @@ void WbcTask::updateHook(){
     }
     if(state() != RUNNING)
         state(RUNNING);
-
     // Update Robot Model
     robot_model->update(joint_state, robot_model_interface->update());
 
@@ -105,9 +112,22 @@ void WbcTask::updateHook(){
     for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
         it->second->update();
 
-    // UPdate constraints for opt. problem
+    // Update Quadratic program
     wbc_scene->update();
-    updateConstraints();
+
+    // Update joint weights
+    _joint_weights.readNewest(joint_weights);
+
+    // Write outputs
+    _current_joint_weights.write(joint_weights);
+
+    wbc_scene->getHierarchicalQP(hierarchical_qp);
+    // Set equal joint weights for each prio. This is more intuitive and easier for the user to configure
+    for(QuadraticProgram &qp : hierarchical_qp.prios)
+        qp.Wq = joint_weights;
+    hierarchical_qp.time = base::Time::now();
+    hierarchical_qp.joint_names = robot_model->jointNames();
+    _hierarchical_qp.write(hierarchical_qp);
 
     // Write debug output
     if(_solver_output.readNewest(solver_output) == RTT::NewData){

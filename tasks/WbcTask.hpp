@@ -12,6 +12,7 @@ class WbcScene;
 class RobotModel;
 class ConstraintInterface;
 class RobotModelInterface;
+class HierarchicalQP;
 
 typedef std::shared_ptr<WbcScene> WbcScenePtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
@@ -44,6 +45,7 @@ protected:
     WbcScenePtr wbc_scene;
     RobotModelPtr robot_model;
 
+    HierarchicalQP hierarchical_qp;
     ConstraintInterfaceMap constraint_interfaces;      /** Contains I/O ports for each constraint*/
     RobotModelInterfacePtr robot_model_interface;      /** Contains I/O ports for the robot model(s)*/
     base::commands::Joints solver_output;              /** Solver output vector.*/
@@ -51,9 +53,7 @@ protected:
     base::Time stamp;                                  /** Timestamp for cycle time computation*/
     std::vector<ConstraintConfig> wbc_config;          /** Current constraint configuration*/
     std::vector<ConstraintsPerPrio> constraints;       /** Current constraint status*/
-
-    /** Update constraints and send them to the solver*/
-    virtual void updateConstraints() = 0;
+    base::VectorXd joint_weights;                      /** Current joint weights used within the solver*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

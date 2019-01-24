@@ -17,11 +17,6 @@ class WbcVelocityTask : public WbcVelocityTaskBase
 {
     friend class WbcVelocityTaskBase;
 protected:
-    HierarchicalLEConstraints constraints_prio; /** Vector of hierarchically sorted constraints; will be sent to the solver*/
-
-    /** Update constraints and send them to the solver*/
-    virtual void updateConstraints();
-
 public:
     WbcVelocityTask(std::string const& name = "wbc::WbcVelocity");
     WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine);

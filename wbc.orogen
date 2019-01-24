@@ -5,7 +5,7 @@ using_library "wbc"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
 import_types_from "wbc/RobotModelConfig.hpp"
-import_types_from "wbcTypes.hpp"
+import_types_from "wbc/QuadraticProgram.hpp"
 import_types_from "base"
 
 #
@@ -37,6 +37,9 @@ task_context "WbcTask" do abstract
     property("robot_models", "std/vector<wbc/RobotModelConfig>").
         doc("Add multiple robot and/or object models.")
 
+    property("initial_joint_weights", "base/VectorXd").
+        doc("The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1). A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.")
+
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
              Cartesian constraints:
@@ -58,13 +61,15 @@ task_context "WbcTask" do abstract
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/RigidBodyState"
     dynamic_output_port /.*/, "/base/samples/Joints"
-    dynamic_output_port /.*/, "/wbc/Constraint"
 
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
 
     input_port("solver_output", "base/commands/Joints").
        doc("Computed solver output. Is used to compute the status of the constraint for debug purposes")
+   
+    input_port("joint_weights", "base/VectorXd").
+       doc("Update joint weight values. Size has to be same number of joints.")
 
     output_port("computation_time", "double").
        doc("Debug: Computation time for one cycle in seconds")
@@ -74,6 +79,12 @@ task_context "WbcTask" do abstract
 
     output_port("constraints", "std/vector<wbc/ConstraintsPerPrio>").
        doc("Debug: Current status of all constraints")
+
+    output_port("hierarchical_qp", "wbc/HierarchicalQP").
+        doc("Output quadratic program for the solver.")
+
+    output_port("current_joint_weights", "base/VectorXd").
+        doc("Current joint weight vector")
 
     operation("activateConstraint").
        argument("constraint_name", "std/string").
@@ -88,21 +99,6 @@ task_context "WbcTask" do abstract
     periodic 0.01
 end
 
-#
-# Base task for all solvers
-#
-task_context "SolverTask" do abstract
-    needs_configuration
-
-    output_port("solver_output", "base/commands/Joints").
-        doc("Control solution from the solver. Size will be same as number of joints.")
-
-    output_port("computation_time", "double").
-       doc("Debug: Computation time for one cycle in seconds")
-
-    output_port("actual_cycle_time", "double").
-       doc("Debug: Actual cycle time between two consecutive calls of updateHook() in seconds")
-end
 
 #
 # Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
@@ -110,49 +106,10 @@ end
 task_context "WbcVelocityTask", subclasses: "WbcTask" do
     needs_configuration
 
-    output_port("constraints_prio", "wbc/HierarchicalLEConstraints").
-        doc("Constraints for the solver. WEighted, linear equality constraints with priorities.")
-
     periodic 0.01
 end
 
-#
-# Hierarchical Least squares solver. Solves the problem of finding the minimum norm joint velocities that satify the constraints
-#
-#     A_w,1 * dq = y_1
-#     A_w,2 * dq = y_2
-#          ...
-#     A_w,P * dq = y_P
-#
-# where A_p are the weighted constraint Jacobians, dq the reference joint velocity and y_p the input for the robot task with priority p. Usually,
-# y_p are control outputs from feedback controllers that try to fulfil a certain task, e.g. maintaining a robot position in joint or
-# Cartesian space.
-#
-task_context "HierarchicalLSSolverTask", subclasses: "SolverTask" do
-    needs_configuration
-
-    property("initial_joint_weights", "base/VectorXd").
-        doc("Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
-             Size has to be same as number of robot joints")
-
-    property("norm_max", "double", 10.0).
-       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution. A lower value will prevent unbounded
-            control velocities near singular configurations.")
-
-    property("epsilon", "double", 1e-9).
-       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
-
-    property("max_solver_output", "base/VectorXd").
-        doc("Maximum joint velocity (in rad/sec) for each joint. If empty, infinite output will be allowed. If not empty, size has to be same as number of joints")
-
-    input_port("joint_weights", "base/VectorXd").
-       doc("Online set new joint weights. Size has to be same number of joints.")
-
-    input_port("constraints_prio", "wbc/HierarchicalLEConstraints").
-        doc("Constraints input from WBC Scene. Weighted, linear equality constraints with priorities.")
-
-    output_port("current_joint_weights", "base/VectorXd").
-       doc("Debug: The current joint weight vector")
-
-    port_driven "constraints_prio"
+typekit do
+   export_types "wbc/Constraint"
 end
+
