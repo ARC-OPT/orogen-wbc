@@ -5,7 +5,7 @@ using_library "wbc"
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
 import_types_from "wbc/RobotModelConfig.hpp"
-import_types_from "wbc/QuadraticProgram.hpp"
+import_types_from "wbc_common/QuadraticProgram.hpp"
 import_types_from "base"
 
 #
