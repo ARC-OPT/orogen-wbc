@@ -18,6 +18,7 @@ ConstraintInterface::ConstraintInterface(ConstraintPtr _constraint,
     jnt_state_out_port = 0;
     cart_ref_port = 0;
     cart_state_out_port = 0;
+    constraint_out_port = 0;
 
     const ConstraintConfig &cfg = constraint->config;
 
@@ -50,6 +51,9 @@ ConstraintInterface::ConstraintInterface(ConstraintPtr _constraint,
 
     weight_port = new RTT::InputPort<base::VectorXd>("weight_" + cfg.name);
     task_context->ports()->addPort(weight_port->getName(), *(weight_port));
+
+    constraint_out_port = new RTT::OutputPort<Constraint>("constraint_" + cfg.name);
+    task_context->ports()->addPort(constraint_out_port->getName(), *(constraint_out_port));
 }
 
 ConstraintInterface::~ConstraintInterface(){
@@ -75,6 +79,10 @@ ConstraintInterface::~ConstraintInterface(){
     if(jnt_state_out_port){
         task_context->ports()->removePort(jnt_state_out_port->getName());
         delete jnt_state_out_port;
+    }
+    if(constraint_out_port){
+        task_context->ports()->removePort(constraint_out_port->getName());
+        delete constraint_out_port;
     }
 }
 
@@ -107,5 +115,8 @@ void ConstraintInterface::update(){
 
 void ConstraintInterface::reset(){
     constraint->reset();
+}
+void ConstraintInterface::writeDebug(){
+    constraint_out_port->write(*constraint);
 }
 }

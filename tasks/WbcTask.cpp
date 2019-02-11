@@ -132,8 +132,8 @@ void WbcTask::updateHook(){
     // Write debug output
     if(_solver_output.readNewest(solver_output) == RTT::NewData){
         wbc_scene->evaluateConstraints(solver_output, joint_state);
-        wbc_scene->getConstraints(constraints);
-        _constraints.write(constraints);
+        for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
+            it->second->writeDebug();
     }
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }

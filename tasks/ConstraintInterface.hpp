@@ -36,6 +36,7 @@ public:
     RTT::InputPort<base::samples::Joints>* jnt_ref_port;
     RTT::OutputPort<base::samples::RigidBodyState>* cart_state_out_port;
     RTT::OutputPort<base::samples::Joints>* jnt_state_out_port;
+    RTT::OutputPort<Constraint> *constraint_out_port;
     RTT::InputPort<base::VectorXd>* weight_port;
     RTT::InputPort<double>* activation_port;
 
@@ -48,6 +49,7 @@ public:
 
     void update();
     void reset();
+    void writeDebug();
 
 };
 
