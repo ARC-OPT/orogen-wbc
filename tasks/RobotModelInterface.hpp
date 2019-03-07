@@ -3,7 +3,7 @@
 
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
-#include <base/samples/RigidBodyState.hpp>
+#include <wbc_common/CartesianState.hpp>
 
 namespace wbc{
 
@@ -17,18 +17,20 @@ public:
     RobotModelInterface(RTT::TaskContext* task);
     ~RobotModelInterface();
 
-    void configure(const std::vector<RobotModelConfig> &config);
-    std::vector<base::samples::RigidBodyState> update();
+    void configure(const std::vector<std::string> &names);
+    std::vector<CartesianState> update();
 
 protected:
-    typedef RTT::InputPort<base::samples::RigidBodyState> PoseInPort;
-    typedef std::map< std::string, PoseInPort* > PoseInPortMap;
-    typedef RTT::OutputPort<base::samples::RigidBodyState> PoseOutPort;
-    typedef std::map< std::string, PoseOutPort* > PoseOutPortMap;
+    typedef RTT::InputPort<CartesianState> PoseInPort;
+    typedef std::shared_ptr<PoseInPort> PoseInPortPtr;
+    typedef std::map< std::string, PoseInPortPtr > PoseInPortMap;
+    typedef RTT::OutputPort<CartesianState> PoseOutPort;
+    typedef std::shared_ptr<PoseOutPort> PoseOutPortPtr;
+    typedef std::map< std::string, PoseOutPortPtr > PoseOutPortMap;
 
     PoseInPortMap pose_in_ports;
     PoseOutPortMap pose_out_ports;
-    base::samples::RigidBodyState model_pose;
+    CartesianState model_pose;
     RTT::TaskContext* task_context;
 
     void addInputPort(const std::string interface_name);

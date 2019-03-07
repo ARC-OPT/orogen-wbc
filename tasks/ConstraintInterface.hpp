@@ -4,7 +4,7 @@
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
 #include <base/samples/Joints.hpp>
-#include <base/samples/RigidBodyState.hpp>
+#include <wbc_common/CartesianState.hpp>
 
 namespace wbc{
 
@@ -13,6 +13,22 @@ class RobotModel;
 
 typedef std::shared_ptr<Constraint> ConstraintPtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
+
+typedef RTT::InputPort<CartesianState> CartRefPort;
+typedef RTT::InputPort<base::samples::Joints> JntRefPort;
+typedef RTT::InputPort<base::VectorXd> WeightInPort;
+typedef RTT::InputPort<double> ActivationPort;
+typedef RTT::OutputPort<CartesianState> CartStatusPort;
+typedef RTT::OutputPort<base::samples::Joints> JntStatusPort;
+typedef RTT::OutputPort<Constraint> ConstraintOutPort;
+
+typedef std::shared_ptr<CartRefPort> CartRefPortPtr;
+typedef std::shared_ptr<JntRefPort> JntRefPortPtr;
+typedef std::shared_ptr<WeightInPort> WeightInPortPtr;
+typedef std::shared_ptr<ActivationPort> ActivationPortPtr;
+typedef std::shared_ptr<CartStatusPort> CartStatusPortPtr;
+typedef std::shared_ptr<JntStatusPort> JntStatusPortPtr;
+typedef std::shared_ptr<ConstraintOutPort> ConstraintOutPortPtr;
 
 /**
  * @brief The ConstraintInterface class contains I/O ports for each constraint
@@ -28,19 +44,19 @@ public:
     ConstraintPtr constraint;
     RobotModelPtr robot_model;
 
-    base::samples::RigidBodyState constraint_cart_state;
+    CartesianState constraint_cart_state;
     base::samples::Joints constraint_jnt_state;
 
     // Ports
-    RTT::InputPort<base::samples::RigidBodyState>* cart_ref_port;
-    RTT::InputPort<base::samples::Joints>* jnt_ref_port;
-    RTT::OutputPort<base::samples::RigidBodyState>* cart_state_out_port;
-    RTT::OutputPort<base::samples::Joints>* jnt_state_out_port;
-    RTT::OutputPort<Constraint> *constraint_out_port;
-    RTT::InputPort<base::VectorXd>* weight_port;
-    RTT::InputPort<double>* activation_port;
+    CartRefPortPtr cart_ref_port;
+    JntRefPortPtr jnt_ref_port;
+    CartStatusPortPtr cart_state_out_port;
+    JntStatusPortPtr jnt_state_out_port;
+    ConstraintOutPortPtr constraint_out_port;
+    WeightInPortPtr weight_port;
+    ActivationPortPtr activation_port;
 
-    base::samples::RigidBodyState cart_ref; /** Cartesian Reference values */
+    CartesianState cart_ref;                /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
     base::VectorXd weights;                 /** Current constraint weights*/
     double activation;                      /** Current constraint activation*/

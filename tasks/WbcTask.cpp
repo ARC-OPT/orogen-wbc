@@ -11,8 +11,6 @@ using namespace wbc;
 
 WbcTask::WbcTask(std::string const& name)
     : WbcTaskBase(name){
-    robot_model_interface = std::make_shared<RobotModelInterface>(this);
-    robot_model_interface->configure(_robot_models.get());
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
@@ -20,11 +18,6 @@ WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
 }
 
 WbcTask::~WbcTask(){
-    // Delete port interfaces here, so that the ports are not erased when WBC is (re-)configured
-    robot_model_interface.reset();
-    for(ConstraintInterfaceMap::const_iterator it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-        it->second->reset();
-    constraint_interfaces.clear();
 }
 
 bool WbcTask::configureHook(){
@@ -44,22 +37,22 @@ bool WbcTask::configureHook(){
     LOG_DEBUG("... Configured WBC Scene");
 
     // Create constraint interfaces. Don't recreate existing interfaces.
-    for(uint i = 0; i < wbc_config.size(); i++){
-        if(constraint_interfaces.count(wbc_config[i].name) == 0)
-            constraint_interfaces[wbc_config[i].name] = std::make_shared<ConstraintInterface>(wbc_scene->getConstraint(wbc_config[i].name), robot_model, this);
+    for(ConstraintConfig cfg : wbc_config){
+        if(constraint_interfaces.count(cfg.name) == 0)
+            constraint_interfaces[cfg.name] = std::make_shared<ConstraintInterface>(wbc_scene->getConstraint(cfg.name), robot_model, this);
         else
-            constraint_interfaces[wbc_config[i].name]->constraint = wbc_scene->getConstraint(wbc_config[i].name);
+            constraint_interfaces[cfg.name]->constraint = wbc_scene->getConstraint(cfg.name);
     }
 
     // Remove constraint interfaces that are not required anymore
     ConstraintInterfaceMap::const_iterator it;
-    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++){
-        if(!wbc_scene->hasConstraint(it->first))
-            constraint_interfaces.erase(it->first);
+    for(const auto &it : constraint_interfaces){
+        if(!wbc_scene->hasConstraint(it.first))
+            constraint_interfaces.erase(it.first);
     }
 
     // Configure robot model interface
-    robot_model_interface->configure(_robot_models.get());
+    robot_model_interface->configure(robot_model->robotModelNames());
 
     joint_weights = _initial_joint_weights.get();
     if(joint_weights.size() == 0)
@@ -79,9 +72,8 @@ bool WbcTask::startHook(){
         return false;
 
     //Clear all task references, weights etc. to have to secure initial state
-    ConstraintInterfaceMap::const_iterator it;
-    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-        it->second->reset();
+    for(const auto &it : constraint_interfaces)
+        it.second->reset();
     stamp.microseconds = 0;
 
     return true;
@@ -108,9 +100,8 @@ void WbcTask::updateHook(){
     robot_model->update(joint_state, robot_model_interface->update());
 
     // Update constraints
-    ConstraintInterfaceMap::const_iterator it;
-    for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-        it->second->update();
+    for(const auto& it : constraint_interfaces)
+        it.second->update();
 
     // Update Quadratic program
     wbc_scene->update();
@@ -132,8 +123,8 @@ void WbcTask::updateHook(){
     // Write debug output
     if(_solver_output.readNewest(solver_output) == RTT::NewData){
         wbc_scene->evaluateConstraints(solver_output, joint_state);
-        for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-            it->second->writeDebug();
+        for(const auto& it : constraint_interfaces)
+            it.second->writeDebug();
     }
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }

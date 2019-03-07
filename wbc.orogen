@@ -1,9 +1,11 @@
 name "wbc"
 
 using_library "wbc"
+using_library "wbc_common"
 
 import_types_from "wbc/ConstraintConfig.hpp"
 import_types_from "wbc/Constraint.hpp"
+import_types_from "wbc_common/CartesianState.hpp"
 import_types_from "wbc/RobotModelConfig.hpp"
 import_types_from "wbc_common/QuadraticProgram.hpp"
 import_types_from "base"
