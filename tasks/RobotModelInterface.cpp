@@ -24,8 +24,8 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
     for(size_t i = 0; i < config.size(); i++)
         if(!config[i].hook.empty()){  // Don't create an input port if the hook is empty
-            addInputPort(config[i].initial_pose.sourceFrame + "_pose");
-            addOutputPort("current_" + config[i].initial_pose.sourceFrame + "_pose");
+            addInputPort(config[i].initial_pose.sourceFrame);
+            addOutputPort(config[i].initial_pose.sourceFrame);
         }
 
     // Remove ports which are not required anymore. This is required
@@ -35,7 +35,7 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
         bool is_port_required = false;
         for(size_t j = 0; j < config.size(); j++){
-            if(it->first == (config[j].initial_pose.sourceFrame + "_pose"))
+            if(it->first == (config[j].initial_pose.sourceFrame))
                 is_port_required = true;
         }
         if(!is_port_required){
@@ -48,7 +48,7 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
         bool is_port_required = false;
         for(size_t j = 0; j < config.size(); j++){
-            if(oit->first == ("current_" + config[j].initial_pose.sourceFrame + "_pose"))
+            if(oit->first == (config[j].initial_pose.sourceFrame))
                 is_port_required = true;
         }
         if(!is_port_required){
@@ -64,44 +64,45 @@ std::vector<base::samples::RigidBodyState> RobotModelInterface::update(){
     PoseInPortMap::iterator it;
     for(it = pose_in_ports.begin(); it != pose_in_ports.end(); it++){
         if(it->second->readNewest(model_pose) == RTT::NewData){
+            model_pose.sourceFrame = it->first;
             poses.push_back(model_pose);
-            pose_out_ports["current_" + it->first]->write(model_pose);
+            pose_out_ports[it->first]->write(model_pose);
         }
     }
     return poses;
 }
 
-void RobotModelInterface::addInputPort(const std::string port_name){
+void RobotModelInterface::addInputPort(const std::string name){
 
-    if(!task_context->getPort(port_name)){ // Don't recreate ports
-        PoseInPort* port = new PoseInPort(port_name);
-        pose_in_ports[port_name] = port;
-        task_context->ports()->addPort(port_name, *port);
+    if(pose_in_ports.count(name) == 0){ // Don't recreate ports
+        PoseInPort* port = new PoseInPort();
+        pose_in_ports[name] = port;
+        task_context->ports()->addPort(name + "_pose", *port);
     }
 }
 
-void RobotModelInterface::removeInputPort(const std::string port_name){
-    if(pose_in_ports.count(port_name) > 0){
-        task_context->ports()->removePort(port_name);
-        delete pose_in_ports[port_name];
-        pose_in_ports.erase(port_name);
+void RobotModelInterface::removeInputPort(const std::string name){
+    if(pose_in_ports.count(name) > 0){
+        task_context->ports()->removePort(name + "_pose");
+        delete pose_in_ports[name];
+        pose_in_ports.erase(name);
     }
 }
 
-void RobotModelInterface::addOutputPort(const std::string port_name){
+void RobotModelInterface::addOutputPort(const std::string name){
 
-    if(!task_context->getPort(port_name)){ // Don't recreate ports
-        PoseOutPort* port = new PoseOutPort(port_name);
-        pose_out_ports[port_name] = port;
-        task_context->ports()->addPort(port_name, *port);
+    if(pose_out_ports.count(name) == 0){ // Don't recreate ports
+        PoseOutPort* port = new PoseOutPort();
+        pose_out_ports[name] = port;
+        task_context->ports()->addPort("current_" + name + "_pose", *port);
     }
 }
 
-void RobotModelInterface::removeOutputPort(const std::string port_name){
-    if(pose_out_ports.count(port_name) > 0){
-        task_context->ports()->removePort(port_name);
-        delete pose_out_ports[port_name];
-        pose_out_ports.erase(port_name);
+void RobotModelInterface::removeOutputPort(const std::string name){
+    if(pose_out_ports.count(name) > 0){
+        task_context->ports()->removePort("current_" + name + "_pose");
+        delete pose_out_ports[name];
+        pose_out_ports.erase(name);
     }
 }
 
