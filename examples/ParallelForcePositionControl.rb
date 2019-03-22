@@ -20,8 +20,8 @@ require 'readline'
 Orocos.initialize
 Orocos.conf.load_dir('config')
 
-Orocos.run "wbc::WbcVelocityTask" => "wbc",
-           "wbc::HierarchicalLSSolverTask" => "solver",
+Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
+           "wbc_solvers::HierarchicalLSSolverTask" => "solver",
            "ctrl_lib::CartesianPositionController" => "cartesian_controller",
            "ctrl_lib::CartesianForceController"    => "force_controller",
            "joint_control::FakeJointDriverTask"    => "joint_driver",
@@ -30,7 +30,7 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     cartesian_controller = Orocos::TaskContext.get "cartesian_controller"
     force_controller     = Orocos::TaskContext.get "force_controller"
     wbc                  = Orocos::TaskContext.get "wbc"
-    solver                = Orocos::TaskContext.get "solver"
+    solver               = Orocos::TaskContext.get "solver"
     joint_driver         = Orocos::TaskContext.get "joint_driver"
     force_sensor         = Orocos::TaskContext.get "force_sensor"
 
@@ -82,14 +82,14 @@ Orocos.run "wbc::WbcVelocityTask" => "wbc",
     Readline.readline("Press Enter to start motion")
 
     # Set target pose for Cartesian Controller
-    target_pose = Types::Base::Samples::RigidBodyState.new
-    target_pose.position = Types::Base::Vector3d.new(0.22, -1.44, 0.97)
-    target_pose.orientation = Types::Base::Quaterniond.from_euler(Types::Base::Vector3d.new(1.71, -1.57, -0.14), 2,1,0)
+    target_pose = Types::Wbc::CartesianState.new
+    target_pose.pose.position = Types::Base::Vector3d.new(0.22, -1.44, 0.97)
+    target_pose.pose.orientation = Types::Base::Quaterniond.from_euler(Types::Base::Vector3d.new(1.71, -1.57, -0.14), 2,1,0)
     pose_writer = cartesian_controller.port("setpoint").writer
-    pose_writer.write(target_pose)
+    #pose_writer.write(target_pose)
 
     # Activate Cartesian Constraint
-    wbc.activateConstraint("cart_position_ctrl_right", true)
+    wbc.activateConstraint("cart_position_ctrl_right", 1.0)
 
     # Check if current pose == target pose in a loop
     reached = false

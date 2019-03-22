@@ -3,9 +3,13 @@
 base_frame: "kuka_lbr_base"
 # Add multiple robot and/or object models.
 robot_models:
-    - file: "./models/kuka_lbr.urdf"
+    - file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/examples/models/kuka_lbr.urdf" %>
 # Optionally set the order of joints here. If empty, order will be as in the robot model.
 joint_names: ["kuka_lbr_r_joint_1","kuka_lbr_r_joint_2","kuka_lbr_r_joint_3","kuka_lbr_r_joint_4","kuka_lbr_r_joint_5","kuka_lbr_r_joint_6","kuka_lbr_r_joint_7"]
+# Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
+#              Size has to be same as joint_names
+initial_joint_weights:
+  data: [1,1,1,1,1,1,1]
 
 --- name:cart_control_with_joint_limits
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
