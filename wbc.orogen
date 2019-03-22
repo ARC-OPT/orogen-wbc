@@ -58,10 +58,10 @@ task_context "WbcTask" do abstract
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
-    dynamic_input_port /.*/, "/base/samples/RigidBodyState"
+    dynamic_input_port /.*/, "/wbc/CartesianState"
     dynamic_input_port /.*/, "/base/VectorXd"
     dynamic_input_port /.*/, "/double"
-    dynamic_output_port /.*/, "/base/samples/RigidBodyState"
+    dynamic_output_port /.*/, "/wbc/CartesianState"
     dynamic_output_port /.*/, "/base/samples/Joints"
 
     input_port("joint_state", "base/samples/Joints").
