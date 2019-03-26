@@ -20,7 +20,7 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
     for(size_t i = 0; i < config.size(); i++)
         if(!config[i].hook.empty())  // Don't create an input port if the hook is empty
-            addInputPort(config[i].initial_pose.sourceFrame + "_pose");
+            addInputPort(config[i].initial_pose.sourceFrame);
 
     // Remove ports which are not required anymore. This is required
     // if wbc is re-configured with different constraints
@@ -29,7 +29,7 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
 
         bool is_port_required = false;
         for(size_t j = 0; j < config.size(); j++){
-            if(it->first == (config[j].initial_pose.sourceFrame + "_pose"))
+            if(it->first == (config[j].initial_pose.sourceFrame))
                 is_port_required = true;
         }
         if(!is_port_required){
@@ -45,32 +45,33 @@ void RobotModelInterface::configure(const std::vector<RobotModelConfig> &config)
     }
 }
 
-const std::vector<base::samples::RigidBodyState>& RobotModelInterface::update(){
+const std::vector<base::samples::RigidBodyState> &RobotModelInterface::update(){
 
     base::samples::RigidBodyState model_pose;
     PoseInPortMap::iterator it;
     for(it = pose_in_ports.begin(); it != pose_in_ports.end(); it++){
-        if(it->second->readNewest(model_pose) == RTT::NewData)
+        if(it->second->readNewest(model_pose) == RTT::NewData){
+            model_pose.sourceFrame = it->first;
             model_poses[it->first] = model_pose;
+        }
     }
     return model_poses.elements;
 }
 
-void RobotModelInterface::addInputPort(const std::string port_name){
+void RobotModelInterface::addInputPort(const std::string name){
 
-    if(!task_context->getPort(port_name)){ // Don't recreate ports
-        PoseInPort* port = new PoseInPort(port_name);
-        pose_in_ports[port_name] = port;
-        task_context->ports()->addPort(port_name, *port);
+    if(pose_in_ports.count(name) == 0){ // Don't recreate ports
+        PoseInPort* port = new PoseInPort();
+        pose_in_ports[name] = port;
+        task_context->ports()->addPort(name + "_pose", *port);
     }
 }
 
-void RobotModelInterface::removeInputPort(const std::string port_name){
-    if(pose_in_ports.count(port_name) > 0){
-        task_context->ports()->removePort(port_name);
-        delete pose_in_ports[port_name];
-        pose_in_ports.erase(port_name);
+void RobotModelInterface::removeInputPort(const std::string name){
+    if(pose_in_ports.count(name) > 0){
+        task_context->ports()->removePort(name + "_pose");
+        delete pose_in_ports[name];
+        pose_in_ports.erase(name);
     }
 }
-
 }
