@@ -106,6 +106,7 @@ void WbcTask::updateHook(){
         state(RUNNING);
     // Update Robot Model
     robot_model->update(joint_state, robot_model_interface->update());
+    _robot_model_poses.write(robot_model_interface->getModelPoses());
 
     // Update constraints
     ConstraintInterfaceMap::const_iterator it;
@@ -130,11 +131,8 @@ void WbcTask::updateHook(){
     _hierarchical_qp.write(hierarchical_qp);
 
     // Write debug output
-    if(_solver_output.readNewest(solver_output) == RTT::NewData){
-        wbc_scene->evaluateConstraints(solver_output, joint_state);
-        for(it = constraint_interfaces.begin(); it != constraint_interfaces.end(); it++)
-            it->second->writeDebug();
-    }
+    if(_solver_output.readNewest(solver_output) == RTT::NewData)
+        _constraints_status.write(wbc_scene->updateConstraintsStatus(solver_output, joint_state));
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 

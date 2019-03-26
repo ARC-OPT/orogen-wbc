@@ -3,7 +3,7 @@ name "wbc"
 using_library "wbc"
 
 import_types_from "wbc/ConstraintConfig.hpp"
-import_types_from "wbc/Constraint.hpp"
+import_types_from "wbc/ConstraintStatus.hpp"
 import_types_from "wbc/RobotModelConfig.hpp"
 import_types_from "wbc_common/QuadraticProgram.hpp"
 import_types_from "base"
@@ -83,6 +83,12 @@ task_context "WbcTask" do abstract
     output_port("current_joint_weights", "base/VectorXd").
         doc("Current joint weight vector")
 
+    output_port("constraints_status", "wbc/ConstraintsStatus").
+        doc("Current constraint status vector")
+
+    output_port("robot_model_poses", "wbc/RobotModelPoses").
+        doc("Current robot model pose vector")
+
     operation("activateConstraint").
        argument("constraint_name", "std/string").
        argument("activation", "double")
@@ -107,6 +113,7 @@ task_context "WbcVelocityTask", subclasses: "WbcTask" do
 end
 
 typekit do
-   export_types "wbc/Constraint"
+   export_types "wbc/ConstraintStatus"
+   export_types "wbc/RobotModelPoses"
 end
 
