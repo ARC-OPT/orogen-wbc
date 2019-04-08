@@ -4,11 +4,8 @@
 #define WBC_WBCVELOCITYTASK_TASK_HPP
 
 #include "wbc/WbcVelocityTaskBase.hpp"
-#include <wbcTypes.hpp>
 
 namespace wbc {
-
-class WbcVelocityScene;
 
 /**
  * @brief Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.

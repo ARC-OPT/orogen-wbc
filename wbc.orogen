@@ -1,3 +1,5 @@
+
+
 name "wbc"
 
 using_library "wbc"
@@ -45,15 +47,15 @@ task_context "WbcTask" do abstract
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
              Cartesian constraints:
-                 [in] Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
-                 [in] Weights (/base/VectorXd):                               weight_<constraint_name>
-                 [in] Activation function (double):                           activation_<constraint_name>
-                 [out] Constraint pose output (/base/samples/RigidBodyState): status_<constraint_name>
+                 [in] Reference Input (/wbc/CartesianState):         ref_<constraint_name>
+                 [in] Weights (/base/VectorXd):                      weight_<constraint_name>
+                 [in] Activation function (double):                  activation_<constraint_name>
+                 [out] Constraint pose output (/wbc/CartesianState): status_<constraint_name>
              Joint Space constraints:
-                 [in] Reference Input (/base/samples/Joints):                 ref_<task_name>
-                 [in] Weights (/base/VectorXd):                               weight_<task_name>
-                 [in] Activation function (double):                           activation_<task_name>
-                 [out] Current joint state output (base/samples/Joints):      status_<task_name>")
+                 [in] Reference Input (/base/samples/Joints):            ref_<task_name>
+                 [in] Weights (/base/VectorXd):                          weight_<task_name>
+                 [in] Activation function (double):                      activation_<task_name>
+                 [out] Current joint state output (base/samples/Joints): status_<task_name>")
 
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
@@ -103,6 +105,16 @@ end
 # Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
 #
 task_context "WbcVelocityTask", subclasses: "WbcTask" do
+    needs_configuration
+
+    periodic 0.01
+end
+
+
+#
+# Acceleration based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
+#
+task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     needs_configuration
 
     periodic 0.01
