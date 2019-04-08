@@ -122,11 +122,8 @@ void WbcTask::updateHook(){
     _hierarchical_qp.write(hierarchical_qp);
 
     // Write debug output
-    if(_solver_output.readNewest(solver_output) == RTT::NewData){
-        wbc_scene->evaluateConstraints(solver_output, joint_state);
-        for(const auto& it : constraint_interfaces)
-            it.second->writeDebug();
-    }
+    if(_solver_output.readNewest(solver_output) == RTT::NewData)
+        _constraints_status.write(wbc_scene->updateConstraintsStatus(solver_output, joint_state));
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 

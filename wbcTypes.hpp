@@ -8,9 +8,8 @@
  * which case you do not need this file
  */
 
-#include <vector>
-
 namespace wbc {
+
 }
 
 #endif

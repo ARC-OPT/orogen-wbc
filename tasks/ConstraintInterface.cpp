@@ -13,7 +13,7 @@ ConstraintInterface::ConstraintInterface(ConstraintPtr _constraint,
     robot_model = _robot_model;
     task_context = _task_context;
 
-    const ConstraintConfig &cfg = constraint->config;
+const ConstraintConfig &cfg = constraint->config;
 
     if(constraint->config.type == cart){
         cart_ref_port = std::make_shared<CartRefPort>("ref_" + cfg.name);
@@ -52,6 +52,7 @@ ConstraintInterface::ConstraintInterface(ConstraintPtr _constraint,
 ConstraintInterface::~ConstraintInterface(){
 
     task_context->ports()->removePort(weight_port->getName());
+
     task_context->ports()->removePort(activation_port->getName());
     if(cart_state_out_port)
         task_context->ports()->removePort(cart_state_out_port->getName());
@@ -94,8 +95,5 @@ void ConstraintInterface::update(){
 
 void ConstraintInterface::reset(){
     constraint->reset();
-}
-void ConstraintInterface::writeDebug(){
-    constraint_out_port->write(*constraint);
 }
 }

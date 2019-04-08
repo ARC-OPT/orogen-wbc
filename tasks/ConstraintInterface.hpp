@@ -65,7 +65,6 @@ public:
 
     void update();
     void reset();
-    void writeDebug();
 
 };
 

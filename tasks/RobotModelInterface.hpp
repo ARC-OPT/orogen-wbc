@@ -4,10 +4,9 @@
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
 #include <wbc_common/CartesianState.hpp>
+#include <wbc/RobotModelConfig.hpp>
 
 namespace wbc{
-
-class RobotModelConfig;
 
 /**
  * @brief The RobotModelInterface class contains I/O ports for the robot model(s)
@@ -19,6 +18,7 @@ public:
 
     void configure(const std::vector<std::string> &names);
     std::vector<CartesianState> update();
+    RobotModelsState getModelsState(){return models_state;}
 
 protected:
     typedef RTT::InputPort<CartesianState> PoseInPort;
@@ -29,14 +29,11 @@ protected:
     typedef std::map< std::string, PoseOutPortPtr > PoseOutPortMap;
 
     PoseInPortMap pose_in_ports;
-    PoseOutPortMap pose_out_ports;
-    CartesianState model_pose;
+    RobotModelsState models_state;
     RTT::TaskContext* task_context;
 
     void addInputPort(const std::string interface_name);
     void removeInputPort(const std::string port_name);
-    void addOutputPort(const std::string port_name);
-    void removeOutputPort(const std::string port_name);
 };
 
 }
