@@ -1,8 +1,8 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcVelocityTask.hpp"
-#include <wbc/KinematicRobotModelKDL.hpp>
-#include <wbc/WbcVelocityScene.hpp>
+#include <wbc/robot_models/KinematicRobotModelKDL.hpp>
+#include <wbc/scenes/WbcVelocityScene.hpp>
 
 using namespace wbc;
 using namespace std;

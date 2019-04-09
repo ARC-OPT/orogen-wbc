@@ -1,8 +1,8 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcTask.hpp"
-#include <wbc/WbcScene.hpp>
-#include <wbc/RobotModel.hpp>
+#include <wbc/core/WbcScene.hpp>
+#include <wbc/core/RobotModel.hpp>
 #include "ConstraintInterface.hpp"
 #include "RobotModelInterface.hpp"
 #include <base-logging/Logging.hpp>

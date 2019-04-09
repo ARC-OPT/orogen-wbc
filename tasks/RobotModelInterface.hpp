@@ -3,8 +3,8 @@
 
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
-#include <wbc_common/CartesianState.hpp>
-#include <wbc/RobotModelConfig.hpp>
+#include <wbc/types/CartesianState.hpp>
+#include <wbc/core/RobotModelConfig.hpp>
 
 namespace wbc{
 

@@ -1,7 +1,7 @@
 #include "ConstraintInterface.hpp"
-#include <wbc/CartesianConstraint.hpp>
-#include <wbc/JointConstraint.hpp>
-#include <wbc/RobotModel.hpp>
+#include <wbc/core/CartesianConstraint.hpp>
+#include <wbc/core/JointConstraint.hpp>
+#include <wbc/core/RobotModel.hpp>
 
 namespace wbc{
 

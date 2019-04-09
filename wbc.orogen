@@ -1,13 +1,14 @@
 name "wbc"
 
-using_library "wbc"
-using_library "wbc_common"
+using_library "wbc-scenes"
+using_library "wbc-robot_models"
 
-import_types_from "wbc/ConstraintConfig.hpp"
-import_types_from "wbc/ConstraintStatus.hpp"
-import_types_from "wbc_common/CartesianState.hpp"
-import_types_from "wbc/RobotModelConfig.hpp"
-import_types_from "wbc_common/QuadraticProgram.hpp"
+
+import_types_from "wbc/core/ConstraintConfig.hpp"
+import_types_from "wbc/core/ConstraintStatus.hpp"
+import_types_from "wbc/core/RobotModelConfig.hpp"
+import_types_from "wbc/types/CartesianState.hpp"
+import_types_from "wbc/types/QuadraticProgram.hpp"
 import_types_from "base"
 
 #

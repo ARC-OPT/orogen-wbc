@@ -4,7 +4,7 @@
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
 #include <base/samples/Joints.hpp>
-#include <wbc_common/CartesianState.hpp>
+#include <wbc/types/CartesianState.hpp>
 
 namespace wbc{
 
