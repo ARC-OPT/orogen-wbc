@@ -54,7 +54,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
     # Connect WBC with your robot's joint interface. In this case the joint driver
     joint_driver.port("joint_state").connect_to wbc.port("joint_state")
     solver.port("solver_output").connect_to joint_driver.port("command")
-    wbc.port("constraints_prio").connect_to solver.port("constraints_prio")
+    wbc.port("hierarchical_qp").connect_to solver.port("hierarchical_qp")
     solver.port("solver_output").connect_to wbc.port("solver_output")
 
     # Priority 0:
@@ -62,7 +62,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
     # Cartesian Position control
     constraint_name = "cart_position_ctrl_right"
     cartesian_controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    wbc.port("pose_" + constraint_name).connect_to cartesian_controller.port("feedback")
+    wbc.port("status_" + constraint_name).connect_to cartesian_controller.port("feedback")
 
     # Cartesian Force Control
     constraint_name = "cart_force_ctrl_right"
@@ -86,10 +86,14 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
     target_pose.pose.position = Types::Base::Vector3d.new(0.22, -1.44, 0.97)
     target_pose.pose.orientation = Types::Base::Quaterniond.from_euler(Types::Base::Vector3d.new(1.71, -1.57, -0.14), 2,1,0)
     pose_writer = cartesian_controller.port("setpoint").writer
-    #pose_writer.write(target_pose)
+    pose_writer.write(target_pose)
 
-    # Activate Cartesian Constraint
-    wbc.activateConstraint("cart_position_ctrl_right", 1.0)
+    # Set target force
+    target_force = Types.base.samples.Wrench.new
+    target_force.force = Types::Base::Vector3d.new(0.0,0.0,-10.0)
+    target_force.torque = Types::Base::Vector3d.new(0.0,0.0,0.0)
+    force_writer = force_controller.port("setpoint").writer
+    force_writer.write(target_force)
 
     # Check if current pose == target pose in a loop
     reached = false
@@ -101,14 +105,14 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
        solver_output = reader_ctrl_out.read
        if feedback && solver_output
           print "Target position:  "
-          target_pose.position.data.each do |v| print "#{'%.04f' % v} " end
+          target_pose.pose.position.data.each do |v| print "#{'%.04f' % v} " end
           print "\nCurrent position: "
-          feedback.position.data.each do |v| print "#{'%.04f' % v} " end
+          feedback.pose.position.data.each do |v| print "#{'%.04f' % v} " end
           print "\nSolver output: "
           solver_output.elements.each do |v| print "#{'%.04f' % v.speed} " end
           print "\n\n"
 
-          if (target_pose.position - feedback.position).norm < 1e-3
+          if (target_pose.pose.position - feedback.pose.position).norm < 1e-3
              reached = true
              puts "Reached Target Position!"
           end

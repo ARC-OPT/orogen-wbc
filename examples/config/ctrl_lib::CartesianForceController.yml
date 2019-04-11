@@ -14,5 +14,5 @@ dead_zone:
 max_control_output:
   data: [0.2,0.2,0.2, 0.1,0.1,0.1]
 # Proportional gain. Size has to be the same as size of field_names.
-prop_gain:
+p_gain:
   data: [-0.01, -0.01, -0.01, -0.01, -0.01, -0.01]

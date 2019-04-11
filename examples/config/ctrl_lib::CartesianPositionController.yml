@@ -8,7 +8,7 @@ activation_function:
 dead_zone:
   data: [0,0,0,0,0,0]
 # Feed Forward gain. Size has to be the same as size of field_names.
-ff_gain:
+d_gain:
   data: [0,0,0,0,0,0]
 # Unique name for each variable, e.g. joint names in case of a joint space controller.
 field_names: ["X", "Y", "Z", "rotZ", "rotY", "rotX"]
@@ -17,5 +17,5 @@ field_names: ["X", "Y", "Z", "rotZ", "rotY", "rotX"]
 max_control_output:
   data: [0.5, 0.5, 0.5, 0.707, 0.707, 0.707]
 # Proportional gain. Size has to be the same as size of field_names.
-prop_gain:
+p_gain:
   data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]

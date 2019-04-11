@@ -3,7 +3,7 @@
 epsilon: 1.0e-09
 # Maximum joint velocity (in rad/sec) for each joint. If empty, infinite output will be allowed. If not empty, size has to be same as number of joints
 max_joint_velocity:
-  data: [0.1,0.1,0.1,0.1,0.1,0.1,0.1]
+  data: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
 # Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution. A lower value will prevent unbounded
 #             control velocities near singular configurations.
 norm_max: 10.0

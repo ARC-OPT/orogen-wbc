@@ -32,11 +32,13 @@ wbc_config:
       root: "kuka_lbr_base"
       tip:  "kuka_lbr_r_tcp"
       ref_frame: "kuka_lbr_base"
+      activation: 1.0
       weights: [1,1,1,1,1,1]
 
     - name: "joint_limit_avoidance"
       priority: 1
       type: jnt
+      activation: 1.0
       joint_names: ["kuka_lbr_r_joint_1","kuka_lbr_r_joint_2","kuka_lbr_r_joint_3","kuka_lbr_r_joint_4","kuka_lbr_r_joint_5","kuka_lbr_r_joint_6","kuka_lbr_r_joint_7"]
       weights: [1,1,1,1,1,1,1]
 
@@ -62,6 +64,7 @@ wbc_config:
       root: "kuka_lbr_base"
       tip:  "kuka_lbr_r_tcp"
       ref_frame: "kuka_lbr_base"
+      activation: 1.0
       weights: [1,1,1,1,1,1]
 
     - name: "cart_force_ctrl_right"
@@ -70,4 +73,5 @@ wbc_config:
       root: "kuka_lbr_base"
       tip:  "kuka_lbr_r_tcp"
       ref_frame: "kuka_lbr_r_tcp"
+      activation: 1.0
       weights: [1,1,1,1,1,1]
