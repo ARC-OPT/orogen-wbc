@@ -1,11 +1,11 @@
 --- name:default
 # no documentation available for this property
-base_frame: "kuka_lbr_base"
+base_frame: "kuka_lbr_l_link_0"
 # Add multiple robot and/or object models.
 robot_models:
-    - file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/examples/models/kuka_lbr.urdf" %>
+    - file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/examples/models/urdf/kuka_iiwa.urdf" %>
 # Optionally set the order of joints here. If empty, order will be as in the robot model.
-joint_names: ["kuka_lbr_r_joint_1","kuka_lbr_r_joint_2","kuka_lbr_r_joint_3","kuka_lbr_r_joint_4","kuka_lbr_r_joint_5","kuka_lbr_r_joint_6","kuka_lbr_r_joint_7"]
+joint_names: ["kuka_lbr_l_joint_1","kuka_lbr_l_joint_2","kuka_lbr_l_joint_3","kuka_lbr_l_joint_4","kuka_lbr_l_joint_5","kuka_lbr_l_joint_6","kuka_lbr_l_joint_7"]
 # Joint weights control the contribution of each individual joint to the task solution. A zero means here that the joint is not used at all.
 #              Size has to be same as joint_names
 initial_joint_weights:
@@ -29,9 +29,9 @@ wbc_config:
     - name: "cart_position_ctrl_right"
       priority: 0
       type: cart
-      root: "kuka_lbr_base"
-      tip:  "kuka_lbr_r_tcp"
-      ref_frame: "kuka_lbr_base"
+      root: "kuka_lbr_l_link_0"
+      tip:  "kuka_lbr_l_tcp"
+      ref_frame: "kuka_lbr_l_link_0"
       activation: 1.0
       weights: [1,1,1,1,1,1]
 
@@ -39,7 +39,7 @@ wbc_config:
       priority: 1
       type: jnt
       activation: 1.0
-      joint_names: ["kuka_lbr_r_joint_1","kuka_lbr_r_joint_2","kuka_lbr_r_joint_3","kuka_lbr_r_joint_4","kuka_lbr_r_joint_5","kuka_lbr_r_joint_6","kuka_lbr_r_joint_7"]
+      joint_names: ["kuka_lbr_l_joint_1","kuka_lbr_l_joint_2","kuka_lbr_l_joint_3","kuka_lbr_l_joint_4","kuka_lbr_l_joint_5","kuka_lbr_l_joint_6","kuka_lbr_l_joint_7"]
       weights: [1,1,1,1,1,1,1]
 
 
@@ -61,17 +61,17 @@ wbc_config:
     - name: "cart_position_ctrl_right"
       priority: 0
       type: cart
-      root: "kuka_lbr_base"
-      tip:  "kuka_lbr_r_tcp"
-      ref_frame: "kuka_lbr_base"
+      root: "kuka_lbr_l_link_0"
+      tip:  "kuka_lbr_l_tcp"
+      ref_frame: "kuka_lbr_l_link_0"
       activation: 1.0
       weights: [1,1,1,1,1,1]
 
     - name: "cart_force_ctrl_right"
       priority: 0
       type: cart
-      root: "kuka_lbr_base"
-      tip:  "kuka_lbr_r_tcp"
-      ref_frame: "kuka_lbr_r_tcp"
+      root: "kuka_lbr_l_link_0"
+      tip:  "kuka_lbr_l_tcp"
+      ref_frame: "kuka_lbr_l_tcp"
       activation: 1.0
       weights: [1,1,1,1,1,1]

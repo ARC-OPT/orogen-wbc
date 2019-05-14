@@ -5,13 +5,13 @@ cycle_time: 0.01
 meas_noise_std_dev: 1.0e-4
 # Initial state of the fake driver. If left empty, zero for all values is assumed
 initial_joint_state:
-  names: ["kuka_lbr_r_joint_1",
-          "kuka_lbr_r_joint_2",
-          "kuka_lbr_r_joint_3",
-          "kuka_lbr_r_joint_4",
-          "kuka_lbr_r_joint_5",
-          "kuka_lbr_r_joint_6",
-          "kuka_lbr_r_joint_7",
+  names: ["kuka_lbr_l_joint_1",
+          "kuka_lbr_l_joint_2",
+          "kuka_lbr_l_joint_3",
+          "kuka_lbr_l_joint_4",
+          "kuka_lbr_l_joint_5",
+          "kuka_lbr_l_joint_6",
+          "kuka_lbr_l_joint_7",
           "kuka_lbr_l_joint_1",
           "kuka_lbr_l_joint_2",
           "kuka_lbr_l_joint_3",
@@ -19,13 +19,13 @@ initial_joint_state:
           "kuka_lbr_l_joint_5",
           "kuka_lbr_l_joint_6",
           "kuka_lbr_l_joint_7"]
-  elements: [{position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_1
-             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_2
-             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_3
-             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_4
-             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_5
-             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_6
-             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_r_joint_7
+  elements: [{position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_1
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_2
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_3
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_4
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_5
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_6
+             {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_7
              {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_1
              {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_2
              {position: 0.0, speed: 0.0, raw: 0.0, effort: 0.0, acceleration: 0.0}, # kuka_lbr_l_joint_3
@@ -36,13 +36,13 @@ initial_joint_state:
 
 # Position Controller PID values (Note: Right now, only p_gain is used)
 # This property determines the number of joints
-pos_pid: [{kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_1
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_2
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_3
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_4
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_5
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_6
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_7
+pos_pid: [{kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_1
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_2
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_3
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_4
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_5
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_6
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_7
           {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_1
           {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_2
           {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_3
@@ -52,13 +52,13 @@ pos_pid: [{kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_1
           {kp: 1.0, maxPWM: 1.0}]  # kuka_lbr_l_joint_7
 
 # Velocity Controller PID values (Note: Right now, only kp is used)
-vel_pid: [{kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_1
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_2
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_3
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_4
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_5
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_6
-          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_r_joint_7
+vel_pid: [{kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_1
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_2
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_3
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_4
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_5
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_6
+          {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_7
           {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_1
           {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_2
           {kp: 1.0, maxPWM: 1.0},  # kuka_lbr_l_joint_3

@@ -1,0 +1,5 @@
+--- name:default
+# Maximum number of working set recalculations performed by the solver
+n_wsr: 10
+# Output/control mode. Can be one of SPEED, ACCELERATION or EFFORT
+output_mode: :POSITION

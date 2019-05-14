@@ -80,8 +80,8 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
 
     # Set target pose for Cartesian Controller
     target_pose = Types.wbc.CartesianState.new
-    target_pose.pose.position = Types::Base::Vector3d.new(0.22, -1.44, 0.97)
-    target_pose.pose.orientation = Types::Base::Quaterniond.from_euler(Types::Base::Vector3d.new(1.71, -1.57, -0.14), 2,1,0)
+    target_pose.pose.position = Types::Base::Vector3d.new(0,0,0.8)
+    target_pose.pose.orientation = Types::Base::Quaterniond.from_euler(Types::Base::Vector3d.new(0,0,0), 2,1,0)
     pose_writer = cartesian_controller.port("setpoint").writer
     pose_writer.write(target_pose)
 
