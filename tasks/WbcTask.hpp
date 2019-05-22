@@ -52,7 +52,6 @@ protected:
     base::samples::Joints joint_state;                 /** Current joint state of the whole robot*/
     base::Time stamp;                                  /** Timestamp for cycle time computation*/
     std::vector<ConstraintConfig> wbc_config;          /** Current constraint configuration*/
-    base::VectorXd joint_weights;                      /** Current joint weights used within the solver*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

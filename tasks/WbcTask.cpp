@@ -55,14 +55,6 @@ bool WbcTask::configureHook(){
     robot_model_interface = std::make_shared<RobotModelInterface>(this);
     robot_model_interface->configure(robot_model->robotModelNames());
 
-    joint_weights = _initial_joint_weights.get();
-    if(joint_weights.size() == 0)
-        joint_weights.setOnes(robot_model->noOfJoints());
-    else if(joint_weights.size() != robot_model->noOfJoints()){
-        LOG_ERROR("Number of joint weights is %i but number of robot joints is %i", joint_weights.size(), robot_model->noOfJoints());
-        return false;
-    }
-
     LOG_DEBUG("... Created ports");
 
     return true;
@@ -107,16 +99,7 @@ void WbcTask::updateHook(){
     // Update Quadratic program
     wbc_scene->update();
 
-    // Update joint weights
-    _joint_weights.readNewest(joint_weights);
-
-    // Write outputs
-    _current_joint_weights.write(joint_weights);
-
     wbc_scene->getHierarchicalQP(hierarchical_qp);
-    // Set equal joint weights for each prio. This is more intuitive and easier for the user to configure
-    for(QuadraticProgram &qp : hierarchical_qp.prios)
-        qp.Wq = joint_weights;
     hierarchical_qp.time = base::Time::now();
     hierarchical_qp.joint_names = robot_model->jointNames();
     _hierarchical_qp.write(hierarchical_qp);

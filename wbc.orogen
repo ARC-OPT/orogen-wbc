@@ -40,9 +40,6 @@ task_context "WbcTask" do abstract
     property("robot_models", "std/vector<wbc/RobotModelConfig>").
         doc("Add multiple robot and/or object models.")
 
-    property("initial_joint_weights", "base/VectorXd").
-        doc("The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1). A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.")
-
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
              Cartesian constraints:
@@ -70,9 +67,6 @@ task_context "WbcTask" do abstract
 
     input_port("solver_output", "base/commands/Joints").
        doc("Computed solver output. Is used to compute the status of the constraint for debug purposes")
-   
-    input_port("joint_weights", "base/VectorXd").
-       doc("Update joint weight values. Size has to be same number of joints.")
 
     output_port("computation_time", "double").
        doc("Debug: Computation time for one cycle in seconds")
@@ -82,9 +76,6 @@ task_context "WbcTask" do abstract
 
     output_port("hierarchical_qp", "wbc/HierarchicalQP").
         doc("Output quadratic program for the solver.")
-
-    output_port("current_joint_weights", "base/VectorXd").
-        doc("Current joint weight vector")
 
     output_port("constraints_status", "wbc/ConstraintsStatus").
         doc("Current constraint status vector")
