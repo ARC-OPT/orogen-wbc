@@ -4,7 +4,7 @@
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
 #include <base/samples/Joints.hpp>
-#include <wbc/types/CartesianState.hpp>
+#include <ctrl_types/CartesianState.hpp>
 
 namespace wbc{
 
@@ -14,11 +14,11 @@ class RobotModel;
 typedef std::shared_ptr<Constraint> ConstraintPtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
 
-typedef RTT::InputPort<CartesianState> CartRefPort;
+typedef RTT::InputPort<base::samples::CartesianState> CartRefPort;
 typedef RTT::InputPort<base::samples::Joints> JntRefPort;
 typedef RTT::InputPort<base::VectorXd> WeightInPort;
 typedef RTT::InputPort<double> ActivationPort;
-typedef RTT::OutputPort<CartesianState> CartStatusPort;
+typedef RTT::OutputPort<base::samples::CartesianState> CartStatusPort;
 typedef RTT::OutputPort<base::samples::Joints> JntStatusPort;
 
 typedef std::shared_ptr<CartRefPort> CartRefPortPtr;
@@ -42,7 +42,7 @@ public:
     ConstraintPtr constraint;
     RobotModelPtr robot_model;
 
-    CartesianState constraint_cart_state;
+    base::samples::CartesianState constraint_cart_state;
     base::samples::Joints constraint_jnt_state;
 
     // Ports
@@ -53,7 +53,7 @@ public:
     WeightInPortPtr weight_port;
     ActivationPortPtr activation_port;
 
-    CartesianState cart_ref;                /** Cartesian Reference values */
+    base::samples::CartesianState cart_ref;                /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
     base::VectorXd weights;                 /** Current constraint weights*/
     double activation;                      /** Current constraint activation*/

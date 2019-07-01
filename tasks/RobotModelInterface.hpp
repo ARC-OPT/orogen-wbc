@@ -3,7 +3,7 @@
 
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
-#include <wbc/types/CartesianState.hpp>
+#include <ctrl_types/CartesianState.hpp>
 #include <wbc/core/RobotModelConfig.hpp>
 
 namespace wbc{
@@ -17,14 +17,14 @@ public:
     ~RobotModelInterface();
 
     void configure(const std::vector<std::string> &names);
-    std::vector<CartesianState> update();
+    std::vector<base::samples::CartesianState> update();
     RobotModelsState getModelsState(){return models_state;}
 
 protected:
-    typedef RTT::InputPort<CartesianState> PoseInPort;
+    typedef RTT::InputPort<base::samples::CartesianState> PoseInPort;
     typedef std::shared_ptr<PoseInPort> PoseInPortPtr;
     typedef std::map< std::string, PoseInPortPtr > PoseInPortMap;
-    typedef RTT::OutputPort<CartesianState> PoseOutPort;
+    typedef RTT::OutputPort<base::samples::CartesianState> PoseOutPort;
     typedef std::shared_ptr<PoseOutPort> PoseOutPortPtr;
     typedef std::map< std::string, PoseOutPortPtr > PoseOutPortMap;
 

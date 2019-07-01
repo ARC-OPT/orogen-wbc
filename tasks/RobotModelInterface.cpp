@@ -34,13 +34,13 @@ void RobotModelInterface::configure(const std::vector<std::string> &names){
     models_state.clear();
     for(auto it = pose_in_ports.begin(); it != pose_in_ports.end(); it++){
         models_state.names.push_back(it->first);
-        models_state.elements.push_back(wbc::CartesianState());
+        models_state.elements.push_back(base::samples::CartesianState());
     }
 }
 
-std::vector<CartesianState> RobotModelInterface::update(){
+std::vector<base::samples::CartesianState> RobotModelInterface::update(){
 
-    wbc::CartesianState model_pose;
+    base::samples::CartesianState model_pose;
     for(const auto &it : pose_in_ports){
         if(it.second->readNewest(model_pose) == RTT::NewData){
             model_pose.source_frame = it.first;
