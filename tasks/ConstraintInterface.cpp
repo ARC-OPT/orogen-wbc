@@ -44,9 +44,6 @@ const ConstraintConfig &cfg = constraint->config;
 
     weight_port = std::make_shared<WeightInPort>("weight_" + cfg.name);
     task_context->ports()->addPort(weight_port->getName(), *(weight_port));
-
-    constraint_out_port = std::make_shared<ConstraintOutPort>("constraint_" + cfg.name);
-    task_context->ports()->addPort(constraint_out_port->getName(), *(constraint_out_port));
 }
 
 ConstraintInterface::~ConstraintInterface(){
@@ -62,8 +59,6 @@ ConstraintInterface::~ConstraintInterface(){
         task_context->ports()->removePort(jnt_ref_port->getName());
     if(jnt_state_out_port)
         task_context->ports()->removePort(jnt_state_out_port->getName());
-    if(constraint_out_port)
-        task_context->ports()->removePort(constraint_out_port->getName());
 }
 
 void ConstraintInterface::update(){

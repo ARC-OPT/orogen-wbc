@@ -20,7 +20,6 @@ typedef RTT::InputPort<base::VectorXd> WeightInPort;
 typedef RTT::InputPort<double> ActivationPort;
 typedef RTT::OutputPort<CartesianState> CartStatusPort;
 typedef RTT::OutputPort<base::samples::Joints> JntStatusPort;
-typedef RTT::OutputPort<Constraint> ConstraintOutPort;
 
 typedef std::shared_ptr<CartRefPort> CartRefPortPtr;
 typedef std::shared_ptr<JntRefPort> JntRefPortPtr;
@@ -28,7 +27,6 @@ typedef std::shared_ptr<WeightInPort> WeightInPortPtr;
 typedef std::shared_ptr<ActivationPort> ActivationPortPtr;
 typedef std::shared_ptr<CartStatusPort> CartStatusPortPtr;
 typedef std::shared_ptr<JntStatusPort> JntStatusPortPtr;
-typedef std::shared_ptr<ConstraintOutPort> ConstraintOutPortPtr;
 
 /**
  * @brief The ConstraintInterface class contains I/O ports for each constraint
@@ -52,7 +50,6 @@ public:
     JntRefPortPtr jnt_ref_port;
     CartStatusPortPtr cart_state_out_port;
     JntStatusPortPtr jnt_state_out_port;
-    ConstraintOutPortPtr constraint_out_port;
     WeightInPortPtr weight_port;
     ActivationPortPtr activation_port;
 
