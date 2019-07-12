@@ -9,6 +9,7 @@
 namespace wbc{
 
 class Constraint;
+class ConstraintStatus;
 class RobotModel;
 
 typedef std::shared_ptr<Constraint> ConstraintPtr;
@@ -20,6 +21,7 @@ typedef RTT::InputPort<base::VectorXd> WeightInPort;
 typedef RTT::InputPort<double> ActivationPort;
 typedef RTT::OutputPort<base::samples::CartesianState> CartStatusPort;
 typedef RTT::OutputPort<base::samples::Joints> JntStatusPort;
+typedef RTT::OutputPort<wbc::ConstraintStatus> ConstraintStatusPort;
 
 typedef std::shared_ptr<CartRefPort> CartRefPortPtr;
 typedef std::shared_ptr<JntRefPort> JntRefPortPtr;
@@ -27,6 +29,7 @@ typedef std::shared_ptr<WeightInPort> WeightInPortPtr;
 typedef std::shared_ptr<ActivationPort> ActivationPortPtr;
 typedef std::shared_ptr<CartStatusPort> CartStatusPortPtr;
 typedef std::shared_ptr<JntStatusPort> JntStatusPortPtr;
+typedef std::shared_ptr<ConstraintStatusPort> ConstraintStatusPortPtr;
 
 /**
  * @brief The ConstraintInterface class contains I/O ports for each constraint
@@ -52,8 +55,9 @@ public:
     JntStatusPortPtr jnt_state_out_port;
     WeightInPortPtr weight_port;
     ActivationPortPtr activation_port;
+    ConstraintStatusPortPtr constraint_status_port;
 
-    base::samples::CartesianState cart_ref;                /** Cartesian Reference values */
+    base::samples::CartesianState cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
     base::VectorXd weights;                 /** Current constraint weights*/
     double activation;                      /** Current constraint activation*/
@@ -62,6 +66,7 @@ public:
 
     void update();
     void reset();
+    void writeConstraintStatus(const ConstraintStatus& status);
 
 };
 

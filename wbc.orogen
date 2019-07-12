@@ -47,11 +47,13 @@ task_context "WbcTask" do abstract
                  [in] Weights (/base/VectorXd):                      weight_<constraint_name>
                  [in] Activation function (double):                  activation_<constraint_name>
                  [out] Constraint pose output (/base/samples/CartesianState): status_<constraint_name>
+                 [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
              Joint Space constraints:
                  [in] Reference Input (/base/samples/Joints):            ref_<task_name>
                  [in] Weights (/base/VectorXd):                          weight_<task_name>
                  [in] Activation function (double):                      activation_<task_name>
-                 [out] Current joint state output (base/samples/Joints): status_<task_name>")
+                 [out] Current joint state output (base/samples/Joints): status_<task_name>
+                 [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>")
 
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
@@ -76,9 +78,6 @@ task_context "WbcTask" do abstract
 
     output_port("hierarchical_qp", "wbc/HierarchicalQP").
         doc("Output quadratic program for the solver.")
-
-    output_port("constraints_status", "wbc/ConstraintsStatus").
-        doc("Current constraint status vector")
 
     output_port("robot_models_state", "wbc/RobotModelsState").
         doc("Current robot model status vector")

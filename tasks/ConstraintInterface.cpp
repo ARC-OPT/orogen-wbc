@@ -2,6 +2,7 @@
 #include <wbc/core/CartesianConstraint.hpp>
 #include <wbc/core/JointConstraint.hpp>
 #include <wbc/core/RobotModel.hpp>
+#include <wbc/core/ConstraintStatus.hpp>
 
 namespace wbc{
 
@@ -44,12 +45,14 @@ const ConstraintConfig &cfg = constraint->config;
 
     weight_port = std::make_shared<WeightInPort>("weight_" + cfg.name);
     task_context->ports()->addPort(weight_port->getName(), *(weight_port));
+
+    constraint_status_port = std::make_shared<ConstraintStatusPort>("constraint_" + cfg.name);
+    task_context->ports()->addPort(constraint_status_port->getName(), *(constraint_status_port));
 }
 
 ConstraintInterface::~ConstraintInterface(){
 
     task_context->ports()->removePort(weight_port->getName());
-
     task_context->ports()->removePort(activation_port->getName());
     if(cart_state_out_port)
         task_context->ports()->removePort(cart_state_out_port->getName());
@@ -59,6 +62,8 @@ ConstraintInterface::~ConstraintInterface(){
         task_context->ports()->removePort(jnt_ref_port->getName());
     if(jnt_state_out_port)
         task_context->ports()->removePort(jnt_state_out_port->getName());
+    if(constraint_status_port)
+        task_context->ports()->removePort(constraint_status_port->getName());
 }
 
 void ConstraintInterface::update(){
@@ -86,6 +91,10 @@ void ConstraintInterface::update(){
         cart_state_out_port->write(robot_model->cartesianState(cfg.ref_frame, cfg.tip));
     else
         jnt_state_out_port->write(robot_model->jointState(cfg.joint_names));
+}
+
+void ConstraintInterface::writeConstraintStatus(const ConstraintStatus& status){
+    constraint_status_port->write(status);
 }
 
 void ConstraintInterface::reset(){

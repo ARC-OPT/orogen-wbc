@@ -5,6 +5,7 @@
 
 #include "wbc/WbcTaskBase.hpp"
 #include <base/commands/Joints.hpp>
+#include <wbc/core/ConstraintStatus.hpp>
 
 namespace wbc {
 
@@ -52,6 +53,7 @@ protected:
     base::samples::Joints joint_state;                 /** Current joint state of the whole robot*/
     base::Time stamp;                                  /** Timestamp for cycle time computation*/
     std::vector<ConstraintConfig> wbc_config;          /** Current constraint configuration*/
+    ConstraintsStatus constraints_status;              /** Status of constraints*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");
