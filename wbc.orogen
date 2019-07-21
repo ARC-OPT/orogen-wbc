@@ -115,6 +115,30 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     periodic 0.01
 end
 
+#
+# Convert samples of type base/samples/CartesianState to type base/samples/RigidBodyState and vice versa
+#
+task_context "RbsToCartesianStateTask" do
+    needs_configuration
+
+    property("input_ports", "std/vector<std/string>").
+        doc("Vector of names of the input ports of type base/samples/RigidBodyState")
+
+    port_driven
+end
+
+#
+# Convert samples of type base/samples/RigidBodyState to type base/samples/CartesianState
+#
+task_context "CartesianStateToRbsTask" do
+    needs_configuration
+
+    property("input_ports", "std/vector<std/string>").
+        doc("Vector of names of the input ports of type base/samples/CartesianState")
+
+    port_driven
+end
+
 typekit do
    export_types "wbc/ConstraintStatus"
    export_types "wbc/RobotModelsState"
