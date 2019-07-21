@@ -11,9 +11,9 @@ RobotModelInterface::~RobotModelInterface(){
     pose_in_ports.clear();
 }
 
-void RobotModelInterface::configure(const std::vector<std::string> &names){
+void RobotModelInterface::configure(const RobotModelsState &initial_states){
 
-    for(const std::string& n : names)
+    for(const std::string& n : initial_states.names)
         addInputPort(n);
 
     // Remove ports which are not required anymore. This is required
@@ -21,7 +21,7 @@ void RobotModelInterface::configure(const std::vector<std::string> &names){
     for(auto it = pose_in_ports.begin(); it != pose_in_ports.end();){
 
         bool is_port_required = false;
-        for(const std::string &n : names){
+        for(const std::string &n : initial_states.names){
             if(it->first == (n))
                 is_port_required = true;
         }
@@ -31,11 +31,7 @@ void RobotModelInterface::configure(const std::vector<std::string> &names){
             removeInputPort(it->first);
     }
 
-    models_state.clear();
-    for(auto it = pose_in_ports.begin(); it != pose_in_ports.end(); it++){
-        models_state.names.push_back(it->first);
-        models_state.elements.push_back(base::samples::CartesianState());
-    }
+    models_state = initial_states;
 }
 
 std::vector<base::samples::CartesianState> RobotModelInterface::update(){

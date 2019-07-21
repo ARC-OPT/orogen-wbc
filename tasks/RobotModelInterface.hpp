@@ -16,7 +16,7 @@ public:
     RobotModelInterface(RTT::TaskContext* task);
     ~RobotModelInterface();
 
-    void configure(const std::vector<std::string> &names);
+    void configure(const RobotModelsState &initial_states);
     std::vector<base::samples::CartesianState> update();
     RobotModelsState getModelsState(){return models_state;}
 

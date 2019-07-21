@@ -53,7 +53,7 @@ bool WbcTask::configureHook(){
 
     // Configure robot model interface
     robot_model_interface = std::make_shared<RobotModelInterface>(this);
-    robot_model_interface->configure(robot_model->robotModelNames());
+    robot_model_interface->configure(robot_model->robotModelsState());
 
     LOG_DEBUG("... Created ports");
 
