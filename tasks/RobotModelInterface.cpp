@@ -34,16 +34,14 @@ void RobotModelInterface::configure(const RobotModelsState &initial_states){
     models_state = initial_states;
 }
 
-std::vector<base::samples::CartesianState> RobotModelInterface::update(){
+RobotModelsState RobotModelInterface::update(){
 
-    base::samples::CartesianState model_pose;
+    base::samples::RigidBodyStateSE3 model_pose;
     for(const auto &it : pose_in_ports){
-        if(it.second->readNewest(model_pose) == RTT::NewData){
-            model_pose.source_frame = it.first;
+        if(it.second->readNewest(model_pose) == RTT::NewData)
             models_state[it.first] = model_pose;
-        }
     }
-    return models_state.elements;
+    return models_state;
 }
 
 void RobotModelInterface::addInputPort(const std::string name){

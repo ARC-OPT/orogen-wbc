@@ -42,7 +42,7 @@ void RbsToCartesianStateTask::updateHook(){
     base::samples::RigidBodyState rbs_in;
     for(auto in : input_port_map){
         while(in.second->read(rbs_in) == RTT::NewData)
-            output_port_map[in.first]->write(rbsToCartesianState(rbs_in));
+            output_port_map[in.first]->write(fromRigidBodyState(rbs_in));
     }
 }
 
@@ -67,11 +67,10 @@ void RbsToCartesianStateTask::cleanupHook(){
     output_port_map.clear();
 }
 
-base::samples::CartesianState RbsToCartesianStateTask::rbsToCartesianState(const base::samples::RigidBodyState& in){
-    base::samples::CartesianState out;
+base::samples::RigidBodyStateSE3 RbsToCartesianStateTask::fromRigidBodyState(const base::samples::RigidBodyState& in){
+    base::samples::RigidBodyStateSE3 out;
     out.time = in.time;
-    out.source_frame = in.sourceFrame;
-    out.target_frame = in.targetFrame;
+    out.frame_id = in.targetFrame;
     out.pose.position = in.position;
     out.pose.orientation = in.orientation;
     out.twist.linear = in.velocity;

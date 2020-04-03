@@ -88,7 +88,7 @@ void ConstraintInterface::update(){
 
     const ConstraintConfig& cfg = constraint->config;
     if(cfg.type == cart)
-        cart_state_out_port->write(robot_model->cartesianState(cfg.ref_frame, cfg.tip));
+        cart_state_out_port->write(robot_model->rigidBodyState(cfg.ref_frame, cfg.tip));
     else
         jnt_state_out_port->write(robot_model->jointState(cfg.joint_names));
 }

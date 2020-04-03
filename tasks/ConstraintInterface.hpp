@@ -4,7 +4,7 @@
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
 #include <base/samples/Joints.hpp>
-#include <ctrl_types/CartesianState.hpp>
+#include <ctrl_types/RigidBodyStateSE3.hpp>
 
 namespace wbc{
 
@@ -15,11 +15,11 @@ class RobotModel;
 typedef std::shared_ptr<Constraint> ConstraintPtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
 
-typedef RTT::InputPort<base::samples::CartesianState> CartRefPort;
+typedef RTT::InputPort<base::samples::RigidBodyStateSE3> CartRefPort;
 typedef RTT::InputPort<base::samples::Joints> JntRefPort;
 typedef RTT::InputPort<base::VectorXd> WeightInPort;
 typedef RTT::InputPort<double> ActivationPort;
-typedef RTT::OutputPort<base::samples::CartesianState> CartStatusPort;
+typedef RTT::OutputPort<base::samples::RigidBodyStateSE3> CartStatusPort;
 typedef RTT::OutputPort<base::samples::Joints> JntStatusPort;
 typedef RTT::OutputPort<wbc::ConstraintStatus> ConstraintStatusPort;
 
@@ -45,7 +45,7 @@ public:
     ConstraintPtr constraint;
     RobotModelPtr robot_model;
 
-    base::samples::CartesianState constraint_cart_state;
+    base::samples::RigidBodyStateSE3 constraint_cart_state;
     base::samples::Joints constraint_jnt_state;
 
     // Ports
@@ -57,7 +57,7 @@ public:
     ActivationPortPtr activation_port;
     ConstraintStatusPortPtr constraint_status_port;
 
-    base::samples::CartesianState cart_ref; /** Cartesian Reference values */
+    base::samples::RigidBodyStateSE3 cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
     base::VectorXd weights;                 /** Current constraint weights*/
     double activation;                      /** Current constraint activation*/

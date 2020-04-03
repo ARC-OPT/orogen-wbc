@@ -7,7 +7,7 @@ using_library "wbc-robot_models"
 import_types_from "wbc/core/ConstraintConfig.hpp"
 import_types_from "wbc/core/ConstraintStatus.hpp"
 import_types_from "wbc/core/RobotModelConfig.hpp"
-import_types_from "ctrl_types/CartesianState.hpp"
+import_types_from "ctrl_types/RigidBodyStateSE3.hpp"
 import_types_from "wbc/types/QuadraticProgram.hpp"
 import_types_from "base"
 
@@ -43,10 +43,10 @@ task_context "WbcTask" do abstract
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
              Cartesian constraints:
-                 [in] Reference Input (/base/samples/CartesianState):         ref_<constraint_name>
+                 [in] Reference Input (/base/samples/RigidBodyStateSE3):         ref_<constraint_name>
                  [in] Weights (/base/VectorXd):                      weight_<constraint_name>
                  [in] Activation function (double):                  activation_<constraint_name>
-                 [out] Constraint pose output (/base/samples/CartesianState): status_<constraint_name>
+                 [out] Constraint pose output (/base/samples/RigidBodyStateSE3): status_<constraint_name>
                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
              Joint Space constraints:
                  [in] Reference Input (/base/samples/Joints):            ref_<task_name>
@@ -58,10 +58,10 @@ task_context "WbcTask" do abstract
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
-    dynamic_input_port /.*/, "/base/samples/CartesianState"
+    dynamic_input_port /.*/, "/base/samples/RigidBodyStateSE3"
     dynamic_input_port /.*/, "/base/VectorXd"
     dynamic_input_port /.*/, "/double"
-    dynamic_output_port /.*/, "/base/samples/CartesianState"
+    dynamic_output_port /.*/, "/base/samples/RigidBodyStateSE3"
     dynamic_output_port /.*/, "/base/samples/Joints"
 
     input_port("joint_state", "base/samples/Joints").

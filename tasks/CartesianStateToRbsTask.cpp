@@ -39,10 +39,10 @@ bool CartesianStateToRbsTask::startHook(){
 void CartesianStateToRbsTask::updateHook(){
     CartesianStateToRbsTaskBase::updateHook();
 
-    base::samples::CartesianState cartesian_state_in;
+    base::samples::RigidBodyStateSE3 cartesian_state_in;
     for(auto in : input_port_map){
         while(in.second->read(cartesian_state_in) == RTT::NewData)
-            output_port_map[in.first]->write(cartesianStateToRbs(cartesian_state_in));
+            output_port_map[in.first]->write(toRigidBodyState(cartesian_state_in));
     }
 }
 
@@ -67,11 +67,10 @@ void CartesianStateToRbsTask::cleanupHook(){
     output_port_map.clear();
 }
 
-base::samples::RigidBodyState CartesianStateToRbsTask::cartesianStateToRbs(const base::samples::CartesianState& in){
+base::samples::RigidBodyState CartesianStateToRbsTask::toRigidBodyState(const base::samples::RigidBodyStateSE3& in){
     base::samples::RigidBodyState out;
     out.time = in.time;
-    out.sourceFrame = in.source_frame;
-    out.targetFrame = in.target_frame;
+    out.targetFrame = in.frame_id;
     out.position = in.pose.position;
     out.orientation = in.pose.orientation;
     out.velocity = in.twist.linear;

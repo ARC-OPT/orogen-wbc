@@ -5,8 +5,7 @@
 
 #include "wbc/RbsToCartesianStateTaskBase.hpp"
 #include <base/samples/RigidBodyState.hpp>
-#include <ctrl_types/CartesianState.hpp>
-
+#include <ctrl_types/RigidBodyStateSE3.hpp>
 namespace wbc{
 
     /*! \class RbsToCartesianStateTask
@@ -32,13 +31,13 @@ Convert samples of type base/samples/CartesianState to type base/samples/RigidBo
 
         typedef RTT::InputPort<base::samples::RigidBodyState> RbsInputPort;
         typedef std::shared_ptr< RTT::InputPort<base::samples::RigidBodyState> > RbsInputPortPtr;
-        typedef RTT::OutputPort<base::samples::CartesianState> CartesianStateOutputPort;
-        typedef std::shared_ptr< RTT::OutputPort<base::samples::CartesianState> > CartesianStateOutputPortPtr;
+        typedef RTT::OutputPort<base::samples::RigidBodyStateSE3> CartesianStateOutputPort;
+        typedef std::shared_ptr< RTT::OutputPort<base::samples::RigidBodyStateSE3> > CartesianStateOutputPortPtr;
 
         typedef std::map<std::string, RbsInputPortPtr> RbsInputPortMap;
         typedef std::map<std::string, CartesianStateOutputPortPtr> CartesianStateOutputPortMap;
 
-        base::samples::CartesianState rbsToCartesianState(const base::samples::RigidBodyState& in);
+        base::samples::RigidBodyStateSE3 fromRigidBodyState(const base::samples::RigidBodyState& in);
 
         RbsInputPortMap input_port_map;
         CartesianStateOutputPortMap output_port_map;
