@@ -110,7 +110,6 @@ void WbcTask::updateHook(){
         for(const auto &c : constraint_interfaces)
             c.second->writeConstraintStatus(constraints_status[c.first]);
     }
-    _robot_models_state.write(robot_model_interface->getModelsState());
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 

@@ -9,12 +9,15 @@ RobotModelInterface::RobotModelInterface(RTT::TaskContext* task){
 
 RobotModelInterface::~RobotModelInterface(){
     pose_in_ports.clear();
+    pose_out_ports.clear();
 }
 
-void RobotModelInterface::configure(const base::samples::RigidBodyStatesSE3 &initial_states){
+void RobotModelInterface::configure(const base::NamedVector<base::samples::RigidBodyStateSE3> &initial_states){
 
-    for(const std::string& n : initial_states.names)
+    for(const std::string& n : initial_states.names){
         addInputPort(n);
+        addOutputPort(n);
+    }
 
     // Remove ports which are not required anymore. This is required
     // if wbc is re-configured with different constraints
@@ -27,24 +30,22 @@ void RobotModelInterface::configure(const base::samples::RigidBodyStatesSE3 &ini
         }
         if(is_port_required)
              it++;
-        else
+        else{
             removeInputPort(it->first);
+            removeOutputPort(it->first);
+        }
     }
 
     models_state = initial_states;
 }
 
-base::samples::RigidBodyStatesSE3 RobotModelInterface::update(){
+base::NamedVector<base::samples::RigidBodyStateSE3> RobotModelInterface::update(){
 
     base::samples::RigidBodyStateSE3 model_pose;
     for(const auto &it : pose_in_ports){
-        if(it.second->readNewest(model_pose) == RTT::NewData){
-            if(models_state.time.isNull())
-                models_state.time = model_pose.time;
-            else if(model_pose.time > models_state.time)
-                models_state.time = model_pose.time;
+        if(it.second->readNewest(model_pose) == RTT::NewData)
             models_state[it.first] = model_pose;
-        }
+        pose_out_ports[it.first]->write(models_state[it.first]);
     }
     return models_state;
 }
@@ -58,10 +59,26 @@ void RobotModelInterface::addInputPort(const std::string name){
     }
 }
 
+void RobotModelInterface::addOutputPort(const std::string name){
+
+    if(pose_out_ports.count(name) == 0){ // Don't recreate ports
+        PoseOutPortPtr port = std::make_shared<PoseOutPort>();
+        pose_out_ports[name] = port;
+        task_context->ports()->addPort("current_" + name + "_pose", *port);
+    }
+}
+
 void RobotModelInterface::removeInputPort(const std::string name){
     if(pose_in_ports.count(name) > 0){
         task_context->ports()->removePort(name + "_pose");
         pose_in_ports.erase(name);
+    }
+}
+
+void RobotModelInterface::removeOutputPort(const std::string name){
+    if(pose_out_ports.count(name) > 0){
+        task_context->ports()->removePort("current_" + name + "_pose");
+        pose_out_ports.erase(name);
     }
 }
 }

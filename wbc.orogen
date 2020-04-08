@@ -77,9 +77,6 @@ task_context "WbcTask" do abstract
     output_port("hierarchical_qp", "wbc/HierarchicalQP").
         doc("Output quadratic program for the solver.")
 
-    output_port("robot_models_state", "base/samples/RigidBodyStatesSE3").
-        doc("Current robot model status vector")
-
     operation("activateConstraint").
        argument("constraint_name", "std/string").
        argument("activation", "double")
