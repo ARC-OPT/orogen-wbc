@@ -3,7 +3,7 @@
 
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
-#include <ctrl_types/RigidBodyStateSE3.hpp>
+#include <base/samples/RigidBodyStateSE3.hpp>
 #include <wbc/core/RobotModelConfig.hpp>
 
 namespace wbc{

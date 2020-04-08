@@ -4,7 +4,7 @@
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
 #include <base/samples/Joints.hpp>
-#include <ctrl_types/RigidBodyStateSE3.hpp>
+#include <base/samples/RigidBodyStateSE3.hpp>
 
 namespace wbc{
 

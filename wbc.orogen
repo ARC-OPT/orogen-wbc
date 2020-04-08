@@ -2,12 +2,12 @@ name "wbc"
 
 using_library "wbc-scenes"
 using_library "wbc-robot_models"
+using_library "base-types"
 
 
 import_types_from "wbc/core/ConstraintConfig.hpp"
 import_types_from "wbc/core/ConstraintStatus.hpp"
 import_types_from "wbc/core/RobotModelConfig.hpp"
-import_types_from "ctrl_types/RigidBodyStateSE3.hpp"
 import_types_from "wbc/types/QuadraticProgram.hpp"
 import_types_from "base"
 
