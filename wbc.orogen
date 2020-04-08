@@ -137,3 +137,6 @@ task_context "CartesianStateToRbsTask" do
     port_driven
 end
 
+typekit do
+   export_types "wbc/ConstraintStatus"
+end
