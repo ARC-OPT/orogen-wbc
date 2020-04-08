@@ -11,7 +11,7 @@ RobotModelInterface::~RobotModelInterface(){
     pose_in_ports.clear();
 }
 
-void RobotModelInterface::configure(const RobotModelsState &initial_states){
+void RobotModelInterface::configure(const base::samples::RigidBodyStatesSE3 &initial_states){
 
     for(const std::string& n : initial_states.names)
         addInputPort(n);
@@ -34,12 +34,17 @@ void RobotModelInterface::configure(const RobotModelsState &initial_states){
     models_state = initial_states;
 }
 
-RobotModelsState RobotModelInterface::update(){
+base::samples::RigidBodyStatesSE3 RobotModelInterface::update(){
 
     base::samples::RigidBodyStateSE3 model_pose;
     for(const auto &it : pose_in_ports){
-        if(it.second->readNewest(model_pose) == RTT::NewData)
+        if(it.second->readNewest(model_pose) == RTT::NewData){
+            if(models_state.time.isNull())
+                models_state.time = model_pose.time;
+            else if(model_pose.time > models_state.time)
+                models_state.time = model_pose.time;
             models_state[it.first] = model_pose;
+        }
     }
     return models_state;
 }

@@ -2,8 +2,6 @@ name "wbc"
 
 using_library "wbc-scenes"
 using_library "wbc-robot_models"
-using_library "base-types"
-
 
 import_types_from "wbc/core/ConstraintConfig.hpp"
 import_types_from "wbc/core/ConstraintStatus.hpp"
@@ -79,7 +77,7 @@ task_context "WbcTask" do abstract
     output_port("hierarchical_qp", "wbc/HierarchicalQP").
         doc("Output quadratic program for the solver.")
 
-    output_port("robot_models_state", "wbc/RobotModelsState").
+    output_port("robot_models_state", "base/samples/RigidBodyStatesSE3").
         doc("Current robot model status vector")
 
     operation("activateConstraint").
@@ -137,10 +135,5 @@ task_context "CartesianStateToRbsTask" do
         doc("Vector of names of the input ports of type base/samples/CartesianState")
 
     port_driven
-end
-
-typekit do
-   export_types "wbc/ConstraintStatus"
-   export_types "wbc/RobotModelsState"
 end
 

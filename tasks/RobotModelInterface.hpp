@@ -3,7 +3,7 @@
 
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
-#include <base/samples/RigidBodyStateSE3.hpp>
+#include <base/samples/RigidBodyStatesSE3.hpp>
 #include <wbc/core/RobotModelConfig.hpp>
 
 namespace wbc{
@@ -16,9 +16,9 @@ public:
     RobotModelInterface(RTT::TaskContext* task);
     ~RobotModelInterface();
 
-    void configure(const RobotModelsState &initial_states);
-    RobotModelsState update();
-    RobotModelsState getModelsState(){return models_state;}
+    void configure(const base::samples::RigidBodyStatesSE3 &initial_states);
+    base::samples::RigidBodyStatesSE3 update();
+    base::samples::RigidBodyStatesSE3 getModelsState(){return models_state;}
 
 protected:
     typedef RTT::InputPort<base::samples::RigidBodyStateSE3> PoseInPort;
@@ -29,7 +29,7 @@ protected:
     typedef std::map< std::string, PoseOutPortPtr > PoseOutPortMap;
 
     PoseInPortMap pose_in_ports;
-    RobotModelsState models_state;
+    base::samples::RigidBodyStatesSE3 models_state;
     RTT::TaskContext* task_context;
 
     void addInputPort(const std::string interface_name);
