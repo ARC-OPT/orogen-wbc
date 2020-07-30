@@ -1,13 +1,16 @@
 name "wbc"
 
+using_library "base-types"
 using_library "wbc-scenes"
 using_library "wbc-robot_models"
+using_library "wbc-core"
 
+import_types_from "base"
 import_types_from "wbc/core/ConstraintConfig.hpp"
 import_types_from "wbc/core/ConstraintStatus.hpp"
 import_types_from "wbc/core/RobotModelConfig.hpp"
 import_types_from "wbc/types/QuadraticProgram.hpp"
-import_types_from "base"
+import_types_from "base/samples/RigidBodyStateSE3.hpp" # Workaround until we have RigidBodyStateSE3 in base/orogen/types
 
 #
 # Base WBC Task.
