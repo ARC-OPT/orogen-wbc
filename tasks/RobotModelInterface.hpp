@@ -3,7 +3,7 @@
 
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
-#include <base/samples/RigidBodyStatesSE3.hpp>
+#include <base/samples/RigidBodyState.hpp>
 #include <wbc/core/RobotModelConfig.hpp>
 
 namespace wbc{
@@ -21,10 +21,10 @@ public:
     base::NamedVector<base::samples::RigidBodyStateSE3> getModelsState(){return models_state;}
 
 protected:
-    typedef RTT::InputPort<base::samples::RigidBodyStateSE3> PoseInPort;
+    typedef RTT::InputPort<base::samples::RigidBodyState> PoseInPort;
     typedef std::shared_ptr<PoseInPort> PoseInPortPtr;
     typedef std::map< std::string, PoseInPortPtr > PoseInPortMap;
-    typedef RTT::OutputPort<base::samples::RigidBodyStateSE3> PoseOutPort;
+    typedef RTT::OutputPort<base::samples::RigidBodyState> PoseOutPort;
     typedef std::shared_ptr<PoseOutPort> PoseOutPortPtr;
     typedef std::map< std::string, PoseOutPortPtr > PoseOutPortMap;
 

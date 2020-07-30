@@ -1,5 +1,6 @@
 #include "RobotModelInterface.hpp"
 #include <wbc/core/RobotModelConfig.hpp>
+#include <wbc/types/Conversions.hpp>
 
 namespace wbc{
 
@@ -41,11 +42,12 @@ void RobotModelInterface::configure(const base::NamedVector<base::samples::Rigid
 
 base::NamedVector<base::samples::RigidBodyStateSE3> RobotModelInterface::update(){
 
-    base::samples::RigidBodyStateSE3 model_pose;
+    base::samples::RigidBodyState model_pose;
     for(const auto &it : pose_in_ports){
         if(it.second->readNewest(model_pose) == RTT::NewData)
-            models_state[it.first] = model_pose;
-        pose_out_ports[it.first]->write(models_state[it.first]);
+            fromRigidBodyState(model_pose,models_state[it.first]);
+        toRigidBodyState(models_state[it.first], model_pose);
+        pose_out_ports[it.first]->write(model_pose);
     }
     return models_state;
 }
