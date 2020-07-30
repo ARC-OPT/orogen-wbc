@@ -102,11 +102,13 @@ void WbcTask::updateHook(){
     wbc_scene->getHierarchicalQP(hierarchical_qp);
     hierarchical_qp.time = base::Time::now();
     hierarchical_qp.joint_names = robot_model->jointNames();
+    hierarchical_qp.actuated_joint_names = robot_model->actuatedJointNames();
     _hierarchical_qp.write(hierarchical_qp);
 
     // Write debug output
     if(_solver_output.readNewest(solver_output) == RTT::NewData){
-        constraints_status = wbc_scene->updateConstraintsStatus(solver_output, joint_state);
+        full_joint_state = robot_model->jointState(robot_model->jointNames());
+        constraints_status = wbc_scene->updateConstraintsStatus(solver_output, full_joint_state);
         for(const auto &c : constraint_interfaces)
             c.second->writeConstraintStatus(constraints_status[c.first]);
     }

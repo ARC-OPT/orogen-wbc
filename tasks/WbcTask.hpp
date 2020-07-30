@@ -50,7 +50,8 @@ protected:
     ConstraintInterfaceMap constraint_interfaces;      /** Contains I/O ports for each constraint*/
     RobotModelInterfacePtr robot_model_interface;      /** Contains I/O ports for the robot model(s)*/
     base::commands::Joints solver_output;              /** Solver output vector.*/
-    base::samples::Joints joint_state;                 /** Current joint state of the whole robot*/
+    base::samples::Joints joint_state;                 /** Current joint state of the whole robot (only actuated joints)*/
+    base::samples::Joints full_joint_state;             /** Current joint state of the whole robot (all joints)*/
     base::Time stamp;                                  /** Timestamp for cycle time computation*/
     std::vector<ConstraintConfig> wbc_config;          /** Current constraint configuration*/
     ConstraintsStatus constraints_status;              /** Status of constraints*/
