@@ -93,9 +93,9 @@ task_context "WbcTask" do abstract
     periodic 0.01
 end
 
-
 #
 # Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
+# The tasks are modeled as linear equality constraints Ax=y to a simplified QP with H=I and g=0
 #
 task_context "WbcVelocityTask", subclasses: "WbcTask" do
     needs_configuration
@@ -103,6 +103,26 @@ task_context "WbcVelocityTask", subclasses: "WbcTask" do
     periodic 0.01
 end
 
+#
+# Same as WBC Velocity Task, only that the tasks are modeled as part of the objective function with H=A^T*A and g=-(A^T*y)^T
+# Additionally, an adaptive damping strategy can be used to pass safely through kinematic singularties
+#
+task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
+    needs_configuration
+
+    property("min_eval_damping_threshold", "double", 0.001).
+        doc("Threshold value that controls the damping. If thresh=0, no damping will be applied. If thresh > 0, e.g. 0.001, the reference velocities in task space
+             will be reduced by multiplying them with a scalar damping factor d. The damping factor is determined from the smallest Eigenvalue s_min of the constraint matrix
+             A as follows:
+             d = 1, if s_min > min_eval_damping_threshold
+             d = s_min * (1-min_eval_damping_threshold)/(min_eval_damping_threshold) + 1e-6, else
+             As a result, the task space velocities will be downscaled linearly from 1 to near 0 if the robot is close to a singular configuration.")
+
+    output_port("current_damping_factor", "double").
+        doc("The current value of the damping factor")
+
+    periodic 0.01
+end
 
 #
 # Acceleration based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
