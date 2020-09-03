@@ -1,6 +1,7 @@
 #include "RobotModelInterface.hpp"
 #include <wbc/core/RobotModelConfig.hpp>
 #include <wbc/types/Conversions.hpp>
+#include <urdf_parser/urdf_parser.h>
 
 namespace wbc{
 
@@ -10,14 +11,13 @@ RobotModelInterface::RobotModelInterface(RTT::TaskContext* task){
 
 RobotModelInterface::~RobotModelInterface(){
     pose_in_ports.clear();
-    pose_out_ports.clear();
 }
 
-void RobotModelInterface::configure(const base::NamedVector<base::samples::RigidBodyStateSE3> &initial_states){
+void RobotModelInterface::configure(const std::vector<RobotModelConfig>& model_config){
 
-    for(const std::string& n : initial_states.names){
-        addInputPort(n);
-        addOutputPort(n);
+    for(const RobotModelConfig& cfg : model_config){
+        std::string name = getRootLink(cfg.file);
+        addInputPort(name);
     }
 
     // Remove ports which are not required anymore. This is required
@@ -25,31 +25,32 @@ void RobotModelInterface::configure(const base::NamedVector<base::samples::Rigid
     for(auto it = pose_in_ports.begin(); it != pose_in_ports.end();){
 
         bool is_port_required = false;
-        for(const std::string &n : initial_states.names){
-            if(it->first == (n))
+        for(const RobotModelConfig& cfg : model_config){
+            std::string name = getRootLink(cfg.file);
+            if(it->first == (name))
                 is_port_required = true;
         }
         if(is_port_required)
              it++;
         else{
             removeInputPort(it->first);
-            removeOutputPort(it->first);
         }
     }
-
-    models_state = initial_states;
 }
 
 base::NamedVector<base::samples::RigidBodyStateSE3> RobotModelInterface::update(){
 
-    base::samples::RigidBodyState model_pose;
+    base::samples::RigidBodyState rbs;
+    base::samples::RigidBodyStateSE3 rbs_se3;
+    base::NamedVector<base::samples::RigidBodyStateSE3> state;
     for(const auto &it : pose_in_ports){
-        if(it.second->readNewest(model_pose) == RTT::NewData)
-            fromRigidBodyState(model_pose,models_state[it.first]);
-        toRigidBodyState(models_state[it.first], model_pose);
-        pose_out_ports[it.first]->write(model_pose);
+        if(it.second->readNewest(rbs) == RTT::NewData){
+            fromRigidBodyState(rbs, rbs_se3);
+            state.elements.push_back(rbs_se3);
+            state.names.push_back(it.first);
+        }
     }
-    return models_state;
+    return state;
 }
 
 void RobotModelInterface::addInputPort(const std::string name){
@@ -61,14 +62,6 @@ void RobotModelInterface::addInputPort(const std::string name){
     }
 }
 
-void RobotModelInterface::addOutputPort(const std::string name){
-
-    if(pose_out_ports.count(name) == 0){ // Don't recreate ports
-        PoseOutPortPtr port = std::make_shared<PoseOutPort>();
-        pose_out_ports[name] = port;
-        task_context->ports()->addPort("current_" + name + "_pose", *port);
-    }
-}
 
 void RobotModelInterface::removeInputPort(const std::string name){
     if(pose_in_ports.count(name) > 0){
@@ -77,10 +70,11 @@ void RobotModelInterface::removeInputPort(const std::string name){
     }
 }
 
-void RobotModelInterface::removeOutputPort(const std::string name){
-    if(pose_out_ports.count(name) > 0){
-        task_context->ports()->removePort("current_" + name + "_pose");
-        pose_out_ports.erase(name);
-    }
+std::string RobotModelInterface::getRootLink(const std::string& urdf_file){
+    urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDFFile(urdf_file);
+    if (!urdf_model)
+        throw std::invalid_argument("Cannot load URDF from file " + urdf_file);
+
+    return urdf_model->getRoot()->name;
 }
 }

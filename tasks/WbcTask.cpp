@@ -26,7 +26,7 @@ bool WbcTask::configureHook(){
 
     wbc_config = _wbc_config.get();
 
-    if(!robot_model->configure(_robot_models.get(), _joint_names.get(), _base_frame.get()))
+    if(!robot_model->configure(_robot_models.get(), _floating_base.get()))
             return false;
 
     LOG_DEBUG("... Configured Robot Model");
@@ -53,7 +53,7 @@ bool WbcTask::configureHook(){
 
     // Configure robot model interface
     robot_model_interface = std::make_shared<RobotModelInterface>(this);
-    robot_model_interface->configure(robot_model->robotModelsState());
+    robot_model_interface->configure(_robot_models.get());
 
     LOG_DEBUG("... Created ports");
 
@@ -98,11 +98,7 @@ void WbcTask::updateHook(){
 
     // Update Quadratic program
     wbc_scene->update();
-
-    wbc_scene->getHierarchicalQP(hierarchical_qp);
-    hierarchical_qp.time = base::Time::now();
-    hierarchical_qp.joint_names = robot_model->jointNames();
-    hierarchical_qp.actuated_joint_names = robot_model->actuatedJointNames();
+    wbc_scene->getHierarchicalQP(hierarchical_qp);    
     _hierarchical_qp.write(hierarchical_qp);
 
     // Write debug output
@@ -112,6 +108,7 @@ void WbcTask::updateHook(){
         for(const auto &c : constraint_interfaces)
             c.second->writeConstraintStatus(constraints_status[c.first]);
     }
+    _full_joint_state.write(robot_model->jointState(robot_model->jointNames()));
     _computation_time.write((base::Time::now() - cur).toSeconds());
 }
 

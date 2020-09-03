@@ -32,14 +32,13 @@ task_context "WbcTask" do abstract
 
     runtime_states "NO_JOINT_STATE"
 
-    property("joint_names", "std/vector<std/string>").
-       doc("Optionally set the order of joints here. If empty, order will be as in the robot model.")
-
-    property("base_frame", "std/string")
-       doc("Name of the robot base frame; all computations will be performed with respect to this frame. If empty, base frame will be the base frame of the first given robot model.")
-
     property("robot_models", "std/vector<wbc/RobotModelConfig>").
-        doc("Add multiple robot and/or object models.")
+        doc("Add multiple robot and/or object models. The root of the first robot model will be used as base frame. The other models will be added in
+             the given order by attaching the root of the model to the specified hook frame of the overall model. Each model will be attached with a
+             6 DoF linkage between the specified hook and the root link of the attached model. This 6 DoF linkage is modelled as 6 virtual, unactuated joints
+             (3 translational, 3 rotational) with naming scheme (and order):
+             <root>_trans_x, <root>_trans_y, <root>_trans_z
+             <root>_rot_x, <root>_rot_y, <root>_rot_z")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
@@ -55,6 +54,10 @@ task_context "WbcTask" do abstract
                  [in] Activation function (double):                      activation_<task_name>
                  [out] Current joint state output (base/samples/Joints): status_<task_name>
                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>")
+
+    property("floating_base", "bool", false).
+         doc("Add a floating base to the model. If true, a global 'world' frame will be added to the model as base frame and a 6 DoF linkage will be used to
+              attach the first given robot model to it (same as when adding multiple models).")
 
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
@@ -79,6 +82,9 @@ task_context "WbcTask" do abstract
 
     output_port("hierarchical_qp", "wbc/HierarchicalQP").
         doc("Output quadratic program for the solver.")
+
+    output_port("full_joint_state", "base/samples/Joints").
+        doc("Complete joint state including virtual joints as used by the solver.")
 
     operation("activateConstraint").
        argument("constraint_name", "std/string").
