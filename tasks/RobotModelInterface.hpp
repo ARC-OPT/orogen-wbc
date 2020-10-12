@@ -3,8 +3,9 @@
 
 #include <rtt/InputPort.hpp>
 #include <rtt/TaskContext.hpp>
-#include <base/samples/RigidBodyState.hpp>
 #include <wbc/core/RobotModelConfig.hpp>
+#include <base/NamedVector.hpp>
+#include <base/samples/RigidBodyStateSE3.hpp>
 
 namespace wbc{
 
@@ -20,16 +21,16 @@ public:
     base::NamedVector<base::samples::RigidBodyStateSE3> update();
 
 protected:
-    typedef RTT::InputPort<base::samples::RigidBodyState> PoseInPort;
-    typedef std::shared_ptr<PoseInPort> PoseInPortPtr;
-    typedef std::map< std::string, PoseInPortPtr > PoseInPortMap;
+    typedef RTT::InputPort<base::samples::RigidBodyStateSE3> StateInPort;
+    typedef std::shared_ptr<StateInPort> StateInPortPtr;
+    typedef std::map< std::string, StateInPortPtr > StateInPortMap;
 
-    PoseInPortMap pose_in_ports;
+    StateInPortMap pose_in_ports;
     RTT::TaskContext* task_context;
 
     void addInputPort(const std::string interface_name);
     void removeInputPort(const std::string port_name);
-    std::string getRootLink(const std::string& urdf_file);
+    std::string getRobotName(const std::string& urdf_file);
 };
 
 }

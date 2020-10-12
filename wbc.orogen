@@ -55,10 +55,6 @@ task_context "WbcTask" do abstract
                  [out] Current joint state output (base/samples/Joints): status_<task_name>
                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>")
 
-    property("floating_base", "bool", false).
-         doc("Add a floating base to the model. If true, a global 'world' frame will be added to the model as base frame and a 6 DoF linkage will be used to
-              attach the first given robot model to it (same as when adding multiple models).")
-
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"

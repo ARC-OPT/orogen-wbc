@@ -25,8 +25,7 @@ bool WbcTask::configureHook(){
         return false;
 
     wbc_config = _wbc_config.get();
-
-    if(!robot_model->configure(_robot_models.get(), _floating_base.get()))
+    if(!robot_model->configure(_robot_models.get()))
             return false;
 
     LOG_DEBUG("... Configured Robot Model");
