@@ -33,12 +33,10 @@ task_context "WbcTask" do abstract
     runtime_states "NO_JOINT_STATE"
 
     property("robot_models", "std/vector<wbc/RobotModelConfig>").
-        doc("Add multiple robot and/or object models. The root of the first robot model will be used as base frame. The other models will be added in
-             the given order by attaching the root of the model to the specified hook frame of the overall model. Each model will be attached with a
-             6 DoF linkage between the specified hook and the root link of the attached model. This 6 DoF linkage is modelled as 6 virtual, unactuated joints
-             (3 translational, 3 rotational) with naming scheme (and order):
-             <root>_trans_x, <root>_trans_y, <root>_trans_z
-             <root>_rot_x, <root>_rot_y, <root>_rot_z")
+        doc("Add robot models here. Depending on the type of robot model used, different model configs are required: 
+             RobotModelKDL: One single robot model of type :URDF
+             RobotModelHyrodyn: One single robot model of type :URDF AND one submechanism file of type :SUBMECHANISM
+             Adding multiple URDF files is currently not supported. See wbc/core/RobotModelConfig.hpp for details.")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
@@ -58,11 +56,13 @@ task_context "WbcTask" do abstract
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
-    dynamic_input_port /.*/, "/base/samples/RigidBodyState"
+    dynamic_input_port /.*/, "/base/samples/RigidBodyStateSE3"
     dynamic_input_port /.*/, "/base/VectorXd"
     dynamic_input_port /.*/, "/double"
-    dynamic_output_port /.*/, "/base/samples/RigidBodyStateSE3"
     dynamic_output_port /.*/, "/base/samples/Joints"
+
+    input_port("floating_base_state", "base/samples/RigidBodyStateSE3").
+       doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
 
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")

@@ -4,7 +4,6 @@
 #include <wbc/core/WbcScene.hpp>
 #include <wbc/core/RobotModel.hpp>
 #include "ConstraintInterface.hpp"
-#include "RobotModelInterface.hpp"
 #include <base-logging/Logging.hpp>
 
 using namespace wbc;
@@ -50,9 +49,7 @@ bool WbcTask::configureHook(){
             constraint_interfaces.erase(it.first);
     }
 
-    // Configure robot model interface
-    robot_model_interface = std::make_shared<RobotModelInterface>(this);
-    robot_model_interface->configure(_robot_models.get());
+    floating_base_state = robot_model->floatingBaseState();
 
     LOG_DEBUG("... Created ports");
 
@@ -88,8 +85,11 @@ void WbcTask::updateHook(){
     }
     if(state() != RUNNING)
         state(RUNNING);
+
+    _floating_base_state.readNewest(floating_base_state);
+
     // Update Robot Model
-    robot_model->update(joint_state, robot_model_interface->update());
+    robot_model->update(joint_state, floating_base_state);
 
     // Update constraints
     for(const auto& it : constraint_interfaces)

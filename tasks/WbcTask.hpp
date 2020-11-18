@@ -12,14 +12,12 @@ namespace wbc {
 class WbcScene;
 class RobotModel;
 class ConstraintInterface;
-class RobotModelInterface;
 class HierarchicalQP;
 
 typedef std::shared_ptr<WbcScene> WbcScenePtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
 typedef std::shared_ptr<ConstraintInterface> ConstraintInterfacePtr;
 typedef std::map<std::string, ConstraintInterfacePtr> ConstraintInterfaceMap;
-typedef std::shared_ptr<RobotModelInterface> RobotModelInterfacePtr;
 
 /**
  *
@@ -48,13 +46,13 @@ protected:
 
     HierarchicalQP hierarchical_qp;
     ConstraintInterfaceMap constraint_interfaces;         /** Contains I/O ports for each constraint*/
-    RobotModelInterfacePtr robot_model_interface;         /** Contains I/O ports for the robot model(s)*/
     base::commands::Joints solver_output;                 /** Solver output vector.*/
     base::samples::Joints joint_state;                    /** Current joint state of the whole robot (only actuated joints)*/
     base::samples::Joints full_joint_state;               /** Current joint state of the whole robot (all joints)*/
     base::Time stamp;                                     /** Timestamp for cycle time computation*/
     std::vector<ConstraintConfig> wbc_config;             /** Current constraint configuration*/
     ConstraintsStatus constraints_status;                 /** Status of constraints*/
+    base::samples::RigidBodyStateSE3 floating_base_state; /** Current status of the floating base*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

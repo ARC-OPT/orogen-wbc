@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcVelocityQuadraticCostTask.hpp"
-#include <wbc/robot_models/KinematicRobotModelKDL.hpp>
+#include <wbc/robot_models/RobotModelKDL.hpp>
 #include <wbc/scenes/WbcVelocitySceneQuadraticCost.hpp>
 #include <memory>
 
@@ -10,7 +10,7 @@ using namespace std;
 
 WbcVelocityQuadraticCostTask::WbcVelocityQuadraticCostTask(std::string const& name)
     : WbcVelocityQuadraticCostTaskBase(name){
-    robot_model = std::make_shared<KinematicRobotModelKDL>();
+    robot_model = std::make_shared<RobotModelKDL>();
     wbc_scene = std::make_shared<WbcVelocitySceneQuadraticCost>(robot_model);
 }
 
