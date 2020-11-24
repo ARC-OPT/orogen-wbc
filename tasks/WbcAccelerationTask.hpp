@@ -4,6 +4,7 @@
 #define WBC_WBCACCELERATIONTASK_TASK_HPP
 
 #include "wbc/WbcAccelerationTaskBase.hpp"
+#include <base/samples/Wrenches.hpp>
 
 namespace wbc{
 

@@ -5,17 +5,20 @@
 
 #include "wbc/WbcTaskBase.hpp"
 #include <base/commands/Joints.hpp>
+#include <base/samples/RigidBodyState.hpp>
 #include <wbc/core/ConstraintStatus.hpp>
 
 namespace wbc {
 
 class WbcScene;
 class RobotModel;
+class QPSolver;
 class ConstraintInterface;
 class HierarchicalQP;
 
 typedef std::shared_ptr<WbcScene> WbcScenePtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
+typedef std::shared_ptr<QPSolver> QPSolverPtr;
 typedef std::shared_ptr<ConstraintInterface> ConstraintInterfacePtr;
 typedef std::map<std::string, ConstraintInterfacePtr> ConstraintInterfaceMap;
 
@@ -43,16 +46,19 @@ protected:
 
     WbcScenePtr wbc_scene;
     RobotModelPtr robot_model;
+    QPSolverPtr solver;
 
     HierarchicalQP hierarchical_qp;
     ConstraintInterfaceMap constraint_interfaces;         /** Contains I/O ports for each constraint*/
-    base::commands::Joints solver_output;                 /** Solver output vector.*/
+    base::commands::Joints solver_output_joints;          /** Solver output vector.*/
     base::samples::Joints joint_state;                    /** Current joint state of the whole robot (only actuated joints)*/
     base::samples::Joints full_joint_state;               /** Current joint state of the whole robot (all joints)*/
     base::Time stamp;                                     /** Timestamp for cycle time computation*/
-    std::vector<ConstraintConfig> wbc_config;             /** Current constraint configuration*/
     ConstraintsStatus constraints_status;                 /** Status of constraints*/
     base::samples::RigidBodyStateSE3 floating_base_state; /** Current status of the floating base*/
+    base::samples::RigidBodyState floating_base_state_rbs;/** Deprecated floating base state*/
+    base::VectorXd joint_weights;                         /** Current joint weights*/
+    std::vector<ConstraintConfig> wbc_config;             /** WBC constraint configuration*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

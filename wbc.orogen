@@ -4,6 +4,8 @@ using_library "base-types"
 using_library "wbc-scenes"
 using_library "wbc-robot_models"
 using_library "wbc-core"
+using_library "wbc-solvers-hls"
+using_library "wbc-solvers-qpoases"
 
 import_types_from "base"
 import_types_from "wbc/core/ConstraintConfig.hpp"
@@ -11,6 +13,8 @@ import_types_from "wbc/core/ConstraintStatus.hpp"
 import_types_from "wbc/core/RobotModelConfig.hpp"
 import_types_from "wbc/types/QuadraticProgram.hpp"
 import_types_from "base/samples/RigidBodyStateSE3.hpp" # Workaround until we have RigidBodyStateSE3 in base/orogen/types
+import_types_from "qpOASES/MessageHandling.hpp"
+import_types_from "qpOASES/Options.hpp"
 
 #
 # Base WBC Task.
@@ -32,11 +36,8 @@ task_context "WbcTask" do abstract
 
     runtime_states "NO_JOINT_STATE"
 
-    property("robot_models", "std/vector<wbc/RobotModelConfig>").
-        doc("Add robot models here. Depending on the type of robot model used, different model configs are required: 
-             RobotModelKDL: One single robot model of type :URDF
-             RobotModelHyrodyn: One single robot model of type :URDF AND one submechanism file of type :SUBMECHANISM
-             Adding multiple URDF files is currently not supported. See wbc/core/RobotModelConfig.hpp for details.")
+    property("robot_model", "wbc/RobotModelConfig").
+        doc("Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.")
 
     property("wbc_config", "std/vector<wbc/ConstraintConfig>").
         doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
@@ -53,6 +54,9 @@ task_context "WbcTask" do abstract
                  [out] Current joint state output (base/samples/Joints): status_<task_name>
                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>")
 
+    property("initial_joint_weights", "base/VectorXd").
+        doc("The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1). A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.")
+
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
@@ -61,14 +65,23 @@ task_context "WbcTask" do abstract
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/Joints"
 
+    input_port("joint_weights", "base/VectorXd").
+       doc("Update joint weight values. Size has to be same number of joints.")
+
     input_port("floating_base_state", "base/samples/RigidBodyStateSE3").
-       doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
+       doc("Pose, Twist and spatial acceleration of the 6 dof floating base.")
+
+    input_port("floating_base_state_deprecated", "base/samples/RigidBodyState").
+       doc("Deprecated: In future the port floating_base_state should be used")
 
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
 
-    input_port("solver_output", "base/commands/Joints").
-       doc("Computed solver output. Is used to compute the status of the constraint for debug purposes")
+    output_port("solver_output", "base/commands/Joints").
+       doc("Computed solver output")
+
+    output_port("current_joint_weights", "base/VectorXd").
+        doc("Debug: Current joint weight vector")
 
     output_port("computation_time", "double").
        doc("Debug: Computation time for one cycle in seconds")
@@ -76,11 +89,11 @@ task_context "WbcTask" do abstract
     output_port("actual_cycle_time", "double").
        doc("Debug: Actual cycle time between two consecutive calls of updateHook() in seconds")
 
-    output_port("hierarchical_qp", "wbc/HierarchicalQP").
-        doc("Output quadratic program for the solver.")
+    output_port("current_qp", "wbc/HierarchicalQP").
+        doc("Debug: Output quadratic prosolver_outputgram for the solver.")
 
     output_port("full_joint_state", "base/samples/Joints").
-        doc("Complete joint state including virtual joints as used by the solver.")
+        doc("Debug: Complete joint state including virtual joints as used by the solver.")
 
     operation("activateConstraint").
        argument("constraint_name", "std/string").
@@ -102,26 +115,11 @@ end
 task_context "WbcVelocityTask", subclasses: "WbcTask" do
     needs_configuration
 
-    periodic 0.01
-end
+    property("norm_max", "double", 10.0).
+       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution. A lower value will prevent unbounded control velocities near singular configurations.")
 
-#
-# Same as WBC Velocity Task, only that the tasks are modeled as part of the objective function with H=A^T*A and g=-(A^T*y)^T
-# Additionally, an adaptive damping strategy can be used to pass safely through kinematic singularties
-#
-task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
-    needs_configuration
-
-    property("min_eval_damping_threshold", "double", 0.001).
-        doc("Threshold value that controls the damping. If thresh=0, no damping will be applied. If thresh > 0, e.g. 0.001, the reference velocities in task space
-             will be reduced by multiplying them with a scalar damping factor d. The damping factor is determined from the smallest Eigenvalue s_min of the constraint matrix
-             A as follows:
-             d = 1, if s_min > min_eval_damping_threshold
-             d = s_min * (1-min_eval_damping_threshold)/(min_eval_damping_threshold) + 1e-6, else
-             As a result, the task space velocities will be downscaled linearly from 1 to near 0 if the robot is close to a singular configuration.")
-
-    output_port("current_damping_factor", "double").
-        doc("The current value of the damping factor")
+    property("epsilon", "double", 1e-9).
+       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
 
     periodic 0.01
 end
@@ -131,6 +129,22 @@ end
 #
 task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     needs_configuration
+
+    property("solver_options", "qpOASES/Options").
+       doc("User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
+            as that can have a large influence on success of solving the optimization problem")
+
+    property("n_wsr", "int", 10).
+       doc("Maximum number of working set recalculations performed by the solver")
+
+    output_port("solver_return_value", "qpOASES/returnValue").
+       doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
+
+    output_port("obj_func_value", "double").
+       doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
+
+    output_port("contact_wrenches", "base/samples/Wrenches").
+       doc("Estimated contact wrenches")
 
     periodic 0.01
 end
