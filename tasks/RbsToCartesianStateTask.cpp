@@ -58,10 +58,10 @@ void RbsToCartesianStateTask::cleanupHook(){
     RbsToCartesianStateTaskBase::cleanupHook();
 
     for(auto in : input_port_map)
-        this->ports()->removePort(in.first);
+        this->ports()->removePort(in.second->getName());
 
     for(auto out : output_port_map)
-        this->ports()->removePort(out.first);
+        this->ports()->removePort(out.second->getName());
 
     input_port_map.clear();
     output_port_map.clear();
