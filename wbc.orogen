@@ -57,6 +57,9 @@ task_context "WbcTask" do abstract
     property("initial_joint_weights", "base/VectorXd").
         doc("The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1). A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.")
 
+    property("compute_constraint_status", "bool", true).
+        doc("For debugging purpose: Compute the current status for each constraint, which contains (a) the solver output projected to task space (desired task space motion) and
+             (b) the actual task space motion")
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"

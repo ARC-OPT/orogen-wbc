@@ -56,6 +56,7 @@ bool WbcTask::configureHook(){
 
     LOG_DEBUG("... Created ports");
 
+    compute_constraint_status = _compute_constraint_status.get();
     return true;
 }
 
@@ -122,9 +123,11 @@ void WbcTask::updateHook(){
     _computation_time.write((base::Time::now() - cur).toSeconds());
     _current_qp.write(hierarchical_qp);
     full_joint_state = robot_model->jointState(robot_model->jointNames());
-    constraints_status = wbc_scene->updateConstraintsStatus(solver_output_joints, full_joint_state);
-    for(const auto &c : constraint_interfaces)
-        c.second->writeConstraintStatus(constraints_status[c.first]);
+    if(compute_constraint_status){
+        constraints_status = wbc_scene->updateConstraintsStatus();
+        for(const auto &c : constraint_interfaces)
+            c.second->writeConstraintStatus(constraints_status[c.first]);
+    }
 }
 
 void WbcTask::errorHook(){

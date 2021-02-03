@@ -59,6 +59,7 @@ protected:
     base::samples::RigidBodyState floating_base_state_rbs;/** Deprecated floating base state*/
     base::VectorXd joint_weights;                         /** Current joint weights*/
     std::vector<ConstraintConfig> wbc_config;             /** WBC constraint configuration*/
+    bool compute_constraint_status;                       /** For debugging purpose*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");
