@@ -7,6 +7,7 @@
 #include <base/commands/Joints.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <wbc/core/ConstraintStatus.hpp>
+#include <wbc/tools/JointIntegrator.hpp>
 
 namespace wbc {
 
@@ -47,6 +48,7 @@ protected:
     WbcScenePtr wbc_scene;
     RobotModelPtr robot_model;
     QPSolverPtr solver;
+    JointIntegrator integrator;
 
     HierarchicalQP hierarchical_qp;
     ConstraintInterfaceMap constraint_interfaces;         /** Contains I/O ports for each constraint*/
@@ -60,6 +62,7 @@ protected:
     base::VectorXd joint_weights;                         /** Current joint weights*/
     std::vector<ConstraintConfig> wbc_config;             /** WBC constraint configuration*/
     bool compute_constraint_status;                       /** For debugging purpose*/
+    bool integrate;                                       /** Perform numerical integration for the solver output*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

@@ -57,6 +57,8 @@ bool WbcTask::configureHook(){
     LOG_DEBUG("... Created ports");
 
     compute_constraint_status = _compute_constraint_status.get();
+    integrate = _integrate.get();
+
     return true;
 }
 
@@ -116,6 +118,8 @@ void WbcTask::updateHook(){
     hierarchical_qp.Wq = joint_weights;
     _current_joint_weights.write(hierarchical_qp.Wq);
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
+    if(integrate)
+        integrator.integrate(joint_state, solver_output_joints, this->getPeriod());
     _solver_output.write(solver_output_joints);
 
     // Write debug output

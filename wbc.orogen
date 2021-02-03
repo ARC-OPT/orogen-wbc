@@ -60,6 +60,10 @@ task_context "WbcTask" do abstract
     property("compute_constraint_status", "bool", true).
         doc("For debugging purpose: Compute the current status for each constraint, which contains (a) the solver output projected to task space (desired task space motion) and
              (b) the actual task space motion")
+
+    property("integrate", "bool", true).
+        doc("Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration")
+
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
