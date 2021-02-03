@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcAccelerationTask.hpp"
-#include <wbc/robot_models/RobotModelKDL.hpp>
+#include <wbc/robot_models/RobotModelHyrodyn.hpp>
 #include <wbc/scenes/AccelerationSceneTSID.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 
@@ -9,14 +9,14 @@ using namespace wbc;
 
 WbcAccelerationTask::WbcAccelerationTask(std::string const& name)
     : WbcAccelerationTaskBase(name){
-    robot_model = std::make_shared<RobotModelKDL>();
+    robot_model = std::make_shared<RobotModelHyrodyn>();
     solver = std::make_shared<QPOASESSolver>();
     wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver);
 }
 
 WbcAccelerationTask::WbcAccelerationTask(std::string const& name, RTT::ExecutionEngine* engine)
     : WbcAccelerationTaskBase(name, engine){
-    robot_model = std::make_shared<RobotModelKDL>();
+    robot_model = std::make_shared<RobotModelHyrodyn>();
     solver = std::make_shared<QPOASESSolver>();
     wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver);
 }
