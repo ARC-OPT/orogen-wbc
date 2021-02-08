@@ -10,6 +10,16 @@
 
 namespace wbc {
 
+struct TimingStats{
+    double desired_period;
+    double actual_period;
+    double time_per_cycle;
+    double time_robot_model_update;
+    double time_constraint_update;
+    double time_scene_update;
+    double time_solve;
+};
+
 }
 
 #endif

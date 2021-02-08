@@ -70,16 +70,17 @@ bool WbcTask::startHook(){
     for(const auto &it : constraint_interfaces)
         it.second->reset();
     stamp.microseconds = 0;
+    timing_stats.desired_period = this->getPeriod();
 
     return true;
 }
 
 void WbcTask::updateHook(){
     // Compute cycle time
-    base::Time cur = base::Time::now();
+    base::Time start_time = base::Time::now();
     if(!stamp.isNull())
-        _actual_cycle_time.write((cur - stamp).toSeconds());
-    stamp = cur;
+        timing_stats.actual_period = (start_time - stamp).toSeconds();
+    stamp = start_time;
 
     WbcTaskBase::updateHook();
 
@@ -105,26 +106,33 @@ void WbcTask::updateHook(){
 
 
     // Update Robot Model
+    base::Time cur_time = base::Time::now();
     robot_model->update(joint_state, floating_base_state);
+    timing_stats.time_robot_model_update = (base::Time::now()-cur_time).toSeconds();
 
     // Update constraints
+    cur_time = base::Time::now();
     for(const auto& it : constraint_interfaces)
         it.second->update();
+    timing_stats.time_constraint_update = (base::Time::now()-cur_time).toSeconds();
 
     // Update Quadratic program
+    cur_time = base::Time::now();
     hierarchical_qp = wbc_scene->update();
+    timing_stats.time_scene_update = (base::Time::now()-cur_time).toSeconds();
 
     // Solve
+    cur_time = base::Time::now();
     hierarchical_qp.Wq = joint_weights;
     _current_joint_weights.write(hierarchical_qp.Wq);
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
     if(integrate)
         integrator.integrate(joint_state, solver_output_joints, this->getPeriod());
     _solver_output.write(solver_output_joints);
+    timing_stats.time_solve = (base::Time::now()-cur_time).toSeconds();
 
     // Write debug output
     _full_joint_state.write(robot_model->jointState(robot_model->jointNames()));
-    _computation_time.write((base::Time::now() - cur).toSeconds());
     _current_qp.write(hierarchical_qp);
     full_joint_state = robot_model->jointState(robot_model->jointNames());
     if(compute_constraint_status){
@@ -132,6 +140,9 @@ void WbcTask::updateHook(){
         for(const auto &c : constraint_interfaces)
             c.second->writeConstraintStatus(constraints_status[c.first]);
     }
+
+    timing_stats.time_per_cycle = (base::Time::now()-start_time).toSeconds();
+    _timing_stats.write(timing_stats);
 }
 
 void WbcTask::errorHook(){

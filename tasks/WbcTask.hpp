@@ -8,6 +8,7 @@
 #include <base/samples/RigidBodyState.hpp>
 #include <wbc/core/ConstraintStatus.hpp>
 #include <wbc/tools/JointIntegrator.hpp>
+#include <wbcTypes.hpp>
 
 namespace wbc {
 
@@ -63,6 +64,7 @@ protected:
     std::vector<ConstraintConfig> wbc_config;             /** WBC constraint configuration*/
     bool compute_constraint_status;                       /** For debugging purpose*/
     bool integrate;                                       /** Perform numerical integration for the solver output*/
+    TimingStats timing_stats;                             /** statistics on compuation time*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");
