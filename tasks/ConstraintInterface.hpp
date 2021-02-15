@@ -5,15 +5,16 @@
 #include <rtt/Port.hpp>
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyStateSE3.hpp>
+#include <wbc/core/ConstraintConfig.hpp>
 
 namespace wbc{
 
-class Constraint;
 class ConstraintStatus;
 class RobotModel;
+class WbcScene;
 
-typedef std::shared_ptr<Constraint> ConstraintPtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
+typedef std::shared_ptr<WbcScene> WbcScenePtr;
 
 typedef RTT::InputPort<base::samples::RigidBodyStateSE3> CartRefPort;
 typedef RTT::InputPort<base::samples::Joints> JntRefPort;
@@ -37,13 +38,15 @@ typedef std::shared_ptr<ConstraintStatusPort> ConstraintStatusPortPtr;
 class ConstraintInterface
 {
 public:
-    ConstraintInterface(ConstraintPtr constraint,
+    ConstraintInterface(ConstraintConfig _cfg,
+                        WbcScenePtr _scene,
                         RobotModelPtr _robot_model,
-                        RTT::TaskContext* task_context);
+                        RTT::TaskContext* _task_context);
     ~ConstraintInterface();
 
-    ConstraintPtr constraint;
+    ConstraintConfig cfg;
     RobotModelPtr robot_model;
+    WbcScenePtr scene;
 
     base::samples::RigidBodyStateSE3 constraint_cart_state;
     base::samples::Joints constraint_jnt_state;
@@ -65,7 +68,6 @@ public:
     RTT::TaskContext* task_context;
 
     void update();
-    void reset();
     void writeConstraintStatus(const ConstraintStatus& status);
 
 };

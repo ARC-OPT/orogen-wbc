@@ -60,7 +60,7 @@ protected:
     ConstraintsStatus constraints_status;                 /** Status of constraints*/
     base::samples::RigidBodyStateSE3 floating_base_state; /** Current status of the floating base*/
     base::samples::RigidBodyState floating_base_state_rbs;/** Deprecated floating base state*/
-    base::VectorXd joint_weights;                         /** Current joint weights*/
+    wbc::JointWeights joint_weights;                     /** Current joint weights*/
     std::vector<ConstraintConfig> wbc_config;             /** WBC constraint configuration*/
     bool compute_constraint_status;                       /** For debugging purpose*/
     bool integrate;                                       /** Perform numerical integration for the solver output*/

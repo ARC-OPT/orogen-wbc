@@ -55,7 +55,7 @@ task_context "WbcTask" do abstract
                  [out] Current joint state output (base/samples/Joints): status_<task_name>
                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>")
 
-    property("initial_joint_weights", "base/VectorXd").
+    property("initial_joint_weights", "wbc/JointWeights").
         doc("The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1). A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.")
 
     property("compute_constraint_status", "bool", true).
@@ -73,7 +73,7 @@ task_context "WbcTask" do abstract
     dynamic_input_port /.*/, "/double"
     dynamic_output_port /.*/, "/base/samples/Joints"
 
-    input_port("joint_weights", "base/VectorXd").
+    input_port("joint_weights", "wbc/JointWeights").
        doc("Update joint weight values. Size has to be same number of joints.")
 
     input_port("floating_base_state", "base/samples/RigidBodyStateSE3").
@@ -88,7 +88,10 @@ task_context "WbcTask" do abstract
     output_port("solver_output", "base/commands/Joints").
        doc("Computed solver output")
 
-    output_port("current_joint_weights", "base/VectorXd").
+    output_port("com", "base/samples/RigidBodyStateSE3").
+       doc("Current center of mass")
+
+    output_port("current_joint_weights", "wbc/JointWeights").
         doc("Debug: Current joint weight vector")
 
     output_port("timing_stats", "wbc/TimingStats").

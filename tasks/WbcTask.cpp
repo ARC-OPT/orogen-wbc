@@ -23,12 +23,12 @@ WbcTask::~WbcTask(){
 bool WbcTask::configureHook(){
     if (! WbcTaskBase::configureHook())
         return false;
-    wbc_config = _wbc_config.get();
     if(!robot_model->configure(_robot_model.get()))
             return false;
 
     LOG_DEBUG("... Configured Robot Model");
 
+    wbc_config = _wbc_config.get();
     if(!wbc_scene->configure(wbc_config))
         return false;
 
@@ -37,13 +37,12 @@ bool WbcTask::configureHook(){
     // Create constraint interfaces. Don't recreate existing interfaces.
     for(ConstraintConfig cfg : wbc_config){
         if(constraint_interfaces.count(cfg.name) == 0)
-            constraint_interfaces[cfg.name] = std::make_shared<ConstraintInterface>(wbc_scene->getConstraint(cfg.name), robot_model, this);
+            constraint_interfaces[cfg.name] = std::make_shared<ConstraintInterface>(cfg, wbc_scene, robot_model, this);
         else
-            constraint_interfaces[cfg.name]->constraint = wbc_scene->getConstraint(cfg.name);
+            constraint_interfaces[cfg.name]->cfg = cfg;
     }
 
     // Remove constraint interfaces that are not required anymore
-    ConstraintInterfaceMap::const_iterator it;
     for(const auto &it : constraint_interfaces){
         if(!wbc_scene->hasConstraint(it.first))
             constraint_interfaces.erase(it.first);
@@ -51,8 +50,6 @@ bool WbcTask::configureHook(){
 
     floating_base_state = robot_model->floatingBaseState();
     joint_weights = _initial_joint_weights.get();
-    if(joint_weights.size() == 0)
-        joint_weights.setOnes(robot_model->noOfActuatedJoints());
 
     LOG_DEBUG("... Created ports");
 
@@ -67,8 +64,8 @@ bool WbcTask::startHook(){
         return false;
 
     //Clear all task references, weights etc. to have to secure initial state
-    for(const auto &it : constraint_interfaces)
-        it.second->reset();
+    for(const auto &cfg : wbc_config)
+        wbc_scene->getConstraint(cfg.name)->reset();
     stamp.microseconds = 0;
     timing_stats.desired_period = this->getPeriod();
 
@@ -84,7 +81,6 @@ void WbcTask::updateHook(){
 
     WbcTaskBase::updateHook();
 
-    _joint_weights.readNewest(joint_weights);
     _joint_state.readNewest(joint_state);
     if(joint_state.empty()){
         if(state() != NO_JOINT_STATE)
@@ -104,16 +100,18 @@ void WbcTask::updateHook(){
         floating_base_state.frame_id = floating_base_state_rbs.targetFrame;
     }
 
-
     // Update Robot Model
     base::Time cur_time = base::Time::now();
     robot_model->update(joint_state, floating_base_state);
+    _com.write(robot_model->getCOM());
     timing_stats.time_robot_model_update = (base::Time::now()-cur_time).toSeconds();
 
-    // Update constraints
+    // Update Scene
+    _joint_weights.readNewest(joint_weights);
     cur_time = base::Time::now();
     for(const auto& it : constraint_interfaces)
         it.second->update();
+    wbc_scene->setJointWeights(joint_weights);
     timing_stats.time_constraint_update = (base::Time::now()-cur_time).toSeconds();
 
     // Update Quadratic program
@@ -123,8 +121,7 @@ void WbcTask::updateHook(){
 
     // Solve
     cur_time = base::Time::now();
-    hierarchical_qp.Wq = joint_weights;
-    _current_joint_weights.write(hierarchical_qp.Wq);
+    _current_joint_weights.write(wbc_scene->getActuatedJointWeights());
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
     if(integrate)
         integrator.integrate(joint_state, solver_output_joints, this->getPeriod());

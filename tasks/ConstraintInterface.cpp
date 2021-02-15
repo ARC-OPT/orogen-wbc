@@ -1,22 +1,24 @@
 #include "ConstraintInterface.hpp"
-#include <wbc/core/CartesianConstraint.hpp>
-#include <wbc/core/JointConstraint.hpp>
+#include <wbc/core/Scene.hpp>
 #include <wbc/core/RobotModel.hpp>
 #include <wbc/core/ConstraintStatus.hpp>
 
 namespace wbc{
 
-ConstraintInterface::ConstraintInterface(ConstraintPtr _constraint,
+ConstraintInterface::ConstraintInterface(ConstraintConfig _cfg,
+                                         WbcScenePtr _scene,
                                          RobotModelPtr _robot_model,
                                          RTT::TaskContext* _task_context){
 
-    constraint = _constraint;
     robot_model = _robot_model;
     task_context = _task_context;
+    scene = _scene;
 
-const ConstraintConfig &cfg = constraint->config;
+    cfg = _cfg;
+    activation = cfg.activation;
+    weights = base::VectorXd::Map(cfg.weights.data(), cfg.nVariables());
 
-    if(constraint->config.type == cart){
+    if(cfg.type == cart){
         cart_ref_port = std::make_shared<CartRefPort>("ref_" + cfg.name);
         task_context->ports()->addPort(cart_ref_port->getName(), *(cart_ref_port));
 
@@ -24,6 +26,7 @@ const ConstraintConfig &cfg = constraint->config;
         task_context->ports()->addPort(cart_state_out_port->getName(), *(cart_state_out_port));
 
         cart_ref.twist.setZero();
+        cart_ref.acceleration.setZero();
     }
     else{
         jnt_ref_port = std::make_shared<JntRefPort>("ref_" + cfg.name);
@@ -34,8 +37,10 @@ const ConstraintConfig &cfg = constraint->config;
 
         jnt_ref.resize(cfg.joint_names.size());
         jnt_ref.names = cfg.joint_names;
-        for(auto &e : jnt_ref.elements)
+        for(auto &e : jnt_ref.elements){
             e.speed = 0;
+            e.acceleration = 0;
+        }
         constraint_jnt_state.resize(cfg.joint_names.size());
         constraint_jnt_state.names = cfg.joint_names;
     }
@@ -69,24 +74,19 @@ ConstraintInterface::~ConstraintInterface(){
 void ConstraintInterface::update(){
 
     if(activation_port->readNewest(activation) == RTT::NewData)
-        constraint->setActivation(activation);
+        scene->setTaskActivation(cfg.name,activation);
     if(weight_port->readNewest(weights) == RTT::NewData)
-        constraint->setWeights(weights);
+        scene->setTaskWeights(cfg.name,weights);
 
     if(cart_ref_port){
-        if(cart_ref_port->readNewest(cart_ref) == RTT::NewData){
-            std::shared_ptr<CartesianConstraint> ptr = std::static_pointer_cast<CartesianConstraint>(constraint);
-            ptr->setReference(cart_ref);
-        }
+        if(cart_ref_port->readNewest(cart_ref) == RTT::NewData)
+            scene->setReference(cfg.name,cart_ref);
     }
     else{
-        if(jnt_ref_port->readNewest(jnt_ref) == RTT::NewData){
-            std::shared_ptr<JointConstraint> ptr = std::static_pointer_cast<JointConstraint>(constraint);
-            ptr->setReference(jnt_ref);
-        }
+        if(jnt_ref_port->readNewest(jnt_ref) == RTT::NewData)
+            scene->setReference(cfg.name,jnt_ref);
     }
 
-    const ConstraintConfig& cfg = constraint->config;
     if(cfg.type == cart)
         cart_state_out_port->write(robot_model->rigidBodyState(cfg.ref_frame, cfg.tip));
     else
@@ -97,7 +97,4 @@ void ConstraintInterface::writeConstraintStatus(const ConstraintStatus& status){
     constraint_status_port->write(status);
 }
 
-void ConstraintInterface::reset(){
-    constraint->reset();
-}
 }
