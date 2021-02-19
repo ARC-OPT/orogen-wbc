@@ -11,7 +11,7 @@ import_types_from "base"
 import_types_from "wbc/core/ConstraintConfig.hpp"
 import_types_from "wbc/core/ConstraintStatus.hpp"
 import_types_from "wbc/core/RobotModelConfig.hpp"
-import_types_from "wbc/types/QuadraticProgram.hpp"
+import_types_from "wbc/core/QuadraticProgram.hpp"
 import_types_from "base/samples/RigidBodyStateSE3.hpp" # Workaround until we have RigidBodyStateSE3 in base/orogen/types
 import_types_from "qpOASES/MessageHandling.hpp"
 import_types_from "qpOASES/Options.hpp"
