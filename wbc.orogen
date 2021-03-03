@@ -132,6 +132,24 @@ task_context "WbcVelocityTask", subclasses: "WbcTask" do
     periodic 0.01
 end
 
+
+#
+# Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
+# The tasks are embedded in the cost function here
+#
+task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
+    needs_configuration
+
+    property("solver_options", "qpOASES/Options").
+       doc("User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
+            as that can have a large influence on success of solving the optimization problem")
+
+    property("n_wsr", "int", 10).
+       doc("Maximum number of working set recalculations performed by the solver")
+
+    periodic 0.01
+end
+
 #
 # Acceleration based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
 #
