@@ -155,7 +155,7 @@ void WbcTask::cleanupHook(){
     joint_state.clear();
     solver_output_joints.clear();
     full_joint_state.clear();
-
+    integrator.reinit();
 }
 
 void WbcTask::activateConstraint(const std::string& constraint_name, double activation){
