@@ -165,7 +165,7 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
 
     output_port("solver_return_value", "qpOASES/returnValue").
        doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
-
+p
     output_port("obj_func_value", "double").
        doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
 
@@ -181,6 +181,9 @@ end
 task_context "RbsToCartesianStateTask" do
     needs_configuration
 
+    dynamic_input_port /.*/, "/base/samples/RigidBodyState"
+    dynamic_output_port /.*/, "/base/samples/RigidBodyStateSE3"
+
     property("input_ports", "std/vector<std/string>").
         doc("Vector of names of the input ports of type base/samples/RigidBodyState")
 
@@ -192,6 +195,9 @@ end
 #
 task_context "CartesianStateToRbsTask" do
     needs_configuration
+
+    dynamic_input_port /.*/, "/base/samples/RigidBodyStateSE3"
+    dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
     property("input_ports", "std/vector<std/string>").
         doc("Vector of names of the input ports of type base/samples/CartesianState")
