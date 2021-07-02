@@ -17,6 +17,8 @@ aup & amake gui/wbc_status_gui
 aup & amake gui/wbc_ctrl_gui
 ```
 
+# Usage
+
 Example for usage can be found here: https://git.hb.dfki.de/wbc/wbc_examples
 
 
