@@ -147,6 +147,9 @@ task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
     property("n_wsr", "int", 10).
        doc("Maximum number of working set recalculations performed by the solver")
 
+    property("hessian_regularizer", "double", 1e-8).
+       doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8")
+
     periodic 0.001
 end
 
@@ -163,9 +166,12 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     property("n_wsr", "int", 10).
        doc("Maximum number of working set recalculations performed by the solver")
 
+    property("hessian_regularizer", "double", 1e-8).
+       doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8")
+
     output_port("solver_return_value", "qpOASES/returnValue").
        doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
-p
+
     output_port("obj_func_value", "double").
        doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
 
