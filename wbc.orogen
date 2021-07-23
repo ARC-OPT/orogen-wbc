@@ -113,7 +113,7 @@ task_context "WbcTask" do abstract
 
     operation("deactivateAllConstraints")
 
-    periodic 0.01
+    periodic 0.001
 end
 
 #
@@ -129,7 +129,7 @@ task_context "WbcVelocityTask", subclasses: "WbcTask" do
     property("epsilon", "double", 1e-9).
        doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
 
-    periodic 0.01
+    periodic 0.001
 end
 
 
@@ -147,7 +147,10 @@ task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
     property("n_wsr", "int", 10).
        doc("Maximum number of working set recalculations performed by the solver")
 
-    periodic 0.01
+    property("hessian_regularizer", "double", 1e-8).
+       doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8")
+
+    periodic 0.001
 end
 
 #
@@ -163,6 +166,9 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     property("n_wsr", "int", 10).
        doc("Maximum number of working set recalculations performed by the solver")
 
+    property("hessian_regularizer", "double", 1e-8).
+       doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8")
+
     output_port("solver_return_value", "qpOASES/returnValue").
        doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
 
@@ -172,7 +178,7 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     output_port("contact_wrenches", "base/samples/Wrenches").
        doc("Estimated contact wrenches")
 
-    periodic 0.01
+    periodic 0.001
 end
 
 #
@@ -180,6 +186,9 @@ end
 #
 task_context "RbsToCartesianStateTask" do
     needs_configuration
+
+    dynamic_input_port /.*/, "/base/samples/RigidBodyState"
+    dynamic_output_port /.*/, "/base/samples/RigidBodyStateSE3"
 
     property("input_ports", "std/vector<std/string>").
         doc("Vector of names of the input ports of type base/samples/RigidBodyState")
@@ -192,6 +201,9 @@ end
 #
 task_context "CartesianStateToRbsTask" do
     needs_configuration
+
+    dynamic_input_port /.*/, "/base/samples/RigidBodyStateSE3"
+    dynamic_output_port /.*/, "/base/samples/RigidBodyState"
 
     property("input_ports", "std/vector<std/string>").
         doc("Vector of names of the input ports of type base/samples/CartesianState")

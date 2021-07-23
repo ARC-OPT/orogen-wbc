@@ -124,7 +124,7 @@ void WbcTask::updateHook(){
     _current_joint_weights.write(wbc_scene->getActuatedJointWeights());
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
     if(integrate)
-        integrator.integrate(joint_state, solver_output_joints, this->getPeriod());
+        integrator.integrate(robot_model->jointState(robot_model->jointNames()), solver_output_joints, this->getPeriod());
     _solver_output.write(solver_output_joints);
     timing_stats.time_solve = (base::Time::now()-cur_time).toSeconds();
 

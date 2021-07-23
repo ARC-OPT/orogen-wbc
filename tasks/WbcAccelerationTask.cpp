@@ -30,6 +30,7 @@ bool WbcAccelerationTask::configureHook(){
 
     std::dynamic_pointer_cast<QPOASESSolver>(solver)->setMaxNoWSR(_n_wsr.get());
     std::dynamic_pointer_cast<QPOASESSolver>(solver)->setOptions(_solver_options.get());
+    std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
 
     return true;
 }
