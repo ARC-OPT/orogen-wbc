@@ -24,7 +24,7 @@ bool WbcVelocityQuadraticCostTask::configureHook(){
     std::dynamic_pointer_cast<QPOASESSolver>(solver)->setMaxNoWSR(_n_wsr.get());
     std::dynamic_pointer_cast<QPOASESSolver>(solver)->setOptions(_solver_options.get());
     std::dynamic_pointer_cast<VelocitySceneQuadraticCost>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
-    std::dynamic_pointer_cast<VelocitySceneQuadraticCost>(wbc_scene)->computeID(_compute_id.get());
+    compute_id = _compute_id.get();
 
     return true;
 }

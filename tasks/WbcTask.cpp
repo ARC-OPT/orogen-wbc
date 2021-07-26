@@ -10,11 +10,13 @@
 using namespace wbc;
 
 WbcTask::WbcTask(std::string const& name)
-    : WbcTaskBase(name){
+    : WbcTaskBase(name),
+      compute_id(false){
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
-    : WbcTaskBase(name, engine){
+    : WbcTaskBase(name, engine),
+      compute_id(false){
 }
 
 WbcTask::~WbcTask(){
@@ -131,6 +133,8 @@ void WbcTask::updateHook(){
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
     if(integrate)
         integrator.integrate(robot_model->jointState(robot_model->jointNames()), solver_output_joints, this->getPeriod());
+    if(compute_id)
+        robot_model->computeInverseDynamics(solver_output_joints);
     _solver_output.write(solver_output_joints);
     timing_stats.time_solve = (base::Time::now()-cur_time).toSeconds();
 

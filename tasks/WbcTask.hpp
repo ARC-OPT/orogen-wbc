@@ -68,6 +68,7 @@ protected:
     TimingStats timing_stats;                             /** statistics on compuation time*/
     std::vector<std::string> contact_points;              /** Names of the active contact points*/
     base::samples::Wrenches contact_wrenches;             /** Measured contact wrenches*/
+    bool compute_id;                                      /** Compute inverse dynamics on top of the kinematic solution (only for the velocity-based solvers)*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");
