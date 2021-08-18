@@ -85,6 +85,13 @@ task_context "WbcTask" do abstract
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
 
+    input_port("contact_points", "std/vector<std/string>").
+       doc("Set active contact points. The given names have to a valid link in the robot model.
+            Depending on the implementation this will change the qp according to the current contact configuration")
+
+    input_port("contact_wrenches", "base/samples/Wrenches").
+       doc("Measured contact wrenches. The given names have to be consistent with the configured contact points")
+
     output_port("solver_output", "base/commands/Joints").
        doc("Computed solver output")
 
@@ -129,6 +136,9 @@ task_context "WbcVelocityTask", subclasses: "WbcTask" do
     property("epsilon", "double", 1e-9).
        doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
 
+    property("compute_id", "bool", false)
+       .doc("Optionally compute the inverse dynamics solution given the solver output")
+
     periodic 0.001
 end
 
@@ -149,6 +159,9 @@ task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
 
     property("hessian_regularizer", "double", 1e-8).
        doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8")
+
+    property("compute_id", "bool", false)
+       .doc("Optionally compute the inverse dynamics solution given the solver output")
 
     periodic 0.001
 end
@@ -175,7 +188,7 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     output_port("obj_func_value", "double").
        doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
 
-    output_port("contact_wrenches", "base/samples/Wrenches").
+    output_port("estimated_contact_wrenches", "base/samples/Wrenches").
        doc("Estimated contact wrenches")
 
     periodic 0.001

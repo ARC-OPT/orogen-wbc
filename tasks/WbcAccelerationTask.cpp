@@ -51,7 +51,7 @@ void WbcAccelerationTask::updateHook(){
         _solver_return_value.write(qpoases_solver->getReturnValue());
         double obj_func_value = qpoases_solver->getSQProblem().getObjVal();
         _obj_func_value.write(obj_func_value);
-        _contact_wrenches.write(wbc_acc_scene->getContactWrenches());
+        _estimated_contact_wrenches.write(wbc_acc_scene->getContactWrenches());
     }
 }
 

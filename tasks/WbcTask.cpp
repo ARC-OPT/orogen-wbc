@@ -10,11 +10,13 @@
 using namespace wbc;
 
 WbcTask::WbcTask(std::string const& name)
-    : WbcTaskBase(name){
+    : WbcTaskBase(name),
+      compute_id(false){
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
-    : WbcTaskBase(name, engine){
+    : WbcTaskBase(name, engine),
+      compute_id(false){
 }
 
 WbcTask::~WbcTask(){
@@ -100,6 +102,12 @@ void WbcTask::updateHook(){
         floating_base_state.frame_id = floating_base_state_rbs.targetFrame;
     }
 
+    if(_contact_points.readNewest(contact_points) == RTT::NewData)
+        robot_model->setContactPoints(contact_points);
+
+    if(_contact_wrenches.readNewest(contact_wrenches) == RTT::NewData)
+        robot_model->setContactWrenches(contact_wrenches);
+
     // Update Robot Model
     base::Time cur_time = base::Time::now();
     robot_model->update(joint_state, floating_base_state);
@@ -125,6 +133,8 @@ void WbcTask::updateHook(){
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
     if(integrate)
         integrator.integrate(robot_model->jointState(robot_model->jointNames()), solver_output_joints, this->getPeriod());
+    if(compute_id)
+        robot_model->computeInverseDynamics(solver_output_joints);
     _solver_output.write(solver_output_joints);
     timing_stats.time_solve = (base::Time::now()-cur_time).toSeconds();
 

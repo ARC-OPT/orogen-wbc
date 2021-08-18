@@ -29,6 +29,7 @@ bool WbcVelocityTask::configureHook(){
 
     std::dynamic_pointer_cast<HierarchicalLSSolver>(solver)->setMaxSolverOutputNorm(_norm_max.get());
     std::dynamic_pointer_cast<HierarchicalLSSolver>(solver)->setMinEigenvalue(_epsilon.get());
+    compute_id = _compute_id.get();
 
     return true;
 }
