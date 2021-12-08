@@ -26,4 +26,5 @@
   </classifiers>
 
   <depend package="control/wbc"/>
+  <depend package="control/hyrodyn"/>
 </package>

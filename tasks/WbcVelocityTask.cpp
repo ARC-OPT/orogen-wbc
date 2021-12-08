@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcVelocityTask.hpp"
-#include <wbc/robot_models/RobotModelKDL.hpp>
+#include <wbc/robot_models/kdl/RobotModelKDL.hpp>
 #include <wbc/scenes/VelocityScene.hpp>
 #include <wbc/solvers/hls/HierarchicalLSSolver.hpp>
 #include "ConstraintInterface.hpp"

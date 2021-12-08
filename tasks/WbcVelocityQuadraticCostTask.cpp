@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcVelocityQuadraticCostTask.hpp"
-#include <wbc/robot_models/RobotModelKDL.hpp>
+#include <wbc/robot_models/kdl/RobotModelKDL.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/scenes/VelocitySceneQuadraticCost.hpp>
 

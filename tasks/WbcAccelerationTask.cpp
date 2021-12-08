@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcAccelerationTask.hpp"
-#include <wbc/robot_models/RobotModelHyrodyn.hpp>
+#include <wbc/robot_models/hyrodyn/RobotModelHyrodyn.hpp>
 #include <wbc/scenes/AccelerationSceneTSID.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 
