@@ -18,7 +18,8 @@ aup & amake gui/wbc_gui
 
 # Usage
 
-Example for usage can be found here: https://git.hb.dfki.de/dfki-control/wbc/wbc/examples
+* Simple introductory examples can be found [here](https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/tree/master/examples/kuka_iiwa).
+* Extensive examples can be found in the [wbc_examples bundle](https://git.hb.dfki.de/dfki-control/wbc/bundle-wbc_examples).
 
 
 
