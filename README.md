@@ -18,7 +18,7 @@ aup & amake gui/wbc_gui
 
 # Usage
 
-Example for usage can be found here: https://git.hb.dfki.de/dfki-control/wbc/wbc_examples
+Example for usage can be found here: https://git.hb.dfki.de/dfki-control/wbc/wbc/examples
 
 
 
