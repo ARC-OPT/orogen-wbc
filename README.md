@@ -1,7 +1,7 @@
 This task library provides a Rock interface for the Whole-Body Control library. 
 
 # Installation
-A buildconf with installation instructions can be found here: https://git.hb.dfki.de/dfki-control/wbc/buildconf. 
+A buildconf for installation can be found here: https://git.hb.dfki.de/dfki-control/wbc/buildconf. 
 
 If want to use your own buildconf, just add the [wbc package set](https://git.hb.dfki.de/dfki-control/wbc/package_set) to your autoproj manifest file. Then do the following:
 
