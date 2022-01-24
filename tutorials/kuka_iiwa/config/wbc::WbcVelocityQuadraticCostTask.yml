@@ -1,0 +1,39 @@
+--- name:default
+# Add multiple robot and/or object models.
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/examples/kuka_iiwa/models/urdf/kuka_iiwa.urdf" %>
+
+# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
+integrate: True
+# Maximum number of working set recalculations performed by the solver
+n_wsr: 100
+# This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8
+hessian_regularizer: 1e-8
+# User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
+#             as that can have a large influence on success of solving the optimization problem
+solver_options:
+    printLevel: :PL_NONE
+
+--- name:cart_pos_ctrl_qpoases
+# Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
+#              Cartesian constraints:
+#                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
+#                  Weights (/base/VectorXd):                               weight_<constraint_name>
+#                  Activation function (double):                           activation_<constraint_name>
+#                  Constraint pose output (/base/samples/RigidBodyState):  state_<constraint_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+#              Joint Space constraints:
+#                  Reference Input (/base/samples/Joints):                 ref_<task_name>
+#                  Weights (/base/VectorXd):                               weight_<task_name>
+#                  Activation function (double):                           activation_<task_name>
+#                  Current joint state output (base/samples/Joints):       state_<task_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+wbc_config:
+    - name: "cart_pos_ctrl"
+      priority: 0
+      type: cart
+      root: "kuka_lbr_l_link_0"
+      tip:  "kuka_lbr_l_tcp"
+      ref_frame: "kuka_lbr_l_link_0"
+      activation: 1.0
+      weights: [1,1,1,1,1,1]

@@ -2,13 +2,11 @@
 # Add multiple robot and/or object models.
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/examples/kuka_iiwa/models/urdf/kuka_iiwa.urdf" %>
-    joint_names: ["kuka_lbr_l_joint_1","kuka_lbr_l_joint_2","kuka_lbr_l_joint_3","kuka_lbr_l_joint_4","kuka_lbr_l_joint_5","kuka_lbr_l_joint_6","kuka_lbr_l_joint_7"]
-    actuated_joint_names: ["kuka_lbr_l_joint_1","kuka_lbr_l_joint_2","kuka_lbr_l_joint_3","kuka_lbr_l_joint_4","kuka_lbr_l_joint_5","kuka_lbr_l_joint_6","kuka_lbr_l_joint_7"]
 
 # Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
 integrate: True
 
---- name:cart_control
+--- name:cart_pos_ctrl_hls
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
@@ -23,7 +21,7 @@ integrate: True
 #                  Current joint state output (base/samples/Joints):       state_<task_name>
 #                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
 wbc_config:
-    - name: "cart_position_ctrl"
+    - name: "cart_pos_ctrl"
       priority: 0
       type: cart
       root: "kuka_lbr_l_link_0"
@@ -32,7 +30,13 @@ wbc_config:
       activation: 1.0
       weights: [1,1,1,1,1,1]
 
---- name:cart_control_with_joint_limits
+--- name:cart_pos_ctrl_weights
+# The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1).
+# A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.
+initial_joint_weights:
+    names: ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_2", "kuka_lbr_l_joint_3", "kuka_lbr_l_joint_4", "kuka_lbr_l_joint_5", "kuka_lbr_l_joint_6", "kuka_lbr_l_joint_7"]
+    elements: [1,1,1,1,1,1,1]
+
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
@@ -47,7 +51,7 @@ wbc_config:
 #                  Current joint state output (base/samples/Joints):       state_<task_name>
 #                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
 wbc_config:
-    - name: "cart_position_ctrl_right"
+    - name: "cart_pos_ctrl"
       priority: 0
       type: cart
       root: "kuka_lbr_l_link_0"
@@ -56,43 +60,32 @@ wbc_config:
       activation: 1.0
       weights: [1,1,1,1,1,1]
 
-    - name: "joint_limit_avoidance"
-      priority: 1
+--- name:cart_pos_ctrl_hierarchies
+# Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
+#              Cartesian constraints:
+#                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
+#                  Weights (/base/VectorXd):                               weight_<constraint_name>
+#                  Activation function (double):                           activation_<constraint_name>
+#                  Constraint pose output (/base/samples/RigidBodyState):  state_<constraint_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+#              Joint Space constraints:
+#                  Reference Input (/base/samples/Joints):                 ref_<task_name>
+#                  Weights (/base/VectorXd):                               weight_<task_name>
+#                  Activation function (double):                           activation_<task_name>
+#                  Current joint state output (base/samples/Joints):       state_<task_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+wbc_config:
+    - name: "jnt_pos_ctrl"
+      priority: 0
       type: jnt
+      joint_names: ["kuka_lbr_l_joint_5"]
       activation: 1.0
-      joint_names: ["kuka_lbr_l_joint_1","kuka_lbr_l_joint_2","kuka_lbr_l_joint_3","kuka_lbr_l_joint_4","kuka_lbr_l_joint_5","kuka_lbr_l_joint_6","kuka_lbr_l_joint_7"]
-      weights: [1,1,1,1,1,1,1]
-
-
---- name:position_force_control
-# Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
-#              Cartesian constraints:
-#                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
-#                  Weights (/base/VectorXd):                               weight_<constraint_name>
-#                  Activation function (double):                           activation_<constraint_name>
-#                  Constraint pose output (/base/samples/RigidBodyState):  state_<constraint_name>
-#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
-#              Joint Space constraints:
-#                  Reference Input (/base/samples/Joints):                 ref_<task_name>
-#                  Weights (/base/VectorXd):                               weight_<task_name>
-#                  Activation function (double):                           activation_<task_name>
-#                  Current joint state output (base/samples/Joints):       state_<task_name>
-#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
-wbc_config:
-    - name: "cart_position_ctrl_right"
-      priority: 0
+      weights: [1]
+    - name: "cart_pos_ctrl"
+      priority: 1
       type: cart
       root: "kuka_lbr_l_link_0"
       tip:  "kuka_lbr_l_tcp"
       ref_frame: "kuka_lbr_l_link_0"
-      activation: 1.0
-      weights: [1,1,1,1,1,1]
-
-    - name: "cart_force_ctrl_right"
-      priority: 0
-      type: cart
-      root: "kuka_lbr_l_link_0"
-      tip:  "kuka_lbr_l_tcp"
-      ref_frame: "kuka_lbr_l_tcp"
       activation: 1.0
       weights: [1,1,1,1,1,1]

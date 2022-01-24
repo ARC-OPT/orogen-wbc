@@ -17,7 +17,7 @@ field_names: ["X", "Y", "Z", "rotZ", "rotY", "rotX"]
 # Maximum control output (saturation). If one output value exceeds maximum, all
 # other values will be scaled accordingly. Size has to be the same as size of field_names.
 max_control_output:
-  data: [0.5, 0.5, 0.5, 0.707, 0.707, 0.707]
+  data: [100, 100, 100, 100, 100, 100]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
   data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]

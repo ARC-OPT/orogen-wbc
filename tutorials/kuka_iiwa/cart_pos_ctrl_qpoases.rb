@@ -1,16 +1,26 @@
+#
+# Simple Velocity-based example, Cartesian position control on a kuka iiwa 7 dof arm. In contrast to the cart_pos_ctrl_hls example,
+# a QP solver (qpoases) is used to compute the solution.
+# The robot end effector is supposed to move to a fixed target pose. The QP is solved using the QPOases solver. In contrast to the cart_pos_ctrl_hls example,
+# the solver output will always be within the joint velocity limits, which are defined in the kuka iiwa URDF file.
+#
+# Note: To see the robot visualization for this tutorial, type
+#     rock-roboviz tutorials/kuka_iiwa/models/urdf/kuka_iiwa.urdf -s wbc:solver_output
+# This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'.
+#
 require 'orocos'
 require 'readline'
 
 Orocos.initialize
 Orocos.conf.load_dir('config')
 
-Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
+Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "wbc",
            "ctrl_lib::CartesianPositionController" => "controller" do
 
     controller   = Orocos::TaskContext.get "controller"
     wbc          = Orocos::TaskContext.get "wbc"
 
-    Orocos.conf.apply(wbc,         ["default", "cart_control"])
+    Orocos.conf.apply(wbc,         ["default", "cart_pos_ctrl_qpoases"])
     Orocos.conf.apply(controller,  ["default"])
 
     # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
@@ -18,7 +28,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
     controller.configure
 
     # Priority 0: Cartesian Position control
-    constraint_name = "cart_position_ctrl"
+    constraint_name = wbc.wbc_config[0].name
     controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
     wbc.port("status_" + constraint_name).connect_to controller.port("feedback")
 
@@ -28,7 +38,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
 
     # Write initial joint state
     joint_state = Types.base.samples.Joints.new
-    joint_state.names = wbc.robot_model.joint_names
+    joint_state.names = ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_2", "kuka_lbr_l_joint_3", "kuka_lbr_l_joint_4", "kuka_lbr_l_joint_5", "kuka_lbr_l_joint_6", "kuka_lbr_l_joint_7"]
     joint_state.names.each do
        js = Types.base.JointState.new
        js.position = 0.1
@@ -77,7 +87,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
 
           joint_state.elements = solver_output.elements
        end
-       sleep 0.1
+       sleep 0.01
     end
 
     Readline.readline("Press Enter to exit")
