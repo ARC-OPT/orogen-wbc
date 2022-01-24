@@ -9,13 +9,15 @@ include:
     file: 'software_catalogue.yml'
     
 build_rock_18.04:
-  image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-ric-backbone_ubuntu:18.04
+  image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-wbc_ubuntu:18.04
   stage: build
   script:
-    - /opt/hooks/build_with_gitlab_ci.bash
+    - aup orogen/wbc
+    - amake orogen/wbc
 
 build_rock_20.04:
-  image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-ric-backbone_ubuntu:20.04
+  image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-wbc_ubuntu:20.04
   stage: build
   script:
-    - /opt/hooks/build_with_gitlab_ci.bash
+    - aup orogen/wbc
+    - amake orogen/wbc
