@@ -12,12 +12,14 @@ build_rock_18.04:
   image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-wbc_ubuntu:18.04
   stage: build
   script:
-    - aup orogen/wbc
+    - aup --config
+    - aup
     - amake orogen/wbc
 
 build_rock_20.04:
   image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-wbc_ubuntu:20.04
   stage: build
   script:
-    - aup orogen/wbc
+    - aup --config
+    - aup
     - amake orogen/wbc
