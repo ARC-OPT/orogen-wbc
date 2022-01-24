@@ -1,7 +1,7 @@
 --- name:default
 # Add multiple robot and/or object models.
 robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/examples/kuka_iiwa/models/urdf/kuka_iiwa.urdf" %>
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/tutorials/kuka_iiwa/models/urdf/kuka_iiwa.urdf" %>
 
 # Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
 integrate: True
