@@ -111,7 +111,7 @@ void WbcTask::updateHook(){
     // Update Robot Model
     base::Time cur_time = base::Time::now();
     robot_model->update(joint_state, floating_base_state);
-    _com.write(robot_model->getCOM());
+    _com.write(robot_model->centerOfMass());
     timing_stats.time_robot_model_update = (base::Time::now()-cur_time).toSeconds();
 
     // Update Scene
