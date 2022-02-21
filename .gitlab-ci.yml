@@ -28,7 +28,9 @@ run_tests_18.04:
   image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-wbc_ubuntu:18.04
   stage: test
   script:
-  - /opt/hooks/build_with_gitlab_ci.bash
+  - aup --config
+  - aup
+  - amake orogen/wbc
   - cd test
   - ruby test_wbc_velocity_task.rb
 
