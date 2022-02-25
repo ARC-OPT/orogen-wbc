@@ -31,8 +31,8 @@ run_tests_18.04:
   - aup --config
   - aup
   - amake orogen/wbc
-  - gem install rake-compiler
   - aup & amake tools/orocos.rb
+  - source env.sh
   - cd test
   - ruby test_wbc_velocity_task.rb
 
