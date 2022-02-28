@@ -32,7 +32,6 @@ run_tests_18.04:
   - aup
   - amake orogen/wbc
   - aup tools/orocos.rb
-  - gem install rake-compiler
   - source env.sh
   - amake tools/orocos.rb
   - cd test
