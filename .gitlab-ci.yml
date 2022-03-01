@@ -30,9 +30,8 @@ run_tests_18.04:
   script:
   - aup --config
   - aup
-  - amake orogen/wbc
+  - aup & amake orogen/wbc
   - /etc/init.d/omniorb4-nameserver start
-  - source env.sh
   - cd test
   - ruby test_wbc_velocity_task.rb
 
