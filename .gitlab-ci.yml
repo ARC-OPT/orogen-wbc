@@ -13,7 +13,7 @@ build_rock_18.04:
   stage: build
   script:
     - aup --config
-    - aup
+    - aup orogen/wbc
     - amake orogen/wbc
 
 build_rock_20.04:
@@ -21,7 +21,7 @@ build_rock_20.04:
   stage: build
   script:
     - aup --config
-    - aup
+    - aup orogen/wbc
     - amake orogen/wbc
 
 run_tests_18.04:
@@ -30,9 +30,9 @@ run_tests_18.04:
   script:
   - aup --config
   - aup
+  - aup orogen/wbc
   - amake orogen/wbc
   - /etc/init.d/omniorb4-nameserver start
-  - source env.sh
   - cd test
   - ruby test_wbc_velocity_task.rb
 
