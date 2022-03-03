@@ -35,4 +35,6 @@ run_tests_18.04:
   - /etc/init.d/omniorb4-nameserver start
   - cd test
   - ruby test_wbc_velocity_task.rb
+  - ruby test_wbc_velocity_quadratic_cost_task.rb
+  - ruby test_wbc_acceleration_task.rb
 
