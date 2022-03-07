@@ -55,7 +55,7 @@ aup & amake gui/wbc_gui
 
 ## Testing
 
-TODO
+Please check the unit tests [here](https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/tree/master/test), as well as the [tutorials](https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/tree/master/tutorials).
 
 ## Contributing
 
@@ -66,6 +66,23 @@ Please use merge requests as described [here](https://git.hb.dfki.de/dfki-contro
 ## License
 
 orogen-wbc is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
+
+## Acknowledge WBC
+
+If you use WBC within your scientific work, please cite the following publication:
+
+```
+@INPROCEEDINGS{mronga2022,
+author = "D. Mronga and S.Kumar and F.Kirchner",
+title = "Whole-Body Control of Series-Parallel Hybrid Robots",
+year = "2022",
+note = "{2022 IEEE International Conference on Robotics and Automation (ICRA)}, Accepted for publication",
+}
+```
+
+## Funding
+
+WBC has been developed in the research projects [TransFit](https://robotik.dfki-bremen.de/en/research/projects/transfit/) (Grant number 50RA1701) and [BesMan](https://robotik.dfki-bremen.de/en/research/projects/besman.html) (Grant number 50RA1216) funded by the German Aerospace Center (DLR) with funds from the German	Federal Ministry for Economic Affairs and Climate Action (BMWK). It is further developed in the [M-Rock](https://robotik.dfki-bremen.de/en/research/projects/m-rock/) (Grant number 01IW21002) and [VeryHuman](https://robotik.dfki-bremen.de/en/research/projects/veryhuman/) (Grant number  01IW20004) projects funded by the German Aerospace Center (DLR) with federal funds from the German Federal Ministry of Education and Research (BMBF).
 
 ## Maintainer / Authors / Contributers
 
