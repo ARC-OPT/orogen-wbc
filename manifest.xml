@@ -6,8 +6,8 @@ The WBC task library contains various implementations of whole-body feedback con
   <author>Dennis Mronga/dennis.mronga@dfki.de</author>
   <maintainer>Dennis Mronga/dennis.mronga@dfki.de</maintainer>
   <license></license>
-  <url>http://</url>
-  <logo>http://</logo>
+  <url>https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc</url>
+  <logo>https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/blob/master/doc/images/arcopt_logo_v3_github.jpg/</logo>
   <tags>stable</tags>
   <keywords>
      <keyword>Control</keyword>
