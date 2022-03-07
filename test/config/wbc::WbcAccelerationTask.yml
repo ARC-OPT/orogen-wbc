@@ -1,21 +1,13 @@
 --- name:default
-# For debugging purpose: Compute the current status for each constraint, which contains (a) the solver output projected to task space (desired task space motion) and
-#              (b) the actual task space motion
 compute_constraint_status: true
-# This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8
 hessian_regularizer: 1.0e-08
-# The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1). A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.
 initial_joint_weights:
   names: []
   elements: []
-# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
 integrate: true
-# Maximum number of working set recalculations performed by the solver
-n_wsr: 10
-# User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
-#             as that can have a large influence on success of solving the optimization problem
+n_wsr: 100
 solver_options:
-  printLevel: :PL_MEDIUM
+  printLevel: :PL_NONE
   enableRamping: :BT_TRUE
   enableFarBounds: :BT_TRUE
   enableFlippingBounds: :BT_TRUE
@@ -53,23 +45,9 @@ solver_options:
 
 
 --- name:configure_success
-# Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
 robot_model:
   file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
   submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
-# Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
-#              Cartesian constraints:
-#                  [in] Reference Input (/base/samples/RigidBodyStateSE3):         ref_<constraint_name>
-#                  [in] Weights (/base/VectorXd):                      weight_<constraint_name>
-#                  [in] Activation function (double):                  activation_<constraint_name>
-#                  [out] Constraint pose output (/base/samples/RigidBodyStateSE3): status_<constraint_name>
-#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
-#              Joint Space constraints:
-#                  [in] Reference Input (/base/samples/Joints):            ref_<task_name>
-#                  [in] Weights (/base/VectorXd):                          weight_<task_name>
-#                  [in] Activation function (double):                      activation_<task_name>
-#                  [out] Current joint state output (base/samples/Joints): status_<task_name>
-#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
 wbc_config:
    - name: "cart_pos_ctrl"
      priority: 0
@@ -81,22 +59,79 @@ wbc_config:
      weights: [1,1,1,1,1,1]
 
 --- name:configure_success_2
-# Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-# Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
-#              Cartesian constraints:
-#                  [in] Reference Input (/base/samples/RigidBodyStateSE3):         ref_<constraint_name>
-#                  [in] Weights (/base/VectorXd):                      weight_<constraint_name>
-#                  [in] Activation function (double):                  activation_<constraint_name>
-#                  [out] Constraint pose output (/base/samples/RigidBodyStateSE3): status_<constraint_name>
-#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
-#              Joint Space constraints:
-#                  [in] Reference Input (/base/samples/Joints):            ref_<task_name>
-#                  [in] Weights (/base/VectorXd):                          weight_<task_name>
-#                  [in] Activation function (double):                      activation_<task_name>
-#                  [out] Current joint state output (base/samples/Joints): status_<task_name>
-#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
+    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
+wbc_config:
+   - name: "cart_pos_ctrl_2"
+     priority: 0
+     type: cart
+     root: "kuka_lbr_l_link_0"
+     tip:  "kuka_lbr_l_tcp"
+     ref_frame: "kuka_lbr_l_link_0"
+     activation: 1.0
+     weights: [1,1,1,1,1,1]
+
+--- name:configure_success_floating_base
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa_floating_base.yml" %>
+    floating_base: true
+    floating_base_state:
+        pose:
+            position:
+                data: [0,0,0]
+            orientation: {re: 1.0, im: [0,0,0]}
+    world_frame_id: world
+wbc_config:
+   - name: "cart_pos_ctrl_2"
+     priority: 0
+     type: cart
+     root: "kuka_lbr_l_link_0"
+     tip:  "kuka_lbr_l_tcp"
+     ref_frame: "kuka_lbr_l_link_0"
+     activation: 1.0
+     weights: [1,1,1,1,1,1]
+
+--- name:configure_fail_invalid_urdf_file
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urd" %>
+    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
+wbc_config:
+   - name: "cart_pos_ctrl_2"
+     priority: 0
+     type: cart
+     root: "kuka_lbr_l_link_0"
+     tip:  "kuka_lbr_l_tcp"
+     ref_frame: "kuka_lbr_l_link_0"
+     activation: 1.0
+     weights: [1,1,1,1,1,1]
+
+--- name:configure_fail_invalid_floating_base_state
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa_floating_base.yml" %>
+    floating_base: true
+    floating_base_state:
+        pose:
+            position:
+                data: [0,0,0]
+            orientation: {re: 1.0, im: [1,1,1]}
+wbc_config:
+   - name: "cart_pos_ctrl_2"
+     priority: 0
+     type: cart
+     root: "kuka_lbr_l_link_0"
+     tip:  "kuka_lbr_l_tcp"
+     ref_frame: "kuka_lbr_l_link_0"
+     activation: 1.0
+     weights: [1,1,1,1,1,1]
+
+--- name:configure_fail_invalid_blacklist
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
+    joint_blacklist: ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_X"]
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0

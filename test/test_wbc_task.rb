@@ -1,5 +1,6 @@
 require "orocos"
 require "test/unit"
+require "pry"
 
 $tc_name = nil
 
@@ -110,15 +111,62 @@ class TestWbcTask < Test::Unit::TestCase
             Orocos.conf.apply(task, ["default", "configure_fail_invalid_urdf_file"])
             assert_raise(Orocos::StateTransitionFailed){task.configure}
 
-            Orocos.conf.apply(task, ["default", "configure_fail_invalid_joint_name"])
-            assert_raise(Orocos::StateTransitionFailed){task.configure}
-
             Orocos.conf.apply(task, ["default", "configure_fail_invalid_floating_base_state"])
             assert_raise(Orocos::StateTransitionFailed){task.configure}
 
             Orocos.conf.apply(task, ["default", "configure_fail_invalid_blacklist"])
             assert_raise(Orocos::StateTransitionFailed){task.configure}
         end
+    end
 
+    def testSingleTask
+        Orocos.run $tc_name => "task" do
+            task = Orocos::TaskContext.get "task"
+            Orocos.conf.load_dir("./config")
+            Orocos.conf.apply(task, ["default", "configure_success"])
+            assert_nothing_raised(Orocos::StateTransitionFailed){task.configure}
+            assert_nothing_raised(Orocos::StateTransitionFailed){task.start}
+
+            joint_state = Types.base.samples.Joints.new
+            joint_state.names = ["kuka_lbr_l_joint_1",
+                                 "kuka_lbr_l_joint_2",
+                                 "kuka_lbr_l_joint_3",
+                                 "kuka_lbr_l_joint_4",
+                                 "kuka_lbr_l_joint_5",
+                                 "kuka_lbr_l_joint_6",
+                                 "kuka_lbr_l_joint_7"]
+            for i in (0..6)
+                js = Types.base.JointState.new
+                js.position = 1.0
+                js.speed = 0.0
+                joint_state.elements << js
+            end
+            joint_state.time = Types.base.Time.now
+
+            writer_joint_state = task.joint_state.writer
+            writer_joint_state.write joint_state
+
+            assert_nothing_raised(){task.activateConstraint("cart_pos_ctrl", 1.0)}
+
+            reference = Types.base.samples.RigidBodyStateSE3.new
+            reference.twist.linear  = reference.acceleration.linear = Types.base.Vector3d.new(rand()/10,rand()/10,rand()/10)
+            reference.twist.angular = reference.acceleration.angular = Types.base.Vector3d.new(rand()/10,rand()/10,rand()/10)
+            reference.time = Types.base.Time.now
+
+            writer_ref = task.ref_cart_pos_ctrl.writer
+            writer_ref.write reference
+
+            constraint_status = nil
+            reader_constraint_status = task.constraint_cart_pos_ctrl.reader
+            while constraint_status == nil
+                constraint_status = reader_constraint_status.read_new
+            end
+
+            (0..2).each do |i|
+                assert_in_delta(reference.acceleration.linear[i],  constraint_status.y_solution[i],   1e-4)
+                assert_in_delta(reference.acceleration.angular[i], constraint_status.y_solution[i+3], 1e-4)
+            end
+
+        end
     end
 end

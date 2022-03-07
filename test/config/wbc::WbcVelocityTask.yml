@@ -3,7 +3,7 @@ compute_constraint_status: true
 compute_id: false
 epsilon: 1.0e-09
 integrate: true
-norm_max: 10.0
+norm_max: 1000.0
 initial_joint_weights:
   names: []
   elements: []
@@ -37,6 +37,7 @@ wbc_config:
 --- name:configure_success_floating_base
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    floating_base: true
     floating_base_state:
         pose:
             position:
@@ -66,29 +67,10 @@ wbc_config:
      activation: 1.0
      weights: [1,1,1,1,1,1]
 
---- name:configure_fail_invalid_joint_name
-robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-    joint_names: ["kuka_lbr_l_joint_1",
-                  "kuka_lbr_l_joint_2",
-                  "kuka_lbr_l_joint_3",
-                  "kuka_lbr_l_joint_4",
-                  "kuka_lbr_l_joint_5",
-                  "kuka_lbr_l_joint_6",
-                  "kuka_lbr_l_joint_X"]
-wbc_config:
-   - name: "cart_pos_ctrl_2"
-     priority: 0
-     type: cart
-     root: "kuka_lbr_l_link_0"
-     tip:  "kuka_lbr_l_tcp"
-     ref_frame: "kuka_lbr_l_link_0"
-     activation: 1.0
-     weights: [1,1,1,1,1,1]
-
 --- name:configure_fail_invalid_floating_base_state
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    floating_base: true
     floating_base_state:
         pose:
             position:
