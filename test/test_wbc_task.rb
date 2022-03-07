@@ -1,6 +1,5 @@
 require "orocos"
 require "test/unit"
-require "pry"
 
 $tc_name = nil
 
