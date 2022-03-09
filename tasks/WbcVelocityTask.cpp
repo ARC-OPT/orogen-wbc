@@ -1,29 +1,29 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcVelocityTask.hpp"
-#include <wbc/robot_models/kdl/RobotModelKDL.hpp>
 #include <wbc/scenes/VelocityScene.hpp>
 #include <wbc/solvers/hls/HierarchicalLSSolver.hpp>
 #include "ConstraintInterface.hpp"
+#include <wbc/core/RobotModelFactory.hpp>
+#include <wbc/core/PluginLoader.hpp>
 
 using namespace wbc;
 using namespace std;
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name)
     : WbcVelocityTaskBase(name){
-    robot_model = std::make_shared<RobotModelKDL>();
-    solver = std::make_shared<HierarchicalLSSolver>();
-    wbc_scene = std::make_shared<VelocityScene>(robot_model, solver);
 }
 
 WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* engine)
     : WbcVelocityTaskBase(name, engine){
-    robot_model = std::make_shared<RobotModelKDL>();
-    solver = std::make_shared<HierarchicalLSSolver>();
-    wbc_scene = std::make_shared<VelocityScene>(robot_model, solver);
 }
 
 bool WbcVelocityTask::configureHook(){
+    PluginLoader::loadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance(_robot_model.get().type));
+    solver = std::make_shared<HierarchicalLSSolver>();
+    wbc_scene = std::make_shared<VelocityScene>(robot_model, solver);
+
     if (! WbcVelocityTaskBase::configureHook())
         return false;
 
@@ -54,4 +54,5 @@ void WbcVelocityTask::stopHook(){
 
 void WbcVelocityTask::cleanupHook(){
     WbcVelocityTaskBase::cleanupHook();
+    PluginLoader::unloadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
 }

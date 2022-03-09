@@ -12,7 +12,7 @@ namespace wbc{
      * Essential interfaces are operations, data flow ports and properties. These interfaces have been defined using the oroGen specification.
      * In order to modify the interfaces you should (re)use oroGen and rely on the associated workflow.
      * 
-Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
+Velocity based implementation of the WBC Scene.
 The tasks are embedded in the cost function here
 
      * \details

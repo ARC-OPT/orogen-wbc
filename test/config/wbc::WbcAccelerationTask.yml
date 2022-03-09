@@ -48,6 +48,7 @@ solver_options:
 robot_model:
   file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
   submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
+  type: hyrodyn
 wbc_config:
    - name: "cart_pos_ctrl"
      priority: 0
@@ -62,6 +63,7 @@ wbc_config:
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
     submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
+    type: hyrodyn
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
@@ -83,6 +85,7 @@ robot_model:
                 data: [0,0,0]
             orientation: {re: 1.0, im: [0,0,0]}
     world_frame_id: world
+    type: hyrodyn
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
