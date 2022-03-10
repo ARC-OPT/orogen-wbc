@@ -47,7 +47,6 @@ solver_options:
 --- name:configure_success
 robot_model:
   file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-  submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
 wbc_config:
    - name: "cart_pos_ctrl"
      priority: 0
@@ -61,7 +60,6 @@ wbc_config:
 --- name:configure_success_2
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
@@ -75,7 +73,6 @@ wbc_config:
 --- name:configure_success_floating_base
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa_floating_base.yml" %>
     floating_base: true
     floating_base_state:
         pose:
@@ -96,7 +93,6 @@ wbc_config:
 --- name:configure_fail_invalid_urdf_file
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urd" %>
-    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
@@ -110,7 +106,6 @@ wbc_config:
 --- name:configure_fail_invalid_floating_base_state
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa_floating_base.yml" %>
     floating_base: true
     floating_base_state:
         pose:
@@ -130,7 +125,6 @@ wbc_config:
 --- name:configure_fail_invalid_blacklist
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/hyrodyn/kuka_iiwa.yml" %>
     joint_blacklist: ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_X"]
 wbc_config:
    - name: "cart_pos_ctrl_2"

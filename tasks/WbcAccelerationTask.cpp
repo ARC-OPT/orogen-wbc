@@ -1,30 +1,30 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcAccelerationTask.hpp"
-#include <wbc/robot_models/hyrodyn/RobotModelHyrodyn.hpp>
 #include <wbc/scenes/AccelerationSceneTSID.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
+#include <wbc/core/RobotModelFactory.hpp>
+#include <wbc/core/PluginLoader.hpp>
 
 using namespace wbc;
 
 WbcAccelerationTask::WbcAccelerationTask(std::string const& name)
     : WbcAccelerationTaskBase(name){
-    robot_model = std::make_shared<RobotModelHyrodyn>();
-    solver = std::make_shared<QPOASESSolver>();
-    wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver);
 }
 
 WbcAccelerationTask::WbcAccelerationTask(std::string const& name, RTT::ExecutionEngine* engine)
     : WbcAccelerationTaskBase(name, engine){
-    robot_model = std::make_shared<RobotModelHyrodyn>();
-    solver = std::make_shared<QPOASESSolver>();
-    wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver);
 }
 
 WbcAccelerationTask::~WbcAccelerationTask(){
 }
 
 bool WbcAccelerationTask::configureHook(){
+    PluginLoader::loadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance(_robot_model.get().type));
+    solver = std::make_shared<QPOASESSolver>();
+    wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver);
+
     if (! WbcAccelerationTaskBase::configureHook())
         return false;
 
@@ -65,4 +65,5 @@ void WbcAccelerationTask::stopHook(){
 
 void WbcAccelerationTask::cleanupHook(){
     WbcAccelerationTaskBase::cleanupHook();
+    PluginLoader::unloadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
 }
