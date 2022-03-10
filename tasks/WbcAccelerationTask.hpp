@@ -9,7 +9,7 @@
 namespace wbc{
 
 /**
- * @brief Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
+ * @brief Acceleration based implementation of the WBC Scene.
  */
 class WbcAccelerationTask : public WbcAccelerationTaskBase
 {

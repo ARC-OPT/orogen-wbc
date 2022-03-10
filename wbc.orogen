@@ -1,11 +1,9 @@
 name "wbc"
 
 using_library "base-types"
-using_library "kdl_parser"
 using_library "wbc-core"
 using_library "wbc-scenes"
 using_library "wbc-robot_models-kdl"
-using_library "wbc-robot_models-hyrodyn"
 using_library "wbc-solvers-hls"
 using_library "wbc-solvers-qpoases"
 

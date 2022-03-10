@@ -34,7 +34,7 @@ Currently supported OS: Ubuntu18.04, Ubuntu20.04
 This task library is for sole use within the Rock framework (https://www.rock-robotics.org/). I.e., you require a full Rock installation to use it. In addition, it has the following 1st order dependencies:
 
 * WBC library (https://git.hb.dfki.de/dfki-control/wbc/wbc)
-* Hyrodyn library (https://git.hb.dfki.de/dfki-mechanics/hyrodyn/hyrodyn)
+* Optional: Hyrodyn library (https://git.hb.dfki.de/dfki-mechanics/hyrodyn/hyrodyn)
 
 
 ## Installation

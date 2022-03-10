@@ -1,23 +1,26 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcVelocityQuadraticCostTask.hpp"
-#include <wbc/robot_models/kdl/RobotModelKDL.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/scenes/VelocitySceneQuadraticCost.hpp>
+#include <wbc/core/RobotModelFactory.hpp>
+#include <wbc/core/PluginLoader.hpp>
 
 using namespace wbc;
 
 WbcVelocityQuadraticCostTask::WbcVelocityQuadraticCostTask(std::string const& name)
     : WbcVelocityQuadraticCostTaskBase(name){
-    robot_model = std::make_shared<RobotModelKDL>();
-    solver = std::make_shared<QPOASESSolver>();
-    wbc_scene = std::make_shared<VelocitySceneQuadraticCost>(robot_model, solver);
 }
 
 WbcVelocityQuadraticCostTask::~WbcVelocityQuadraticCostTask(){
 }
 
 bool WbcVelocityQuadraticCostTask::configureHook(){
+    PluginLoader::loadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance(_robot_model.get().type));
+    solver = std::make_shared<QPOASESSolver>();
+    wbc_scene = std::make_shared<VelocitySceneQuadraticCost>(robot_model, solver);
+
     if (! WbcVelocityQuadraticCostTaskBase::configureHook())
         return false;
 
@@ -44,4 +47,5 @@ void WbcVelocityQuadraticCostTask::stopHook(){
 }
 void WbcVelocityQuadraticCostTask::cleanupHook(){
     WbcVelocityQuadraticCostTaskBase::cleanupHook();
+    PluginLoader::unloadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
 }

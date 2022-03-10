@@ -27,5 +27,4 @@ The WBC task library contains various implementations of whole-body feedback con
   </classifiers>
 
   <depend package="control/wbc"/>
-  <depend package="control/hyrodyn"/>
 </package>
