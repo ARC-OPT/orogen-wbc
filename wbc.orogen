@@ -85,9 +85,9 @@ task_context "WbcTask" do abstract
     input_port("joint_state", "base/samples/Joints").
        doc("Current joint state of the robot. Right now, only positions are required. All configured joints have to be in this vector.")
 
-    input_port("contact_points", "std/vector<std/string>").
-       doc("Set active contact points. The given names have to a valid link in the robot model.
-            Depending on the implementation this will change the qp according to the current contact configuration")
+    input_port("active_contacts", "wbc/ActiveContacts").
+       doc("Set active contact points. The given names have to be configured as contact_points in the robot model.
+            Depending on the WBC scene implementation this will change the qp according to the current contact configuration")
 
     input_port("contact_wrenches", "base/samples/Wrenches").
        doc("Measured contact wrenches. The given names have to be consistent with the configured contact points")
