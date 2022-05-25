@@ -1,6 +1,6 @@
 # WBC - Whole-Body Control
 
-[Code API](http://bob.dfki.uni-bremen.de/apis/dfki-control/wbc/orogen-wbc)  | [Full Documentation](https://git.hb.dfki.de/wbc/documentation/wikis/home)
+[Code API](https://arc-opt.github.io/orogen-wbc/)  | [Full Documentation](https://arc-opt.github.io/Documentation/)
 
 This task library provides a Rock interface for the Whole-Body Control library. It facilitates intuitive specification and execution of reactive robot control problems that involve multiple simultaneously running tasks. 
 
@@ -24,44 +24,37 @@ The online solution of this problem is the robot joint control signal that compl
 
 ## Getting Started
 
-* Please check out the tutorials section in the [documentation](https://git.hb.dfki.de/dfki-control/wbc/documentation/-/wikis/home) for examples of usage.
-* Extensive examples can be found in the [wbc_examples bundle](https://git.hb.dfki.de/dfki-control/wbc/bundle-wbc_examples).
+* Please check out the tutorials section in the [documentation](https://arc-opt.github.io/Documentation/) for examples of usage.
 
 ## Requirements / Dependencies
 
 Currently supported OS: Ubuntu18.04, Ubuntu20.04
 
-This task library is for sole use within the Rock framework (https://www.rock-robotics.org/). I.e., you require a full Rock installation to use it. In addition, it has the following 1st order dependencies:
+This task library is for sole use within the [Rock framework](https://www.rock-robotics.org/). I.e., you require a full Rock installation to use it. In addition, it has the following 1st order dependencies:
 
-* WBC library (https://git.hb.dfki.de/dfki-control/wbc/wbc)
-* Optional: Hyrodyn library (https://git.hb.dfki.de/dfki-mechanics/hyrodyn/hyrodyn)
+* [WBC library](https://github.com/ARC-OPT/wbc)
+* Optional: [Hyrodyn library](https://robotik.dfki-bremen.de/en/research/softwaretools/hyrodyn/). In order to use the HyRoDyn-based robot model including the feature of modeling and controlling series-parallel hybrid robots, you currently require access to the [DFKI git server](https://git.hb.dfki.de/).
 
 
 ## Installation
 
-* New Bootstrap: See [here](https://git.hb.dfki.de/wbc/buildconf)
+* New Bootstrap: See [here](https://arc-opt.github.io/Documentation/installation/installation_rock.html)
 * Existing Rock Installation: Add the wbc package set to your autoproj/manifest file: 
     ```
     package_sets:
-    - dfkigit: dfki-control/wbc/package_set
+    - github: ARC-OPT/package_set
     ```    
   followed by `aup control/orogen/wbc` and then `amake control/orogen/wbc`
 
-If you want to use the WBC gui, do
-
-```
-aup & amake gui/wbc_gui
-```
-
 ## Testing
 
-Please check the unit tests [here](https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/tree/master/test), as well as the [tutorials](https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/tree/master/tutorials).
+Please check the unit tests [here](https://github.com/ARC-OPT/orogen-wbc/tree/master/test), as well as the [tutorials](https://github.com/ARC-OPT/orogen-wbc/tree/master/tutorials/).
 
 ## Contributing
 
-Please use the [issue tracker](https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/issues) to submit bug reports and feature requests.
+Please use the [issue tracker](https://github.com/ARC-OPT/orogen-wbc/issues) to submit bug reports and feature requests.
 
-Please use merge requests as described [here](https://git.hb.dfki.de/dfki-control/wbc/orogen-wbc/-/blob/master/CONTRIBUTING.md) to add/adapt functionality. 
+Please use merge requests as described [here](https://github.com/ARC-OPT/orogen-wbc/blob/master/CONTRIBUTING.md) to add/adapt functionality. 
 
 ## License
 
