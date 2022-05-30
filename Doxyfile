@@ -612,7 +612,7 @@ EXAMPLE_RECURSIVE      = NO
 # directories that contain image that are included in the documentation (see 
 # the \image command).
 
-IMAGE_PATH             = 
+IMAGE_PATH             = doc/images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should 
 # invoke to filter for each input file. Doxygen will invoke the filter program 
@@ -1416,3 +1416,10 @@ DOT_CLEANUP            = YES
 # used. If set to NO the values of all tags below this one will be ignored.
 
 SEARCHENGINE           = NO
+
+# Enable the USE_MATHJAX option to render LaTeX formulas using MathJax (see https://www.mathjax.org) which uses client side JavaScript for the rendering instead of using pre-rendered bitmaps. 
+# Use this if you do not have LaTeX installed or if you want to formulas look prettier in the HTML output. When enabled you may also need to install MathJax separately and configure 
+# the path to it using the MATHJAX_RELPATH option.
+
+USE_MATHJAX = YES
+
