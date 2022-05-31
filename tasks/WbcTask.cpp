@@ -102,8 +102,8 @@ void WbcTask::updateHook(){
         floating_base_state.frame_id = floating_base_state_rbs.targetFrame;
     }
 
-    if(_contact_points.readNewest(contact_points) == RTT::NewData)
-        robot_model->setContactPoints(contact_points);
+    if(_active_contacts.readNewest(active_contacts) == RTT::NewData)
+        robot_model->setActiveContacts(active_contacts);
 
     if(_contact_wrenches.readNewest(contact_wrenches) == RTT::NewData)
         robot_model->setContactWrenches(contact_wrenches);
