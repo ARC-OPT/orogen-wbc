@@ -12,6 +12,7 @@ import_types_from "wbc/core/ConstraintConfig.hpp"
 import_types_from "wbc/core/ConstraintStatus.hpp"
 import_types_from "wbc/core/RobotModelConfig.hpp"
 import_types_from "wbc/core/QuadraticProgram.hpp"
+import_types_from "wbc/solvers/qpoases/QPOasesSolver.hpp"
 import_types_from "base/samples/RigidBodyStateSE3.hpp" # Workaround until we have RigidBodyStateSE3 in base/orogen/types
 import_types_from "qpOASES/MessageHandling.hpp"
 import_types_from "qpOASES/Options.hpp"
@@ -154,6 +155,9 @@ task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
        doc("User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
             as that can have a large influence on success of solving the optimization problem")
 
+    property("solver_preset", "qpOASES/optionPresets", :qp_unset).
+       doc("Standard options for solving the QP. Select from qp_default, qp_reliable, qp_fast, qp_unset. Default is qp_unset, in which case solver_options will be used instead.")
+
     property("n_wsr", "int", 10).
        doc("Maximum number of working set recalculations performed by the solver")
 
@@ -175,6 +179,9 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     property("solver_options", "qpOASES/Options").
        doc("User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
             as that can have a large influence on success of solving the optimization problem")
+
+    property("solver_preset", "qpOASES/optionPresets", :qp_unset).
+       doc("Standard options for solving the QP. Select from qp_default, qp_reliable, qp_fast, qp_unset. Default is qp_unset, in which case solver_options will be used instead.")
 
     property("n_wsr", "int", 10).
        doc("Maximum number of working set recalculations performed by the solver")
