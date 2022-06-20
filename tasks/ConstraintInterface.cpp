@@ -90,7 +90,7 @@ void ConstraintInterface::update(){
     if(cfg.type == cart)
         cart_state_out_port->write(robot_model->rigidBodyState(cfg.ref_frame, cfg.tip));
     else if(cfg.type == com)
-        cart_state_out_port->write(robot_model->rigidBodyState(robot_model->worldFrame(), robot_model->baseFrame()));
+        cart_state_out_port->write(robot_model->centerOfMass());
     else
         jnt_state_out_port->write(robot_model->jointState(cfg.joint_names));
 }
