@@ -4,6 +4,7 @@
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/scenes/VelocitySceneQuadraticCost.hpp>
 #include <wbc/core/RobotModelFactory.hpp>
+#include <wbc/core/QPSolverFactory.hpp>
 #include <wbc/core/PluginLoader.hpp>
 
 using namespace wbc;
@@ -18,17 +19,15 @@ WbcVelocityQuadraticCostTask::~WbcVelocityQuadraticCostTask(){
 bool WbcVelocityQuadraticCostTask::configureHook(){
     PluginLoader::loadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
     robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance(_robot_model.get().type));
-    solver = std::make_shared<QPOASESSolver>();
+
+    PluginLoader::loadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
+    solver = std::shared_ptr<QPSolver>(QPSolverFactory::createInstance(_qp_solver.get()));
+
     wbc_scene = std::make_shared<VelocitySceneQuadraticCost>(robot_model, solver);
+    compute_id = _compute_id.get();
 
     if (! WbcVelocityQuadraticCostTaskBase::configureHook())
         return false;
-
-    std::dynamic_pointer_cast<QPOASESSolver>(solver)->setMaxNoWSR(_n_wsr.get());
-    std::dynamic_pointer_cast<QPOASESSolver>(solver)->setOptions(_solver_options.get());
-    std::dynamic_pointer_cast<QPOASESSolver>(solver)->setOptionsPreset(_solver_preset.get());
-    std::dynamic_pointer_cast<VelocitySceneQuadraticCost>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
-    compute_id = _compute_id.get();
 
     return true;
 }
