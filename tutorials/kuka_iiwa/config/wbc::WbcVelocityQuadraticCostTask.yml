@@ -5,14 +5,8 @@ robot_model:
 
 # Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
 integrate: True
-# Maximum number of working set recalculations performed by the solver
-n_wsr: 100
-# This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8
-hessian_regularizer: 1e-8
-# User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
-#             as that can have a large influence on success of solving the optimization problem
-solver_options:
-    printLevel: :PL_NONE
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: qpswift
 
 --- name:cart_pos_ctrl_qpoases
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
