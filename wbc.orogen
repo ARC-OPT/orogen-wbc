@@ -151,18 +151,8 @@ end
 task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
     needs_configuration
 
-    property("solver_options", "qpOASES/Options").
-       doc("User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
-            as that can have a large influence on success of solving the optimization problem")
-
-    property("solver_preset", "qpOASES/optionPresets", :qp_unset).
-       doc("Standard options for solving the QP. Select from qp_default, qp_reliable, qp_fast, qp_unset. Default is qp_unset, in which case solver_options will be used instead.")
-
-    property("n_wsr", "int", 10).
-       doc("Maximum number of working set recalculations performed by the solver")
-
-    property("hessian_regularizer", "double", 1e-8).
-       doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8")
+    property("qp_solver", "std/string", "qpoases")
+       .doc("Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']")
 
     property("compute_id", "bool", false)
        .doc("Optionally compute the inverse dynamics solution given the solver output")
@@ -176,24 +166,8 @@ end
 task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     needs_configuration
 
-    property("solver_options", "qpOASES/Options").
-       doc("User options for solving the QP. The entries of this struct will be set to sane default values. Check QPOases documentation before changing any of the entries,
-            as that can have a large influence on success of solving the optimization problem")
-
-    property("solver_preset", "qpOASES/optionPresets", :qp_unset).
-       doc("Standard options for solving the QP. Select from qp_default, qp_reliable, qp_fast, qp_unset. Default is qp_unset, in which case solver_options will be used instead.")
-
-    property("n_wsr", "int", 10).
-       doc("Maximum number of working set recalculations performed by the solver")
-
-    property("hessian_regularizer", "double", 1e-8).
-       doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility. Default is 1e-8")
-
-    output_port("solver_return_value", "qpOASES/returnValue").
-       doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
-
-    output_port("obj_func_value", "double").
-       doc("Return value of the last QP problem calculation. See qpOASES/MessageHandling.hpp and qpOASES/SQProblem.hpp for details")
+    property("qp_solver", "std/string", "qpoases")
+       .doc("Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']")
 
     output_port("estimated_contact_wrenches", "base/samples/Wrenches").
        doc("Estimated contact wrenches")

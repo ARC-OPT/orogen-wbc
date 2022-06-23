@@ -4,6 +4,7 @@
 #include <wbc/scenes/AccelerationSceneTSID.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/core/RobotModelFactory.hpp>
+#include <wbc/core/QPSolverFactory.hpp>
 #include <wbc/core/PluginLoader.hpp>
 
 using namespace wbc;
@@ -22,16 +23,14 @@ WbcAccelerationTask::~WbcAccelerationTask(){
 bool WbcAccelerationTask::configureHook(){
     PluginLoader::loadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
     robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance(_robot_model.get().type));
-    solver = std::make_shared<QPOASESSolver>();
+
+    PluginLoader::loadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
+    solver = std::shared_ptr<QPSolver>(QPSolverFactory::createInstance(_qp_solver.get()));
+
     wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver);
 
     if (! WbcAccelerationTaskBase::configureHook())
         return false;
-
-    std::dynamic_pointer_cast<QPOASESSolver>(solver)->setMaxNoWSR(_n_wsr.get());
-    std::dynamic_pointer_cast<QPOASESSolver>(solver)->setOptions(_solver_options.get());
-    std::dynamic_pointer_cast<QPOASESSolver>(solver)->setOptionsPreset(_solver_preset.get());
-    std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
 
     return true;
 }
@@ -46,12 +45,7 @@ void WbcAccelerationTask::updateHook(){
     WbcAccelerationTaskBase::updateHook();
 
     if(solver_output_joints.size() > 0){
-        std::shared_ptr<QPOASESSolver> qpoases_solver = std::dynamic_pointer_cast<QPOASESSolver>(solver);
         std::shared_ptr<AccelerationSceneTSID> wbc_acc_scene  = std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene);
-
-        _solver_return_value.write(qpoases_solver->getReturnValue());
-        double obj_func_value = qpoases_solver->getSQProblem().getObjVal();
-        _obj_func_value.write(obj_func_value);
         _estimated_contact_wrenches.write(wbc_acc_scene->getContactWrenches());
     }
 }

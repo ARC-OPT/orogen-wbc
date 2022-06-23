@@ -1,49 +1,11 @@
 --- name:default
 compute_constraint_status: true
 compute_id: false
-hessian_regularizer: 1.0e-08
 initial_joint_weights:
   names: []
   elements: []
 integrate: true
-n_wsr: 100
-solver_options:
-  printLevel: :PL_NONE
-  enableRamping: :BT_TRUE
-  enableFarBounds: :BT_TRUE
-  enableFlippingBounds: :BT_TRUE
-  enableRegularisation: :BT_FALSE
-  enableFullLITests: :BT_FALSE
-  enableNZCTests: :BT_TRUE
-  enableDriftCorrection: 1
-  enableCholeskyRefactorisation: 0
-  enableEqualities: :BT_FALSE
-  terminationTolerance: 1.1105e-09
-  boundTolerance: 2.221e-10
-  boundRelaxation: 10000.0
-  epsNum: -2.221e-13
-  epsDen: 2.221e-13
-  maxPrimalJump: 100000000.0
-  maxDualJump: 100000000.0
-  initialRamping: 0.5
-  finalRamping: 1.0
-  initialFarBounds: 1000000.0
-  growFarBounds: 1000.0
-  initialStatusBounds: :ST_LOWER
-  epsFlipping: 2.221e-13
-  numRegularisationSteps: 0
-  epsRegularisation: 2.221e-13
-  numRefinementSteps: 1
-  epsIterRef: 2.221e-14
-  epsLITests: 2.221e-11
-  epsNZCTests: 6.663e-13
-  rcondSMin: 1.0e-14
-  enableInertiaCorrection: :BT_TRUE
-  enableDropInfeasibles: :BT_FALSE
-  dropBoundPriority: 1
-  dropEqConPriority: 1
-  dropIneqConPriority: 1
-
+qp_solver: qpswift
 
 --- name:configure_success
 robot_model:
