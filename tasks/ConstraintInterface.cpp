@@ -18,7 +18,7 @@ ConstraintInterface::ConstraintInterface(ConstraintConfig _cfg,
     activation = cfg.activation;
     weights = base::VectorXd::Map(cfg.weights.data(), cfg.nVariables());
 
-    if(cfg.type == cart){
+    if(cfg.type == cart || cfg.type == com){
         cart_ref_port = std::make_shared<CartRefPort>("ref_" + cfg.name);
         task_context->ports()->addPort(cart_ref_port->getName(), *(cart_ref_port));
 
@@ -89,6 +89,8 @@ void ConstraintInterface::update(){
 
     if(cfg.type == cart)
         cart_state_out_port->write(robot_model->rigidBodyState(cfg.ref_frame, cfg.tip));
+    else if(cfg.type == com)
+        cart_state_out_port->write(robot_model->centerOfMass());
     else
         jnt_state_out_port->write(robot_model->jointState(cfg.joint_names));
 }
