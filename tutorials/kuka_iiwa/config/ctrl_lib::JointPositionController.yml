@@ -1,4 +1,4 @@
---- name:jnt_pos_ctrl
+--- name:kuka_iiwa_jnt_pos_ctrl
 # Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
 dead_zone:
   data: [0]

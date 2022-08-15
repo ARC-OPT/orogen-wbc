@@ -1,14 +1,15 @@
 --- name:default
+# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
+integrate: True
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: qpoases
+
+--- name:kuka_iiwa
 # Add multiple robot and/or object models.
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
 
-# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
-integrate: True
-# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
-qp_solver: qpswift
-
---- name:cart_pos_ctrl_qpoases
+--- name:kuka_iiwa_cart_pos_ctrl_qpoases
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>

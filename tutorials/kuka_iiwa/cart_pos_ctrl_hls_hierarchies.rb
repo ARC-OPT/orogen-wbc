@@ -2,27 +2,23 @@
 # Velocity-based example for a simple task hierarchy: Cartesian position control of the end effector on the lower priority
 # and joint position control of joint 5 on the highest priority.
 #
-# Note: To see the robot visualization for this tutorial, type
-#     rock-roboviz tutorials/kuka_iiwa/models/urdf/kuka_iiwa.urdf -s wbc:solver_output
-# This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'.
-#
 require 'orocos'
 require 'readline'
 
 Orocos.initialize
 Orocos.conf.load_dir('config')
 
-Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
-           "ctrl_lib::CartesianPositionController" => "cart_ctrl",
-           "ctrl_lib::JointPositionController"     => "jnt_ctrl" do
+Orocos.run "wbc::WbcVelocityTask"                  => "kuka_iiwa_wbc",
+           "ctrl_lib::CartesianPositionController" => "kuka_iiwa_cart_ctrl",
+           "ctrl_lib::JointPositionController"     => "kuka_iiwa_jnt_ctrl" do
 
-    cart_ctrl    = Orocos::TaskContext.get "cart_ctrl"
-    wbc          = Orocos::TaskContext.get "wbc"
-    jnt_ctrl     = Orocos::TaskContext.get "jnt_ctrl"
+    cart_ctrl    = Orocos::TaskContext.get "kuka_iiwa_cart_ctrl"
+    wbc          = Orocos::TaskContext.get "kuka_iiwa_wbc"
+    jnt_ctrl     = Orocos::TaskContext.get "kuka_iiwa_jnt_ctrl"
 
-    Orocos.conf.apply(wbc,        ["default", "cart_pos_ctrl_hierarchies"])
-    Orocos.conf.apply(cart_ctrl,  ["default"])
-    Orocos.conf.apply(jnt_ctrl,   ["jnt_pos_ctrl"])
+    Orocos.conf.apply(wbc,        ["default", "kuka_iiwa", "kuka_iiwa_cart_pos_ctrl_hierarchies"])
+    Orocos.conf.apply(cart_ctrl,  ["kuka_iiwa_cart_controller"])
+    Orocos.conf.apply(jnt_ctrl,   ["kuka_iiwa_jnt_pos_ctrl"])
 
     # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
     wbc.configure
@@ -56,7 +52,11 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
     writer_joint_state = wbc.joint_state.writer
     writer_joint_state.write joint_state
 
-    Readline.readline("Press Enter to start motion")
+    puts "\n----------------------------- Press Enter to start motion ---------------------------------"
+    puts "NOTE: To enable visualization, type "
+    puts "        'rock-roboviz models/kuka_iiwa/urdf/kuka_iiwa.urdf -s kuka_iiwa_wbc:solver_output'"
+    puts "This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'."
+    Readline.readline("------------------------------------------------------------------------------------------")
 
     # Set activation for constraint
     wbc.activateConstraint(constraint_name,1)
@@ -97,7 +97,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
           solver_output.elements.each do |v| print "#{'%.04f' % v.speed} " end
           print "\n\n"
 
-          if (target_pose.pose.position - feedback.pose.position).norm < 1e-3
+          if (target_pose.pose.position - feedback.pose.position).norm < 1e-2
              puts "Reached Target Position!"
              break
           end

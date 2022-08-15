@@ -2,24 +2,20 @@
 # Same Velocity-based example as in tutorial 01. Only that the tasks weights are modified, so that the solution only considers the
 # task space position, not the orientation.
 #
-# Note: To see the robot visualization for this tutorial, type
-#     rock-roboviz tutorials/kuka_iiwa/models/urdf/kuka_iiwa.urdf -s wbc:solver_output
-# This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'.
-#
 require 'orocos'
 require 'readline'
 
 Orocos.initialize
 Orocos.conf.load_dir('config')
 
-Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
-           "ctrl_lib::CartesianPositionController" => "controller" do
+Orocos.run "wbc::WbcVelocityTask"                  => "kuka_iiwa_wbc",
+           "ctrl_lib::CartesianPositionController" => "kuka_iiwa_controller" do
 
-    controller   = Orocos::TaskContext.get "controller"
-    wbc          = Orocos::TaskContext.get "wbc"
+    controller   = Orocos::TaskContext.get "kuka_iiwa_controller"
+    wbc          = Orocos::TaskContext.get "kuka_iiwa_wbc"
 
-    Orocos.conf.apply(wbc,         ["default", "cart_pos_ctrl_weights"])
-    Orocos.conf.apply(controller,  ["default"])
+    Orocos.conf.apply(wbc,         ["default", "kuka_iiwa", "kuka_iiwa_cart_pos_ctrl_weights"])
+    Orocos.conf.apply(controller,  ["kuka_iiwa_cart_controller"])
 
     # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
     wbc.configure
@@ -46,7 +42,11 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
     writer_joint_state = wbc.joint_state.writer
     writer_joint_state.write joint_state
 
-    Readline.readline("Press Enter to start motion")
+    puts "\n----------------------------- Press Enter to start motion ---------------------------------"
+    puts "NOTE: To enable visualization, type "
+    puts "        'rock-roboviz models/kuka_iiwa/urdf/kuka_iiwa.urdf -s kuka_iiwa_wbc:solver_output'"
+    puts "This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'."
+    Readline.readline("------------------------------------------------------------------------------------------")
 
     # Set activation for constraint
     wbc.activateConstraint(constraint_name,1)
@@ -70,10 +70,14 @@ Orocos.run "wbc::WbcVelocityTask"                  => "wbc",
        solver_output = reader_ctrl_out.read
 
        if feedback && solver_output
-          print "Target position:  "
+          print "Target position/orientation:  "
           target_pose.pose.position.data.each do |v| print "#{'%.04f' % v} " end
-          print "\nCurrent position: "
+          target_pose.pose.orientation.im.each do |v| print "#{'%.04f' % v} " end
+          print "#{'%.04f' % target_pose.pose.orientation.re}"
+          print "\nCurrent position/orientation: "
           feedback.pose.position.data.each do |v| print "#{'%.04f' % v} " end
+          feedback.pose.orientation.im.each do |v| print "#{'%.04f' % v} " end
+          print "#{'%.04f' % feedback.pose.orientation.re}"
           print "\nSolver output: "
           solver_output.elements.each do |v| print "#{'%.04f' % v.speed} " end
           print "\n\n"

@@ -1,12 +1,13 @@
 --- name:default
+# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
+integrate: True
+
+--- name:kuka_iiwa
 # Add multiple robot and/or object models.
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
 
-# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
-integrate: True
-
---- name:cart_pos_ctrl_hls
+--- name:kuka_iiwa_cart_pos_ctrl_hls
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
@@ -30,12 +31,12 @@ wbc_config:
       activation: 1.0
       weights: [1,1,1,1,1,1]
 
---- name:cart_pos_ctrl_weights
+--- name:kuka_iiwa_cart_pos_ctrl_weights
 # The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1).
 # A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.
 initial_joint_weights:
     names: ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_2", "kuka_lbr_l_joint_3", "kuka_lbr_l_joint_4", "kuka_lbr_l_joint_5", "kuka_lbr_l_joint_6", "kuka_lbr_l_joint_7"]
-    elements: [1,1,1,1,1,1,1]
+    elements: [1,1,1,1,0,1,1]
 
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
@@ -58,9 +59,9 @@ wbc_config:
       tip:  "kuka_lbr_l_tcp"
       ref_frame: "kuka_lbr_l_link_0"
       activation: 1.0
-      weights: [1,1,1,1,1,1]
+      weights: [1,1,1,0,0,0]
 
---- name:cart_pos_ctrl_hierarchies
+--- name:kuka_iiwa_cart_pos_ctrl_hierarchies
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>

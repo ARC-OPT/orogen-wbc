@@ -1,9 +1,8 @@
---- name:default
+--- name:kuka_iiwa_cart_controller
 # Type of activation function used. See ctrl_lib/ActivationFunction.hpp for details.
 activation_function:
   threshold: 0
   type: :NO_ACTIVATION
-
 # Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
 dead_zone:
   data: [0,0,0,0,0,0]

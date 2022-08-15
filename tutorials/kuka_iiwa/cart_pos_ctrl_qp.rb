@@ -4,24 +4,20 @@
 # The robot end effector is supposed to move to a fixed target pose. The QP is solved using the QPOases solver. In contrast to the cart_pos_ctrl_hls example,
 # the solver output will always be within the joint velocity limits, which are defined in the kuka iiwa URDF file.
 #
-# Note: To see the robot visualization for this tutorial, type
-#     rock-roboviz tutorials/kuka_iiwa/models/urdf/kuka_iiwa.urdf -s wbc:solver_output
-# This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'.
-#
 require 'orocos'
 require 'readline'
 
 Orocos.initialize
 Orocos.conf.load_dir('config')
 
-Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "wbc",
-           "ctrl_lib::CartesianPositionController" => "controller" do
+Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "kuka_iiwa_wbc",
+           "ctrl_lib::CartesianPositionController" => "kuka_iiwa_controller" do
 
-    controller   = Orocos::TaskContext.get "controller"
-    wbc          = Orocos::TaskContext.get "wbc"
+    controller   = Orocos::TaskContext.get "kuka_iiwa_controller"
+    wbc          = Orocos::TaskContext.get "kuka_iiwa_wbc"
 
-    Orocos.conf.apply(wbc,         ["default", "cart_pos_ctrl_qpoases"])
-    Orocos.conf.apply(controller,  ["default"])
+    Orocos.conf.apply(wbc,         ["default", "kuka_iiwa", "kuka_iiwa_cart_pos_ctrl_qpoases"])
+    Orocos.conf.apply(controller,  ["kuka_iiwa_cart_controller"])
 
     # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
     wbc.configure
@@ -48,7 +44,11 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "wbc",
     writer_joint_state = wbc.joint_state.writer
     writer_joint_state.write joint_state
 
-    Readline.readline("Press Enter to start motion")
+    puts "\n----------------------------- Press Enter to start motion ---------------------------------"
+    puts "NOTE: To enable visualization, type "
+    puts "        'rock-roboviz models/kuka_iiwa/urdf/kuka_iiwa.urdf -s kuka_iiwa_wbc:solver_output'"
+    puts "This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'."
+    Readline.readline("------------------------------------------------------------------------------------------")
 
     # Set activation for constraint
     wbc.activateConstraint(constraint_name,1)
