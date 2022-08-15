@@ -57,6 +57,7 @@ bool WbcTask::configureHook(){
 
     compute_constraint_status = _compute_constraint_status.get();
     integrate = _integrate.get();
+    has_floating_base_state = false;
 
     return true;
 }
@@ -89,19 +90,31 @@ void WbcTask::updateHook(){
             state(NO_JOINT_STATE);
         return;
     }
-    if(state() != RUNNING)
-        state(RUNNING);
 
-    _floating_base_state.readNewest(floating_base_state);
-    if(_floating_base_state_deprecated.readNewest(floating_base_state_rbs) == RTT::NewData){
-        floating_base_state.pose.position = floating_base_state_rbs.position;
-        floating_base_state.pose.orientation = floating_base_state_rbs.orientation;
-        floating_base_state.twist.linear = floating_base_state_rbs.velocity;
-        floating_base_state.twist.angular = floating_base_state_rbs.angular_velocity;
-        floating_base_state.time = floating_base_state_rbs.time;
-        floating_base_state.frame_id = floating_base_state_rbs.targetFrame;
+    if(robot_model->hasFloatingBase()){
+        if(_floating_base_state.readNewest(floating_base_state) == RTT::NewData)
+            has_floating_base_state = true;
+        if(_floating_base_state_deprecated.readNewest(floating_base_state_rbs) == RTT::NewData){
+            floating_base_state.pose.position = floating_base_state_rbs.position;
+            floating_base_state.pose.orientation = floating_base_state_rbs.orientation;
+            floating_base_state.twist.linear = floating_base_state_rbs.velocity;
+            floating_base_state.twist.angular = floating_base_state_rbs.angular_velocity;
+            floating_base_state.acceleration.setZero();
+            floating_base_state.time = floating_base_state_rbs.time;
+            floating_base_state.frame_id = floating_base_state_rbs.targetFrame;
+            has_floating_base_state = true;
+        }
+
+        if(!has_floating_base_state){
+            if(state() != NO_FLOATING_BASE_STATE)
+                state(NO_FLOATING_BASE_STATE);
+            return;
+        }
+
     }
 
+    if(state() != RUNNING)
+        state(RUNNING);
     if(_active_contacts.readNewest(active_contacts) == RTT::NewData)
         robot_model->setActiveContacts(active_contacts);
 

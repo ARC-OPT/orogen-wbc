@@ -36,7 +36,7 @@ import_types_from "wbcTypes.hpp"
 task_context "WbcTask" do abstract
     needs_configuration
 
-    runtime_states "NO_JOINT_STATE"
+    runtime_states "NO_JOINT_STATE", "NO_FLOATING_BASE_STATE"
 
     property("robot_model", "wbc/RobotModelConfig").
         doc("Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.")
