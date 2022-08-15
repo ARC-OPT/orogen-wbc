@@ -115,6 +115,7 @@ void WbcTask::updateHook(){
 
     if(state() != RUNNING)
         state(RUNNING);
+
     if(_active_contacts.readNewest(active_contacts) == RTT::NewData)
         robot_model->setActiveContacts(active_contacts);
 
@@ -145,7 +146,7 @@ void WbcTask::updateHook(){
     _current_joint_weights.write(wbc_scene->getActuatedJointWeights());
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
     if(integrate)
-        integrator.integrate(robot_model->jointState(robot_model->jointNames()), solver_output_joints, this->getPeriod());
+        integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output_joints, this->getPeriod());
     if(compute_id)
         robot_model->computeInverseDynamics(solver_output_joints);
     _solver_output.write(solver_output_joints);
