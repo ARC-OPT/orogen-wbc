@@ -1,0 +1,5 @@
+--- name:rh5_single_leg_hybrid
+# no documentation available for this property
+submechanisms_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5_single_leg_hybrid.yml" %>
+# no documentation available for this property
+urdf_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5_single_leg_hybrid.urdf" %>
