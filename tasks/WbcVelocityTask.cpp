@@ -19,10 +19,14 @@ WbcVelocityTask::WbcVelocityTask(std::string const& name, RTT::ExecutionEngine* 
 }
 
 bool WbcVelocityTask::configureHook(){
-    PluginLoader::loadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
-    robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance(_robot_model.get().type));
-    solver = std::make_shared<HierarchicalLSSolver>();
-    wbc_scene = std::make_shared<VelocityScene>(robot_model, solver);
+    if(robot_model.get() == 0){
+        PluginLoader::loadPlugin("libwbc-robot_models-kdl.so");
+        robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance("kdl"));
+    }
+    if(solver.get() == 0)
+        solver = std::make_shared<HierarchicalLSSolver>();
+    if(wbc_scene.get() == 0)
+        wbc_scene = std::make_shared<VelocityScene>(robot_model, solver);
 
     if (! WbcVelocityTaskBase::configureHook())
         return false;
