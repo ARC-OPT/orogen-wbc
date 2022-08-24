@@ -8,8 +8,8 @@ using_library "wbc-solvers-hls"
 using_library "wbc-solvers-qpoases"
 
 import_types_from "base"
-import_types_from "wbc/core/ConstraintConfig.hpp"
-import_types_from "wbc/core/ConstraintStatus.hpp"
+import_types_from "wbc/core/TaskConfig.hpp"
+import_types_from "wbc/core/TaskStatus.hpp"
 import_types_from "wbc/core/RobotModelConfig.hpp"
 import_types_from "wbc/core/QuadraticProgram.hpp"
 import_types_from "wbc/solvers/qpoases/QPOasesSolver.hpp"
@@ -31,7 +31,7 @@ import_types_from "wbcTypes.hpp"
 #
 #  1. Read input ports
 #  2. Update robot models
-#  3. Update constraints and send them to the solver
+#  3. Update Tasks and send them to the solver
 #
 task_context "WbcTask" do abstract
     needs_configuration
@@ -41,26 +41,26 @@ task_context "WbcTask" do abstract
     property("robot_model", "wbc/RobotModelConfig").
         doc("Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.")
 
-    property("wbc_config", "std/vector<wbc/ConstraintConfig>").
-        doc("Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
-             Cartesian constraints:
-                 [in] Reference Input (/base/samples/RigidBodyStateSE3):         ref_<constraint_name>
-                 [in] Weights (/base/VectorXd):                      weight_<constraint_name>
-                 [in] Activation function (double):                  activation_<constraint_name>
-                 [out] Constraint pose output (/base/samples/RigidBodyStateSE3): status_<constraint_name>
-                 [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
-             Joint Space constraints:
+    property("wbc_config", "std/vector<wbc/TaskConfig>").
+        doc("Configuration of Tasks. The WbcTask will dynamically create the following ports for each task:
+             Cartesian tasks:
+                 [in] Reference Input (/base/samples/RigidBodyStateSE3):         ref_<task_name>
+                 [in] Weights (/base/VectorXd):                      weight_<task_name>
+                 [in] Activation function (double):                  activation_<task_name>
+                 [out] Task pose/twist/acceleration output (/base/samples/RigidBodyStateSE3): status_<task_name>
+                 [out] Task debug output (/wbc/TaskStatus): task_<task_name>
+             Joint Space tasks:
                  [in] Reference Input (/base/samples/Joints):            ref_<task_name>
                  [in] Weights (/base/VectorXd):                          weight_<task_name>
                  [in] Activation function (double):                      activation_<task_name>
                  [out] Current joint state output (base/samples/Joints): status_<task_name>
-                 [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>")
+                 [out] Task debug output (/wbc/TaskStatus): task_<task_name>")
 
     property("initial_joint_weights", "wbc/JointWeights").
         doc("The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1). A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.")
 
-    property("compute_constraint_status", "bool", true).
-        doc("For debugging purpose: Compute the current status for each constraint, which contains (a) the solver output projected to task space (desired task space motion) and
+    property("compute_task_status", "bool", true).
+        doc("For debugging purpose: Compute debug the current status for each task, which contains (a) the solver output projected to task space (desired task space motion) and
              (b) the actual task space motion")
 
     property("integrate", "bool", true).
@@ -111,22 +111,22 @@ task_context "WbcTask" do abstract
     output_port("full_joint_state", "base/samples/Joints").
         doc("Debug: Complete joint state including virtual joints as used by the solver.")
 
-    operation("activateConstraint").
-       argument("constraint_name", "std/string").
+    operation("activateTask").
+       argument("task_name", "std/string").
        argument("activation", "double")
 
-    operation("activateConstraints").
-       argument("constraint_names", "std/vector<std/string>").
+    operation("activateTasks").
+       argument("task_names", "std/vector<std/string>").
        argument("activation", "double")
 
-    operation("deactivateAllConstraints")
+    operation("deactivateAllTasks")
 
     periodic 0.001
 end
 
 #
 # Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
-# The tasks are modeled as linear equality constraints Ax=y to a simplified QP with H=I and g=0
+# The tasks are modeled as linear equalities Ax=y to a simplified QP with H=I and g=0
 #
 task_context "WbcVelocityTask", subclasses: "WbcTask" do
     needs_configuration
@@ -151,6 +151,9 @@ end
 task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
     needs_configuration
 
+    property("hessian_regularizer", "double", 1e-8)
+       .doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility")
+
     property("qp_solver", "std/string", "qpoases")
        .doc("Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']")
 
@@ -165,6 +168,9 @@ end
 #
 task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     needs_configuration
+
+    property("hessian_regularizer", "double", 1e-6)
+       .doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility")
 
     property("qp_solver", "std/string", "qpoases")
        .doc("Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']")
@@ -225,6 +231,6 @@ task_context "LoopBackDriver" do
 end
 
 typekit do
-   export_types "wbc/ConstraintStatus"
+   export_types "wbc/TaskStatus"
 end
 

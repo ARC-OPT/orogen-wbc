@@ -4,7 +4,7 @@
 #include <wbc/core/Scene.hpp>
 #include <wbc/core/RobotModel.hpp>
 #include <wbc/core/QPSolver.hpp>
-#include "ConstraintInterface.hpp"
+#include "TaskInterface.hpp"
 #include <base-logging/Logging.hpp>
 
 using namespace wbc;
@@ -36,18 +36,18 @@ bool WbcTask::configureHook(){
 
     LOG_DEBUG("... Configured WBC Scene");
 
-    // Create constraint interfaces. Don't recreate existing interfaces.
-    for(ConstraintConfig cfg : wbc_config){
-        if(constraint_interfaces.count(cfg.name) == 0)
-            constraint_interfaces[cfg.name] = std::make_shared<ConstraintInterface>(cfg, wbc_scene, robot_model, this);
+    // Create task interfaces. Don't recreate existing interfaces.
+    for(TaskConfig cfg : wbc_config){
+        if(task_interfaces.count(cfg.name) == 0)
+            task_interfaces[cfg.name] = std::make_shared<TaskInterface>(cfg, wbc_scene, robot_model, this);
         else
-            constraint_interfaces[cfg.name]->cfg = cfg;
+            task_interfaces[cfg.name]->cfg = cfg;
     }
 
-    // Remove constraint interfaces that are not required anymore
-    for(const auto &it : constraint_interfaces){
-        if(!wbc_scene->hasConstraint(it.first))
-            constraint_interfaces.erase(it.first);
+    // Remove task interfaces that are not required anymore
+    for(const auto &it : task_interfaces){
+        if(!wbc_scene->hasTask(it.first))
+            task_interfaces.erase(it.first);
     }
 
     floating_base_state = robot_model->floatingBaseState();
@@ -55,7 +55,7 @@ bool WbcTask::configureHook(){
 
     LOG_DEBUG("... Created ports");
 
-    compute_constraint_status = _compute_constraint_status.get();
+    compute_task_status = _compute_task_status.get();
     integrate = _integrate.get();
     has_floating_base_state = false;
 
@@ -68,7 +68,7 @@ bool WbcTask::startHook(){
 
     //Clear all task references, weights etc. to have to secure initial state
     for(const auto &cfg : wbc_config)
-        wbc_scene->getConstraint(cfg.name)->reset();
+        wbc_scene->getTask(cfg.name)->reset();
     stamp.microseconds = 0;
     timing_stats.desired_period = this->getPeriod();
 
@@ -131,10 +131,10 @@ void WbcTask::updateHook(){
     // Update Scene
     _joint_weights.readNewest(joint_weights);
     cur_time = base::Time::now();
-    for(const auto& it : constraint_interfaces)
+    for(const auto& it : task_interfaces)
         it.second->update();
     wbc_scene->setJointWeights(joint_weights);
-    timing_stats.time_constraint_update = (base::Time::now()-cur_time).toSeconds();
+    timing_stats.time_task_update = (base::Time::now()-cur_time).toSeconds();
 
     // Update Quadratic program
     cur_time = base::Time::now();
@@ -156,10 +156,10 @@ void WbcTask::updateHook(){
     _full_joint_state.write(robot_model->jointState(robot_model->jointNames()));
     _current_qp.write(hierarchical_qp);
     full_joint_state = robot_model->jointState(robot_model->jointNames());
-    if(compute_constraint_status){
-        constraints_status = wbc_scene->updateConstraintsStatus();
-        for(const auto &c : constraint_interfaces)
-            c.second->writeConstraintStatus(constraints_status[c.first]);
+    if(compute_task_status){
+        tasks_status = wbc_scene->updateTasksStatus();
+        for(const auto &c : task_interfaces)
+            c.second->writeTaskStatus(tasks_status[c.first]);
     }
 
     timing_stats.time_per_cycle = (base::Time::now()-start_time).toSeconds();
@@ -182,17 +182,17 @@ void WbcTask::cleanupHook(){
     integrator.reinit();
 }
 
-void WbcTask::activateConstraint(const std::string& constraint_name, double activation){
-    wbc_scene->getConstraint(constraint_name)->setActivation(activation);
+void WbcTask::activateTask(const std::string& task_name, double activation){
+    wbc_scene->getTask(task_name)->setActivation(activation);
 }
 
-void WbcTask::activateConstraints(const std::vector<std::string>& constraint_names, double activation){
-    for(auto name : constraint_names)
-         wbc_scene->getConstraint(name)->setActivation(activation);
+void WbcTask::activateTasks(const std::vector<std::string>& task_names, double activation){
+    for(auto name : task_names)
+         wbc_scene->getTask(name)->setActivation(activation);
 }
 
-void WbcTask::deactivateAllConstraints(){
-    for(auto constraint : wbc_config)
-        wbc_scene->getConstraint(constraint.name)->setActivation(0);
+void WbcTask::deactivateAllTasks(){
+    for(auto task : wbc_config)
+        wbc_scene->getTask(task.name)->setActivation(0);
 }
 

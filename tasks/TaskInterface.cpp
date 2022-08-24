@@ -1,11 +1,11 @@
-#include "ConstraintInterface.hpp"
+#include "TaskInterface.hpp"
 #include <wbc/core/Scene.hpp>
 #include <wbc/core/RobotModel.hpp>
-#include <wbc/core/ConstraintStatus.hpp>
+#include <wbc/core/TaskStatus.hpp>
 
 namespace wbc{
 
-ConstraintInterface::ConstraintInterface(ConstraintConfig _cfg,
+TaskInterface::TaskInterface(TaskConfig _cfg,
                                          WbcScenePtr _scene,
                                          RobotModelPtr _robot_model,
                                          RTT::TaskContext* _task_context){
@@ -41,8 +41,8 @@ ConstraintInterface::ConstraintInterface(ConstraintConfig _cfg,
             e.speed = 0;
             e.acceleration = 0;
         }
-        constraint_jnt_state.resize(cfg.joint_names.size());
-        constraint_jnt_state.names = cfg.joint_names;
+        task_jnt_state.resize(cfg.joint_names.size());
+        task_jnt_state.names = cfg.joint_names;
     }
 
     activation_port = std::make_shared<ActivationPort>("activation_" + cfg.name);
@@ -51,11 +51,11 @@ ConstraintInterface::ConstraintInterface(ConstraintConfig _cfg,
     weight_port = std::make_shared<WeightInPort>("weight_" + cfg.name);
     task_context->ports()->addPort(weight_port->getName(), *(weight_port));
 
-    constraint_status_port = std::make_shared<ConstraintStatusPort>("constraint_" + cfg.name);
-    task_context->ports()->addPort(constraint_status_port->getName(), *(constraint_status_port));
+    task_status_port = std::make_shared<TaskStatusPort>("task_" + cfg.name);
+    task_context->ports()->addPort(task_status_port->getName(), *(task_status_port));
 }
 
-ConstraintInterface::~ConstraintInterface(){
+TaskInterface::~TaskInterface(){
 
     task_context->ports()->removePort(weight_port->getName());
     task_context->ports()->removePort(activation_port->getName());
@@ -67,11 +67,11 @@ ConstraintInterface::~ConstraintInterface(){
         task_context->ports()->removePort(jnt_ref_port->getName());
     if(jnt_state_out_port)
         task_context->ports()->removePort(jnt_state_out_port->getName());
-    if(constraint_status_port)
-        task_context->ports()->removePort(constraint_status_port->getName());
+    if(task_status_port)
+        task_context->ports()->removePort(task_status_port->getName());
 }
 
-void ConstraintInterface::update(){
+void TaskInterface::update(){
 
     if(activation_port->readNewest(activation) == RTT::NewData)
         scene->setTaskActivation(cfg.name,activation);
@@ -95,8 +95,8 @@ void ConstraintInterface::update(){
         jnt_state_out_port->write(robot_model->jointState(cfg.joint_names));
 }
 
-void ConstraintInterface::writeConstraintStatus(const ConstraintStatus& status){
-    constraint_status_port->write(status);
+void TaskInterface::writeTaskStatus(const TaskStatus& status){
+    task_status_port->write(status);
 }
 
 }
