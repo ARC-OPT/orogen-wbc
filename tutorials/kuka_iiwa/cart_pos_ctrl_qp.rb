@@ -9,10 +9,13 @@ require 'readline'
 
 Orocos.initialize
 Orocos.conf.load_dir('config')
+log_dir = "../logs"
+Dir.mkdir log_dir  unless File.exists?(log_dir)
+Orocos.default_working_directory = log_dir
 
 Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "kuka_iiwa_wbc",
            "wbc::LoopBackDriver"                   => "kuka_iiwa_joints",
-           "ctrl_lib::CartesianPositionController" => "kuka_iiwa_controller" do
+           "ctrl_lib::CartesianPositionController" => "kuka_iiwa_controller", :output => nil do
 
     controller   = Orocos::TaskContext.get "kuka_iiwa_controller"
     joints       = Orocos::TaskContext.get "kuka_iiwa_joints"
@@ -22,7 +25,7 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "kuka_iiwa_wbc",
     Orocos.conf.apply(joints,      ["kuka_iiwa"])
     Orocos.conf.apply(controller,  ["cart_ctrl"])
 
-    # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
+    # Note: WBC will create dynamic ports for the tasks at configuration time, so configure already here
     wbc.configure
     joints.configure
     controller.configure
@@ -32,17 +35,14 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "kuka_iiwa_wbc",
     wbc.port("solver_output").connect_to joints.port("command")
 
     # Priority 0: Cartesian Position control
-    constraint_name = wbc.wbc_config[0].name
-    controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    wbc.port("status_" + constraint_name).connect_to controller.port("feedback")
+    task_name = wbc.wbc_config[0].name
+    controller.port("control_output").connect_to wbc.port("ref_" + task_name)
+    wbc.port("status_" + task_name).connect_to controller.port("feedback")
 
     # Run
     joints.start
     controller.start
     wbc.start
-
-    # Set activation for constraint
-    wbc.activateConstraint(constraint_name,1)
 
     # Set target pose for Cartesian Controller
     target_pose = Types.base.samples.RigidBodyStateSE3.new
@@ -57,7 +57,7 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "kuka_iiwa_wbc",
         target_pose.pose.position = Types.base.Vector3d.new(0,0,0.9+0.1*Math.sin(delta)) # Position
         target_pose.twist.linear  = Types.base.Vector3d.new(0,0,0.1*Math.cos(delta))     # Feed forward velocity. This will improve trajectory tracking
         pose_writer.write(target_pose)
-        delta += 0.2
+        delta += 0.1
     end
     timer.start(10)
 

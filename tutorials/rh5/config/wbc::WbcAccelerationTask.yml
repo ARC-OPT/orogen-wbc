@@ -2,7 +2,7 @@
 # Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
 integrate: true
 # Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
-qp_solver: eiquadprog
+qp_solver: qpoases
 
 --- name:rh5_single_leg
 # Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
@@ -16,7 +16,7 @@ robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5_legs.urdf" %>
     submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5_legs.yml" %>
     floating_base: true
-    type: hyrodyn
+    type: pinocchio
     contact_points:
         names: ["FL_SupportCenter", "FR_SupportCenter"]
         elements: [1,1]

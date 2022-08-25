@@ -29,7 +29,7 @@ step_size: 0.001
 control_mode: :PD_PLUS_FEEDFORWARD_TORQUE
 p_gains_global: 1000
 d_gains_global: 50
-damping_global: 100
+damping_global: 1
 urdf_path: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5_legs.urdf"  %>
 imu_name: "IMU"
 ft_sensor_names: ["LRAnkle_FT", "LLAnkle_FT"]

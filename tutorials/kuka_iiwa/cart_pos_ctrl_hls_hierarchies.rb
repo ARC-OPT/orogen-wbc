@@ -7,6 +7,9 @@ require 'readline'
 
 Orocos.initialize
 Orocos.conf.load_dir('config')
+log_dir = "../logs"
+Dir.mkdir log_dir  unless File.exists?(log_dir)
+Orocos.default_working_directory = log_dir
 
 Orocos.run "wbc::WbcVelocityTask"                  => "kuka_iiwa_wbc",
            "wbc::LoopBackDriver"                   => "kuka_iiwa_joints",
@@ -23,7 +26,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "kuka_iiwa_wbc",
     Orocos.conf.apply(controller, ["cart_ctrl"])
     Orocos.conf.apply(jnt_ctrl,   ["jnt_pos_ctrl"])
 
-    # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
+    # Note: WBC will create dynamic ports for the tasks at configuration time, so configure already here
     wbc.configure
     joints.configure
     controller.configure
@@ -34,24 +37,20 @@ Orocos.run "wbc::WbcVelocityTask"                  => "kuka_iiwa_wbc",
     wbc.port("solver_output").connect_to joints.port("command")
 
     # Priority 0: Cartesian Position control
-    constraint_name = wbc.wbc_config[0].name
-    jnt_ctrl.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    wbc.port("status_" + constraint_name).connect_to jnt_ctrl.port("feedback")
+    task_name = wbc.wbc_config[0].name
+    jnt_ctrl.port("control_output").connect_to wbc.port("ref_" + task_name)
+    wbc.port("status_" + task_name).connect_to jnt_ctrl.port("feedback")
 
     # Priority 1: Cartesian Position control
-    constraint_name = wbc.wbc_config[1].name
-    controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    wbc.port("status_" + constraint_name).connect_to controller.port("feedback")
+    task_name = wbc.wbc_config[1].name
+    controller.port("control_output").connect_to wbc.port("ref_" + task_name)
+    wbc.port("status_" + task_name).connect_to controller.port("feedback")
 
     # Run
     jnt_ctrl.start
     joints.start
     controller.start
     wbc.start
-
-    # Set activation for constraints
-    wbc.activateConstraint(wbc.wbc_config[0].name,1)
-    wbc.activateConstraint(wbc.wbc_config[1].name,1)
 
     # Set target pose for Joint Controller
     target_jnt_pos = Types.base.samples.Joints.new
