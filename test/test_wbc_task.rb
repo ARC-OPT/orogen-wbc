@@ -109,12 +109,6 @@ class TestWbcTask < Test::Unit::TestCase
 
             Orocos.conf.apply(task, ["default", "configure_fail_invalid_urdf_file"])
             assert_raise(Orocos::StateTransitionFailed){task.configure}
-
-            Orocos.conf.apply(task, ["default", "configure_fail_invalid_floating_base_state"])
-            assert_raise(Orocos::StateTransitionFailed){task.configure}
-
-            Orocos.conf.apply(task, ["default", "configure_fail_invalid_blacklist"])
-            assert_raise(Orocos::StateTransitionFailed){task.configure}
         end
     end
 

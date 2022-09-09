@@ -61,7 +61,7 @@ protected:
     ConstraintsStatus constraints_status;                 /** Status of constraints*/
     base::samples::RigidBodyStateSE3 floating_base_state; /** Current status of the floating base*/
     base::samples::RigidBodyState floating_base_state_rbs;/** Deprecated floating base state*/
-    wbc::JointWeights joint_weights;                     /** Current joint weights*/
+    wbc::JointWeights joint_weights;                      /** Current joint weights*/
     std::vector<ConstraintConfig> wbc_config;             /** WBC constraint configuration*/
     bool compute_constraint_status;                       /** For debugging purpose*/
     bool integrate;                                       /** Perform numerical integration for the solver output*/
@@ -69,6 +69,7 @@ protected:
     ActiveContacts active_contacts;                       /** Names of the active contact points*/
     base::samples::Wrenches contact_wrenches;             /** Measured contact wrenches*/
     bool compute_id;                                      /** Compute inverse dynamics on top of the kinematic solution (only for the velocity-based solvers)*/
+    bool has_floating_base_state;                         /** Is floating base state available on inpurt port?*/
 
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");

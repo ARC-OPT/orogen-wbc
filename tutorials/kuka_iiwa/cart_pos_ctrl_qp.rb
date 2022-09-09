@@ -4,28 +4,32 @@
 # The robot end effector is supposed to move to a fixed target pose. The QP is solved using the QPOases solver. In contrast to the cart_pos_ctrl_hls example,
 # the solver output will always be within the joint velocity limits, which are defined in the kuka iiwa URDF file.
 #
-# Note: To see the robot visualization for this tutorial, type
-#     rock-roboviz tutorials/kuka_iiwa/models/urdf/kuka_iiwa.urdf -s wbc:solver_output
-# This requires that you install 'roboviz' by typing 'aup/amake gui/robot_model'.
-#
-require 'orocos'
+require 'vizkit'
 require 'readline'
 
 Orocos.initialize
 Orocos.conf.load_dir('config')
 
-Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "wbc",
-           "ctrl_lib::CartesianPositionController" => "controller" do
+Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "kuka_iiwa_wbc",
+           "wbc::LoopBackDriver"                   => "kuka_iiwa_joints",
+           "ctrl_lib::CartesianPositionController" => "kuka_iiwa_controller" do
 
-    controller   = Orocos::TaskContext.get "controller"
-    wbc          = Orocos::TaskContext.get "wbc"
+    controller   = Orocos::TaskContext.get "kuka_iiwa_controller"
+    joints       = Orocos::TaskContext.get "kuka_iiwa_joints"
+    wbc          = Orocos::TaskContext.get "kuka_iiwa_wbc"
 
     Orocos.conf.apply(wbc,         ["default", "cart_pos_ctrl_qpoases"])
-    Orocos.conf.apply(controller,  ["default"])
+    Orocos.conf.apply(joints,      ["kuka_iiwa"])
+    Orocos.conf.apply(controller,  ["cart_ctrl"])
 
     # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
     wbc.configure
+    joints.configure
     controller.configure
+
+    # Connect WBC to robot joints
+    joints.port("joint_state").connect_to wbc.port("joint_state")
+    wbc.port("solver_output").connect_to joints.port("command")
 
     # Priority 0: Cartesian Position control
     constraint_name = wbc.wbc_config[0].name
@@ -33,22 +37,9 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "wbc",
     wbc.port("status_" + constraint_name).connect_to controller.port("feedback")
 
     # Run
+    joints.start
     controller.start
     wbc.start
-
-    # Write initial joint state
-    joint_state = Types.base.samples.Joints.new
-    joint_state.names = ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_2", "kuka_lbr_l_joint_3", "kuka_lbr_l_joint_4", "kuka_lbr_l_joint_5", "kuka_lbr_l_joint_6", "kuka_lbr_l_joint_7"]
-    joint_state.names.each do
-       js = Types.base.JointState.new
-       js.position = 0.1
-       joint_state.elements << js
-    end
-    joint_state.time = Types.base.Time.now
-    writer_joint_state = wbc.joint_state.writer
-    writer_joint_state.write joint_state
-
-    Readline.readline("Press Enter to start motion")
 
     # Set activation for constraint
     wbc.activateConstraint(constraint_name,1)
@@ -57,38 +48,33 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "wbc",
     target_pose = Types.base.samples.RigidBodyStateSE3.new
     target_pose.pose.position = Types.base.Vector3d.new(0,0,0.8)
     target_pose.pose.orientation = Types.base.Quaterniond.from_euler(Types.base.Vector3d.new(0,0,0), 2,1,0)
+    target_pose.twist.angular  = Types.base.Vector3d.new(0,0,0)
     pose_writer = controller.port("setpoint").writer
-    pose_writer.write(target_pose)
+    timer = Qt::Timer.new
+    delta = 0.0
+    timer.connect(SIGNAL('timeout()')) do
+        target_pose.time = Types.base.Time.now
+        target_pose.pose.position = Types.base.Vector3d.new(0,0,0.9+0.1*Math.sin(delta)) # Position
+        target_pose.twist.linear  = Types.base.Vector3d.new(0,0,0.1*Math.cos(delta))     # Feed forward velocity. This will improve trajectory tracking
+        pose_writer.write(target_pose)
+        delta += 0.2
+    end
+    timer.start(10)
 
-    # Check if current pose == target pose in a loop
-    reader_feedback = controller.port("current_feedback").reader
-    reader_ctrl_out = wbc.solver_output.reader
-    while true
-
-       joint_state.time = Types.base.Time.now
-       writer_joint_state.write joint_state
-
-       feedback = reader_feedback.read
-       solver_output = reader_ctrl_out.read
-
-       if feedback && solver_output
-          print "Target position:  "
-          target_pose.pose.position.data.each do |v| print "#{'%.04f' % v} " end
-          print "\nCurrent position: "
-          feedback.pose.position.data.each do |v| print "#{'%.04f' % v} " end
-          print "\nSolver output: "
-          solver_output.elements.each do |v| print "#{'%.04f' % v.speed} " end
-          print "\n\n"
-
-          if (target_pose.pose.position - feedback.pose.position).norm < 1e-3
-             puts "Reached Target Position!"
-             break
-          end
-
-          joint_state.elements = solver_output.elements
-       end
-       sleep 0.01
+    # visualization
+    begin
+        proxy = Orocos::Async.proxy "kuka_iiwa_wbc"
+        vis_gui = Vizkit.default_loader.RobotVisualization
+        vis_gui.modelFile = wbc.robot_model.file
+        start_time = Types.base.Time.now
+        proxy.port("full_joint_state").on_data do |sample|
+            vis_gui.updateData(sample)
+        end
+    rescue
+        puts "Loading the robot vizualization failed!"
+        puts "To enable visualization, you have to install 'roboviz' as follows:"
+        puts "     aup/amake gui/robot_model    "
     end
 
-    Readline.readline("Press Enter to exit")
+    Vizkit.exec
 end

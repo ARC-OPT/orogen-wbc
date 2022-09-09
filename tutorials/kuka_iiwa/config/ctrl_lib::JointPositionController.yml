@@ -6,7 +6,7 @@ dead_zone:
 d_gain:
   data: [1.0]
 # Unique name for each variable, e.g. joint names in case of a joint space controller.
-field_names: ["kuka_lbr_l_joint_5"]
+field_names: ["kuka_lbr_l_joint_6"]
 # Maximum control output (saturation). If one output value exceeds maximum, all
 # other values will be scaled accordingly. Size has to be the same as size of field_names.
 max_control_output:

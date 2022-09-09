@@ -36,7 +36,7 @@ import_types_from "wbcTypes.hpp"
 task_context "WbcTask" do abstract
     needs_configuration
 
-    runtime_states "NO_JOINT_STATE"
+    runtime_states "NO_JOINT_STATE", "NO_FLOATING_BASE_STATE"
 
     property("robot_model", "wbc/RobotModelConfig").
         doc("Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.")
@@ -205,6 +205,24 @@ task_context "CartesianStateToRbsTask" do
     port_driven
 end
 
+#
+# Simple fake joint position interface required for the tutorials
+#
+task_context "LoopBackDriver" do
+    needs_configuration
+    property("initial_joint_state", "base/samples/Joints").
+        doc("Initial position of the robot. Needs to include all joints")
+    property("noise_std_dev", "double", 1e-4).
+        doc("White noise std deviation which is added to the position/velocity/acceleration readings")
+
+    input_port("command", "base/commands/Joints").
+        doc("Input joint command. Has to contain all joints configureed in initial_joint_state.")
+
+    output_port("joint_state", "base/samples/Joints").
+        doc("Current joint state.")
+
+    periodic 0.001
+end
 
 typekit do
    export_types "wbc/ConstraintStatus"

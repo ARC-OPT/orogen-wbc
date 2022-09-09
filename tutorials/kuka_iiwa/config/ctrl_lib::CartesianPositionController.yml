@@ -1,23 +1,21 @@
---- name:default
+--- name:cart_ctrl
 # Type of activation function used. See ctrl_lib/ActivationFunction.hpp for details.
 activation_function:
   threshold: 0
   type: :NO_ACTIVATION
-
 # Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
 dead_zone:
   data: [0,0,0,0,0,0]
-# Feed Forward gain. Size has to be the same as size of field_names.
+# Derivative gain. Size has to be the same as size of field_names.
 d_gain:
-  data: [0,0,0,0,0,0]
+  data: [1,1,1,1,1,1]
+# Feed Forward gain. Size has to be the same as size of field_names.
 ff_gain:
   data: [0,0,0,0,0,0]
-# Unique name for each variable, e.g. joint names in case of a joint space controller.
-field_names: ["X", "Y", "Z", "rotZ", "rotY", "rotX"]
 # Maximum control output (saturation). If one output value exceeds maximum, all
 # other values will be scaled accordingly. Size has to be the same as size of field_names.
 max_control_output:
-  data: [100, 100, 100, 100, 100, 100]
+  data: [5, 5, 5, 5, 5, 5]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
-  data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  data: [20, 20, 20, 20, 20, 20]

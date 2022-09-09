@@ -10,7 +10,7 @@ initial_joint_weights:
 
 --- name:configure_success
 robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
 wbc_config:
    - name: "cart_pos_ctrl"
      priority: 0
@@ -23,7 +23,7 @@ wbc_config:
 
 --- name:configure_success_2
 robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
@@ -36,14 +36,8 @@ wbc_config:
 
 --- name:configure_success_floating_base
 robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
     floating_base: true
-    floating_base_state:
-        pose:
-            position:
-                data: [0,0,0]
-            orientation: {re: 1.0, im: [0,0,0]}
-    world_frame_id: world
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
@@ -56,40 +50,7 @@ wbc_config:
 
 --- name:configure_fail_invalid_urdf_file
 robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urd" %>
-wbc_config:
-   - name: "cart_pos_ctrl_2"
-     priority: 0
-     type: cart
-     root: "kuka_lbr_l_link_0"
-     tip:  "kuka_lbr_l_tcp"
-     ref_frame: "kuka_lbr_l_link_0"
-     activation: 1.0
-     weights: [1,1,1,1,1,1]
-
---- name:configure_fail_invalid_floating_base_state
-robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-    floating_base: true
-    floating_base_state:
-        pose:
-            position:
-                data: [0,0,0]
-            orientation: {re: 1.0, im: [1,1,1]}
-wbc_config:
-   - name: "cart_pos_ctrl_2"
-     priority: 0
-     type: cart
-     root: "kuka_lbr_l_link_0"
-     tip:  "kuka_lbr_l_tcp"
-     ref_frame: "kuka_lbr_l_link_0"
-     activation: 1.0
-     weights: [1,1,1,1,1,1]
-
---- name:configure_fail_invalid_blacklist
-robot_model:
-    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/orogen/wbc/models/kuka_iiwa/urdf/kuka_iiwa.urdf" %>
-    joint_blacklist: ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_X"]
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urd" %>
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0

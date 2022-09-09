@@ -1,0 +1,14 @@
+--- name:kuka_iiwa
+# no documentation available for this property
+initial_joint_state:
+  names: ["kuka_lbr_l_joint_1", "kuka_lbr_l_joint_2", "kuka_lbr_l_joint_3", "kuka_lbr_l_joint_4", "kuka_lbr_l_joint_5", "kuka_lbr_l_joint_6", "kuka_lbr_l_joint_7"]
+  elements:
+       - position: 0.0
+       - position: 0.0
+       - position: 0.0
+       - position: 0.0
+       - position: 0.0
+       - position: 0.0
+       - position: 0.0
+# no documentation available for this property
+noise_std_dev: 0.0001
