@@ -58,14 +58,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1CartesianStateToRbsTask.html">CartesianStateToRbsTask</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The task context provides and requires services. It uses an ExecutionEngine to perform its functions. Essential interfaces are operations, data flow ports and properties. These interfaces have been defined using the oroGen specification. In order to modify the interfaces you should (re)use oroGen and rely on the associated workflow.  <a href="classwbc_1_1CartesianStateToRbsTask.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1ConstraintInterface.html">ConstraintInterface</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classwbc_1_1ConstraintInterface.html" title="The ConstraintInterface class contains I/O ports for each constraint.">ConstraintInterface</a> class contains I/O ports for each constraint.  <a href="classwbc_1_1ConstraintInterface.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1LoopBackDriver.html">LoopBackDriver</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The task context provides and requires services. It uses an ExecutionEngine to perform its functions. Essential interfaces are operations, data flow ports and properties. These interfaces have been defined using the oroGen specification. In order to modify the interfaces you should (re)use oroGen and rely on the associated workflow.  <a href="classwbc_1_1LoopBackDriver.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1RbsToCartesianStateTask.html">RbsToCartesianStateTask</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The task context provides and requires services. It uses an ExecutionEngine to perform its functions. Essential interfaces are operations, data flow ports and properties. These interfaces have been defined using the oroGen specification. In order to modify the interfaces you should (re)use oroGen and rely on the associated workflow.  <a href="classwbc_1_1RbsToCartesianStateTask.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1TaskInterface.html">TaskInterface</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classwbc_1_1TaskInterface.html" title="The TaskInterface class contains I/O ports for each task.">TaskInterface</a> class contains I/O ports for each task.  <a href="classwbc_1_1TaskInterface.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcAccelerationTask.html">WbcAccelerationTask</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Acceleration based implementation of the WBC Scene.  <a href="classwbc_1_1WbcAccelerationTask.html#details">More...</a><br /></td></tr>
@@ -97,8 +97,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:a5941830c5c1ed72091e34e08f281549b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac7ffacf82b3d6052a9c13cfa06ad1672"><td class="memItemLeft" align="right" valign="top">typedef RTT::OutputPort&lt; base::samples::Joints &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#ac7ffacf82b3d6052a9c13cfa06ad1672">JntStatusPort</a></td></tr>
 <tr class="separator:ac7ffacf82b3d6052a9c13cfa06ad1672"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4e4804e089ee5d7f13671340c95af3d"><td class="memItemLeft" align="right" valign="top">typedef RTT::OutputPort&lt; wbc::ConstraintStatus &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#ab4e4804e089ee5d7f13671340c95af3d">ConstraintStatusPort</a></td></tr>
-<tr class="separator:ab4e4804e089ee5d7f13671340c95af3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac898218d309fcf660ea2049facdc5980"><td class="memItemLeft" align="right" valign="top">typedef RTT::OutputPort&lt; wbc::TaskStatus &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#ac898218d309fcf660ea2049facdc5980">TaskStatusPort</a></td></tr>
+<tr class="separator:ac898218d309fcf660ea2049facdc5980"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98af6f2dc26107693cd65629f625f6fb"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; <a class="el" href="namespacewbc.html#a0b443cee9454597f668ab6f400edf348">CartRefPort</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a98af6f2dc26107693cd65629f625f6fb">CartRefPortPtr</a></td></tr>
 <tr class="separator:a98af6f2dc26107693cd65629f625f6fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52aa3a4348ad958c5088cfdd04bb570b"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; <a class="el" href="namespacewbc.html#a019c307deb92a7fc5b59c8c9a75d31aa">JntRefPort</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a52aa3a4348ad958c5088cfdd04bb570b">JntRefPortPtr</a></td></tr>
@@ -111,14 +111,14 @@ Typedefs</h2></td></tr>
 <tr class="separator:a25cb10f227847525bbedde136ef233b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2de2a969051163a50b909b28ef128c45"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; <a class="el" href="namespacewbc.html#ac7ffacf82b3d6052a9c13cfa06ad1672">JntStatusPort</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a2de2a969051163a50b909b28ef128c45">JntStatusPortPtr</a></td></tr>
 <tr class="separator:a2de2a969051163a50b909b28ef128c45"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63ae3e6b12ae769ac3869a8eaa3ee9df"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; <a class="el" href="namespacewbc.html#ab4e4804e089ee5d7f13671340c95af3d">ConstraintStatusPort</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a63ae3e6b12ae769ac3869a8eaa3ee9df">ConstraintStatusPortPtr</a></td></tr>
-<tr class="separator:a63ae3e6b12ae769ac3869a8eaa3ee9df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7345b10912da7a53d464821c9e7d914c"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; <a class="el" href="namespacewbc.html#ac898218d309fcf660ea2049facdc5980">TaskStatusPort</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a7345b10912da7a53d464821c9e7d914c">TaskStatusPortPtr</a></td></tr>
+<tr class="separator:a7345b10912da7a53d464821c9e7d914c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6902c325ae9865d95481fa98c9bf8f85"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; QPSolver &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a6902c325ae9865d95481fa98c9bf8f85">QPSolverPtr</a></td></tr>
 <tr class="separator:a6902c325ae9865d95481fa98c9bf8f85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a41ca41ef302f4b6466d59dac94c44d6f"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; <a class="el" href="classwbc_1_1ConstraintInterface.html">ConstraintInterface</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a41ca41ef302f4b6466d59dac94c44d6f">ConstraintInterfacePtr</a></td></tr>
-<tr class="separator:a41ca41ef302f4b6466d59dac94c44d6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0cb95d1f5769a5a3b3d1d611873b1726"><td class="memItemLeft" align="right" valign="top">typedef std::map&lt; std::string, <a class="el" href="namespacewbc.html#a41ca41ef302f4b6466d59dac94c44d6f">ConstraintInterfacePtr</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a0cb95d1f5769a5a3b3d1d611873b1726">ConstraintInterfaceMap</a></td></tr>
-<tr class="separator:a0cb95d1f5769a5a3b3d1d611873b1726"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49cf9ad22e709f409d846c733343458b"><td class="memItemLeft" align="right" valign="top">typedef std::shared_ptr&lt; <a class="el" href="classwbc_1_1TaskInterface.html">TaskInterface</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a49cf9ad22e709f409d846c733343458b">TaskInterfacePtr</a></td></tr>
+<tr class="separator:a49cf9ad22e709f409d846c733343458b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a64265c5ce2d31b2600f60da2b73d11"><td class="memItemLeft" align="right" valign="top">typedef std::map&lt; std::string, <a class="el" href="namespacewbc.html#a49cf9ad22e709f409d846c733343458b">TaskInterfacePtr</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacewbc.html#a0a64265c5ce2d31b2600f60da2b73d11">TaskInterfaceMap</a></td></tr>
+<tr class="separator:a0a64265c5ce2d31b2600f60da2b73d11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="a009a9a5e9eb70f0313606ed784fd476d" name="a009a9a5e9eb70f0313606ed784fd476d"></a>
@@ -205,62 +205,6 @@ Typedefs</h2></td></tr>
 
 </div>
 </div>
-<a id="a0cb95d1f5769a5a3b3d1d611873b1726" name="a0cb95d1f5769a5a3b3d1d611873b1726"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0cb95d1f5769a5a3b3d1d611873b1726">&#9670;&#160;</a></span>ConstraintInterfaceMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef std::map&lt;std::string, <a class="el" href="namespacewbc.html#a41ca41ef302f4b6466d59dac94c44d6f">ConstraintInterfacePtr</a>&gt; <a class="el" href="namespacewbc.html#a0cb95d1f5769a5a3b3d1d611873b1726">wbc::ConstraintInterfaceMap</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a41ca41ef302f4b6466d59dac94c44d6f" name="a41ca41ef302f4b6466d59dac94c44d6f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a41ca41ef302f4b6466d59dac94c44d6f">&#9670;&#160;</a></span>ConstraintInterfacePtr</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef std::shared_ptr&lt;<a class="el" href="classwbc_1_1ConstraintInterface.html">ConstraintInterface</a>&gt; <a class="el" href="namespacewbc.html#a41ca41ef302f4b6466d59dac94c44d6f">wbc::ConstraintInterfacePtr</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab4e4804e089ee5d7f13671340c95af3d" name="ab4e4804e089ee5d7f13671340c95af3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4e4804e089ee5d7f13671340c95af3d">&#9670;&#160;</a></span>ConstraintStatusPort</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef RTT::OutputPort&lt;wbc::ConstraintStatus&gt; <a class="el" href="namespacewbc.html#ab4e4804e089ee5d7f13671340c95af3d">wbc::ConstraintStatusPort</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a63ae3e6b12ae769ac3869a8eaa3ee9df" name="a63ae3e6b12ae769ac3869a8eaa3ee9df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a63ae3e6b12ae769ac3869a8eaa3ee9df">&#9670;&#160;</a></span>ConstraintStatusPortPtr</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef std::shared_ptr&lt;<a class="el" href="namespacewbc.html#ab4e4804e089ee5d7f13671340c95af3d">ConstraintStatusPort</a>&gt; <a class="el" href="namespacewbc.html#a63ae3e6b12ae769ac3869a8eaa3ee9df">wbc::ConstraintStatusPortPtr</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a019c307deb92a7fc5b59c8c9a75d31aa" name="a019c307deb92a7fc5b59c8c9a75d31aa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a019c307deb92a7fc5b59c8c9a75d31aa">&#9670;&#160;</a></span>JntRefPort</h2>
 
@@ -339,6 +283,62 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef std::shared_ptr&lt; RobotModel &gt; <a class="el" href="namespacewbc.html#af84e81dd38839e42582b04bdb77ff0e0">wbc::RobotModelPtr</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0a64265c5ce2d31b2600f60da2b73d11" name="a0a64265c5ce2d31b2600f60da2b73d11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a64265c5ce2d31b2600f60da2b73d11">&#9670;&#160;</a></span>TaskInterfaceMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::map&lt;std::string, <a class="el" href="namespacewbc.html#a49cf9ad22e709f409d846c733343458b">TaskInterfacePtr</a>&gt; <a class="el" href="namespacewbc.html#a0a64265c5ce2d31b2600f60da2b73d11">wbc::TaskInterfaceMap</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a49cf9ad22e709f409d846c733343458b" name="a49cf9ad22e709f409d846c733343458b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49cf9ad22e709f409d846c733343458b">&#9670;&#160;</a></span>TaskInterfacePtr</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::shared_ptr&lt;<a class="el" href="classwbc_1_1TaskInterface.html">TaskInterface</a>&gt; <a class="el" href="namespacewbc.html#a49cf9ad22e709f409d846c733343458b">wbc::TaskInterfacePtr</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac898218d309fcf660ea2049facdc5980" name="ac898218d309fcf660ea2049facdc5980"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac898218d309fcf660ea2049facdc5980">&#9670;&#160;</a></span>TaskStatusPort</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef RTT::OutputPort&lt;wbc::TaskStatus&gt; <a class="el" href="namespacewbc.html#ac898218d309fcf660ea2049facdc5980">wbc::TaskStatusPort</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7345b10912da7a53d464821c9e7d914c" name="a7345b10912da7a53d464821c9e7d914c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7345b10912da7a53d464821c9e7d914c">&#9670;&#160;</a></span>TaskStatusPortPtr</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::shared_ptr&lt;<a class="el" href="namespacewbc.html#ac898218d309fcf660ea2049facdc5980">TaskStatusPort</a>&gt; <a class="el" href="namespacewbc.html#a7345b10912da7a53d464821c9e7d914c">wbc::TaskStatusPortPtr</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
