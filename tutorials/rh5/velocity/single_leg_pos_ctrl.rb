@@ -3,6 +3,9 @@ require 'vizkit'
 
 Orocos.initialize
 Orocos.conf.load_dir('../config')
+log_dir = "../logs"
+Dir.mkdir log_dir  unless File.exists?(log_dir)
+Orocos.default_working_directory = log_dir
 
 Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "rh5_wbc",
            "wbc::LoopBackDriver"                   => "rh5_joints",
@@ -16,15 +19,15 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "rh5_wbc",
     Orocos.conf.apply(controller,  ["single_leg_cart_ctrl"])
     Orocos.conf.apply(joints,      ["rh5_single_leg"])
 
-    # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
+    # Note: WBC will create dynamic ports for the tasks at configuration time, so configure already here
     wbc.configure
     controller.configure
     joints.configure
 
     # Priority 0: Cartesian Position control
-    constraint_name = "cart_position_ctrl"
-    controller.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    wbc.port("status_" + constraint_name).connect_to controller.port("feedback")
+    task_name = "cart_position_ctrl"
+    controller.port("control_output").connect_to wbc.port("ref_" + task_name)
+    wbc.port("status_" + task_name).connect_to controller.port("feedback")
 
     # Connect to joints
     joints.port("joint_state").connect_to wbc.port("joint_state")

@@ -45,7 +45,7 @@ initial_joint_weights:
             "LLHip1", "LLHip2", "LLHip3", "LLKnee", "LLAnkleRoll", "LLAnklePitch",
             "LRHip1", "LRHip2", "LRHip3", "LRKnee", "LRAnkleRoll", "LRAnklePitch"]
     elements: [1,1,1,
-               0,1,1,
+               1,1,1,
                1,1,1,1,1,1,1,
                1,1,1,1,1,1,1,
                1,1,1,1,1,1,

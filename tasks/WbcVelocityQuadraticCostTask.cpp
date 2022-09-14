@@ -23,7 +23,8 @@ bool WbcVelocityQuadraticCostTask::configureHook(){
     PluginLoader::loadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
     solver = std::shared_ptr<QPSolver>(QPSolverFactory::createInstance(_qp_solver.get()));
 
-    wbc_scene = std::make_shared<VelocitySceneQuadraticCost>(robot_model, solver);
+    wbc_scene = std::make_shared<VelocitySceneQuadraticCost>(robot_model, solver, this->getPeriod());
+    std::dynamic_pointer_cast<VelocitySceneQuadraticCost>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
     compute_id = _compute_id.get();
 
     if (! WbcVelocityQuadraticCostTaskBase::configureHook())

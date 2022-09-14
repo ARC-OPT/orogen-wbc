@@ -3,6 +3,9 @@ require 'vizkit'
 
 Orocos.initialize
 Orocos.conf.load_dir('../config')
+log_dir = "../logs"
+Dir.mkdir log_dir  unless File.exists?(log_dir)
+Orocos.default_working_directory = log_dir
 
 Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "rh5_wbc",
            "wbc::LoopBackDriver"                   => "rh5_joints",
@@ -51,10 +54,10 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "rh5_wbc",
     delta = 0.0
     timer.connect(SIGNAL('timeout()')) do
         target_pose.time = Types.base.Time.now
-        target_pose.pose.position = Types.base.Vector3d.new(0,0,-0.7+0.1*Math.sin(delta)) # Position
-        target_pose.twist.linear  = Types.base.Vector3d.new(0,0,0.1*Math.cos(delta))     # Feed forward velocity. This will improve trajectory tracking
+        target_pose.pose.position = Types.base.Vector3d.new(0,0,-0.65+0.1*Math.sin(delta)) # Position
+        target_pose.twist.linear  = Types.base.Vector3d.new(0,0,0)     # Feed forward velocity. This will improve trajectory tracking
         pose_writer.write(target_pose)
-        delta += 0.1
+        delta += 0.05
     end
     timer.start(10)
 

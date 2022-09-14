@@ -19,27 +19,27 @@ ff_gain:
 # Maximum control output (saturation). If one output value exceeds maximum, all
 # other values will be scaled accordingly. Size has to be the same as size of field_names.
 max_control_output:
-  data: [5, 5, 5, 5, 5, 5]
+  data: [10, 10, 10, 10, 10, 10]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
-  data: [20, 20, 20, 20, 20, 20]
+  data: [50, 50, 50, 50, 50, 50]
 
 --- name:single_leg_cart_ctrl_tsid
 dead_zone:
   data: [0,0,0,0,0,0]
 # Derivative gain. Size has to be the same as size of field_names.
 d_gain:
-  data: [20, 20, 20, 20, 20, 20]
+  data: [50, 50, 50, 50, 50, 50]
 # Feed Forward gain. Size has to be the same as size of field_names.
 ff_gain:
-  data: [0,0,0,0,0,0]
+  data: [1,1,1,1,1,1]
 # Maximum control output (saturation). If one output value exceeds maximum, all
 # other values will be scaled accordingly. Size has to be the same as size of field_names.
 max_control_output:
-  data: [5, 5, 5, 5, 5, 5]
+  data: [100, 100, 100, 100, 100, 100]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
-  data: [100, 100, 100, 100, 100, 100]
+  data: [50, 50, 50, 50, 50, 50]
 
 --- name:legs_com_ctrl
 dead_zone:
@@ -80,14 +80,14 @@ dead_zone:
   data: [0,0,0,0,0,0]
 # Feed Forward gain. Size has to be the same as size of field_names.
 d_gain:
-  data: [0, 0, 0, 0, 0, 0]
+  data: [1, 1, 1, 1, 1, 1]
 # Maximum control output (saturation). If one output value exceeds maximum, all
 # other values will be scaled accordingly. Size has to be the same as size of field_names.
 max_control_output:
-    data: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
+    data: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
-  data: [100, 0.1, 0.1, 0, 0, 0]
+  data: [1, 1, 1, 1, 1, 1]
 # Feed Forward gain. Size has to be the same as size of field_names.
 ff_gain:
-    data: [0,0,0,0,0,0]
+    data: [1,1,1,1,1,1]

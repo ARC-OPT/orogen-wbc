@@ -1,15 +1,15 @@
-#ifndef CONSTRAINTINTERFACE_HPP
-#define CONSTRAINTINTERFACE_HPP
+#ifndef TASKINTERFACE_HPP
+#define TASKINTERFACE_HPP
 
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyStateSE3.hpp>
-#include <wbc/core/ConstraintConfig.hpp>
+#include <wbc/core/TaskConfig.hpp>
 
 namespace wbc{
 
-class ConstraintStatus;
+class TaskStatus;
 class RobotModel;
 class WbcScene;
 
@@ -22,7 +22,7 @@ typedef RTT::InputPort<base::VectorXd> WeightInPort;
 typedef RTT::InputPort<double> ActivationPort;
 typedef RTT::OutputPort<base::samples::RigidBodyStateSE3> CartStatusPort;
 typedef RTT::OutputPort<base::samples::Joints> JntStatusPort;
-typedef RTT::OutputPort<wbc::ConstraintStatus> ConstraintStatusPort;
+typedef RTT::OutputPort<wbc::TaskStatus> TaskStatusPort;
 
 typedef std::shared_ptr<CartRefPort> CartRefPortPtr;
 typedef std::shared_ptr<JntRefPort> JntRefPortPtr;
@@ -30,26 +30,26 @@ typedef std::shared_ptr<WeightInPort> WeightInPortPtr;
 typedef std::shared_ptr<ActivationPort> ActivationPortPtr;
 typedef std::shared_ptr<CartStatusPort> CartStatusPortPtr;
 typedef std::shared_ptr<JntStatusPort> JntStatusPortPtr;
-typedef std::shared_ptr<ConstraintStatusPort> ConstraintStatusPortPtr;
+typedef std::shared_ptr<TaskStatusPort> TaskStatusPortPtr;
 
 /**
- * @brief The ConstraintInterface class contains I/O ports for each constraint
+ * @brief The TaskInterface class contains I/O ports for each task
  */
-class ConstraintInterface
+class TaskInterface
 {
 public:
-    ConstraintInterface(ConstraintConfig _cfg,
+    TaskInterface(TaskConfig _cfg,
                         WbcScenePtr _scene,
                         RobotModelPtr _robot_model,
                         RTT::TaskContext* _task_context);
-    ~ConstraintInterface();
+    ~TaskInterface();
 
-    ConstraintConfig cfg;
+    TaskConfig cfg;
     RobotModelPtr robot_model;
     WbcScenePtr scene;
 
-    base::samples::RigidBodyStateSE3 constraint_cart_state;
-    base::samples::Joints constraint_jnt_state;
+    base::samples::RigidBodyStateSE3 task_cart_state;
+    base::samples::Joints task_jnt_state;
 
     // Ports
     CartRefPortPtr cart_ref_port;
@@ -58,20 +58,20 @@ public:
     JntStatusPortPtr jnt_state_out_port;
     WeightInPortPtr weight_port;
     ActivationPortPtr activation_port;
-    ConstraintStatusPortPtr constraint_status_port;
+    TaskStatusPortPtr task_status_port;
 
     base::samples::RigidBodyStateSE3 cart_ref; /** Cartesian Reference values */
     base::samples::Joints jnt_ref;          /** Jnt reference values */
-    base::VectorXd weights;                 /** Current constraint weights*/
-    double activation;                      /** Current constraint activation*/
+    base::VectorXd weights;                 /** Current task weights*/
+    double activation;                      /** Current task activation*/
 
     RTT::TaskContext* task_context;
 
     void update();
-    void writeConstraintStatus(const ConstraintStatus& status);
+    void writeTaskStatus(const TaskStatus& status);
 
 };
 
 }
 
-#endif // CONSTRAINTINTERFACE_HPP
+#endif // TASKINTERFACE_HPP

@@ -3,7 +3,7 @@
 #include "WbcVelocityTask.hpp"
 #include <wbc/scenes/VelocityScene.hpp>
 #include <wbc/solvers/hls/HierarchicalLSSolver.hpp>
-#include "ConstraintInterface.hpp"
+#include "TaskInterface.hpp"
 #include <wbc/core/RobotModelFactory.hpp>
 #include <wbc/core/PluginLoader.hpp>
 

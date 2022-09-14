@@ -27,7 +27,8 @@ bool WbcAccelerationTask::configureHook(){
     PluginLoader::loadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
     solver = std::shared_ptr<QPSolver>(QPSolverFactory::createInstance(_qp_solver.get()));
 
-    wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver);
+    wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver, this->getPeriod());
+    std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
 
     if (! WbcAccelerationTaskBase::configureHook())
         return false;
