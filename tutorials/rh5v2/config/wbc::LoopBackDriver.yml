@@ -1,0 +1,42 @@
+--- name:rh5_single_leg
+# no documentation available for this property
+initial_joint_state:
+  names: ["LLHip1", "LLHip2", "LLHip3", "LLKnee", "LLAnkleRoll", "LLAnklePitch"]
+  elements: [{position: 0.0}, # LLHip1
+             {position: 0.0}, # LLHip2
+             {position: -0.8}, # LLHip3
+             {position: 1.5}, # LLKnee
+             {position: 0.0}, # LLAnkleRoll
+             {position: -0.7}] # LLAnklePitch
+
+# no documentation available for this property
+noise_std_dev: 1e-4
+
+--- name:rh5_single_leg_hybrid
+# no documentation available for this property
+initial_joint_state:
+  names: ["LLHip1", "LLHip2",
+          "LLHip3", "LLHip3_B11", "LLHip3_Act1",
+          "LLKnee", "LLKnee_B11", "LLKnee_Act1",
+          "LLAnkleRoll", "LLAnklePitch", "LLAnkle_E11", "LLAnkle_E21", "LLAnkle_B11", "LLAnkle_B12", "LLAnkle_Act1", "LLAnkle_B21", "LLAnkle_B22", "LLAnkle_Act2"]
+  elements: [{position: 0.0}, # LLHip1
+             {position: 0.0}, # LLHip2
+             {position: -0.8}, # LLHip3
+             {position: 0.0}, # LLHip3_B11
+             {position: 0.0}, # LLHip3_Act1
+             {position: 1.5}, # LLKnee
+             {position: -0.0226149}, # LLKnee_B11
+             {position: 0.115668}, # LLKnee_Act1
+             {position: 0.0}, # LLAnkleRoll
+             {position: -0.7}, # LLAnklePitch
+             {position: 0.011716}, # LLAnkle_E11
+             {position: -0.011716}, # LLAnkle_E21
+             {position: 0.00935995}, # LLAnkle_B11
+             {position: -0.0207259}, # LLAnkle_B12
+             {position: 0.0518128}, # LLAnkle_Act1
+             {position: -0.00935994}, # LLAnkle_B21
+             {position: -0.0207259}, # LLAnkle_B22
+             {position: 0.0518128}] # LLAnkle_Act2
+
+# no documentation available for this property
+noise_std_dev: 1e-4

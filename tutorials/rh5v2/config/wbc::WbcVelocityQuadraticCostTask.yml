@@ -1,0 +1,84 @@
+--- name:default
+compute_id: true
+# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
+integrate: True
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: qpoases
+
+--- name:rh5v2
+# Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
+robot_model:
+  file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5v2/urdf/rh5v2.urdf" %>
+  submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5v2/hyrodyn/rh5v2.yml" %>
+  floating_base: false
+  type: hyrodyn
+
+# Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
+#              Cartesian constraints:
+#                  [in] Reference Input (/base/samples/RigidBodyStateSE3):         ref_<constraint_name>
+#                  [in] Weights (/base/VectorXd):                      weight_<constraint_name>
+#                  [in] Activation function (double):                  activation_<constraint_name>
+#                  [out] Constraint pose output (/base/samples/RigidBodyStateSE3): status_<constraint_name>
+#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
+#              Joint Space constraints:
+#                  [in] Reference Input (/base/samples/Joints):            ref_<task_name>
+#                  [in] Weights (/base/VectorXd):                          weight_<task_name>
+#                  [in] Activation function (double):                      activation_<task_name>
+#                  [out] Current joint state output (base/samples/Joints): status_<task_name>
+#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
+wbc_config:
+    - name: "cart_position_ctrl_left"
+      priority: 0
+      type: cart
+      root: "RH5v2_Root_Link"
+      tip:  "ALWristFT_Link"
+      ref_frame: "RH5v2_Root_Link"
+      activation: 1.0
+      weights: [1,1,1,1,1,1]
+    - name: "cart_position_ctrl_right"
+      priority: 0
+      type: cart
+      root: "RH5v2_Root_Link"
+      tip:  "ARWristFT_Link"
+      ref_frame: "RH5v2_Root_Link"
+      activation: 1.0
+      weights: [1,1,1,1,1,1]
+
+--- name:rh5v2_hybrid
+# Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
+robot_model:
+  file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5v2/urdf/rh5v2_hybrid.urdf" %>
+  submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5v2/hyrodyn/rh5v2_hybrid.yml" %>
+  floating_base: false
+  type: hyrodyn
+
+# Configuration of constraints. The WbcTask will dynamically create the following ports for each constraint:
+#              Cartesian constraints:
+#                  [in] Reference Input (/base/samples/RigidBodyStateSE3):         ref_<constraint_name>
+#                  [in] Weights (/base/VectorXd):                      weight_<constraint_name>
+#                  [in] Activation function (double):                  activation_<constraint_name>
+#                  [out] Constraint pose output (/base/samples/RigidBodyStateSE3): status_<constraint_name>
+#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
+#              Joint Space constraints:
+#                  [in] Reference Input (/base/samples/Joints):            ref_<task_name>
+#                  [in] Weights (/base/VectorXd):                          weight_<task_name>
+#                  [in] Activation function (double):                      activation_<task_name>
+#                  [out] Current joint state output (base/samples/Joints): status_<task_name>
+#                  [out] Constraint status output (/wbc/ConstraintStatus): constraint_<constraint_name>
+wbc_config:
+    - name: "cart_position_ctrl_left"
+      priority: 0
+      type: cart
+      root: "RH5v2_Root_Link"
+      tip:  "ALWristFT_Link"
+      ref_frame: "RH5v2_Root_Link"
+      activation: 1.0
+      weights: [1,1,1,1,1,1]
+    - name: "cart_position_ctrl_right"
+      priority: 0
+      type: cart
+      root: "RH5v2_Root_Link"
+      tip:  "ARWristFT_Link"
+      ref_frame: "RH5v2_Root_Link"
+      activation: 1.0
+      weights: [1,1,1,1,1,1]

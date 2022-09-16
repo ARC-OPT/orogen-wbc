@@ -1,0 +1,5 @@
+--- name:rh5v2
+# no documentation available for this property
+submechanisms_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5v2/hyrodyn/rh5v2_hybrid.yml" %>
+# no documentation available for this property
+urdf_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5v2/urdf/rh5v2_hybrid.urdf" %>
