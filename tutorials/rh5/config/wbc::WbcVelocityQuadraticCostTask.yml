@@ -29,8 +29,8 @@ robot_model:
 --- name:rh5
 # Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
 robot_model:
-  file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/bundles/wbc_examples/config/models/rh5/urdf/rh5.urdf" %>
-  submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/bundles/wbc_examples/config/models/rh5/hyrodyn/rh5.yml" %>
+  file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5.urdf" %>
+  submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5.yml" %>
   floating_base: true
   type: pinocchio
   contact_points:
