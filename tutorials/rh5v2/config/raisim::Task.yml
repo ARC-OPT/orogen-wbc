@@ -3,8 +3,8 @@ self_collision: false
 realtime_calc: true
 step_size: 0.001
 control_mode: :PD_PLUS_FEEDFORWARD_TORQUE
-p_gains_global: 100000
-d_gains_global: 200
+p_gains_global: 1000
+d_gains_global: 50
 damping_global: 10.0
 urdf_path: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5v2/raisim/rh5v2.urdf"  %>
 initial_pose:

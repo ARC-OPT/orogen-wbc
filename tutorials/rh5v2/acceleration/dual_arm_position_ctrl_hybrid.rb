@@ -8,9 +8,9 @@ Dir.mkdir log_dir  unless File.exists?(log_dir)
 Orocos.default_working_directory = log_dir
 
 Orocos.run "wbc_controllers", "trajectories",
-           "wbc::WbcVelocityQuadraticCostTask"  => "rh5v2_wbc",
-           "raisim::Task"                       => "rh5v2_raisim",
-           "hyrodyn::ForwardTask"               => "rh5v2_hyrodyn_fk" do
+           "wbc::WbcAccelerationTask"  => "rh5v2_wbc",
+           "raisim::Task"              => "rh5v2_raisim",
+           "hyrodyn::ForwardTask"      => "rh5v2_hyrodyn_fk" do
 
     cart_ctrl_right  = Orocos::TaskContext.get "cart_ctrl_right"
     cart_ctrl_left   = Orocos::TaskContext.get "cart_ctrl_left"
@@ -19,14 +19,16 @@ Orocos.run "wbc_controllers", "trajectories",
     traj_right       = Orocos::TaskContext.get "trajectory_right"
     traj_left        = Orocos::TaskContext.get "trajectory_left"
     hyrodyn          = Orocos::TaskContext.get "rh5v2_hyrodyn_fk"
+    joint_ctrl       = Orocos::TaskContext.get "joint_ctrl"
 
     Orocos.conf.apply(wbc,             ["default", "rh5v2_hybrid"])
     Orocos.conf.apply(raisim,          ["rh5v2"])
-    Orocos.conf.apply(cart_ctrl_right, ["default", "arm_ctrl"])
-    Orocos.conf.apply(cart_ctrl_left,  ["default", "arm_ctrl"])
+    Orocos.conf.apply(cart_ctrl_right, ["default", "arm_ctrl_tsid"])
+    Orocos.conf.apply(cart_ctrl_left,  ["default", "arm_ctrl_tsid"])
     Orocos.conf.apply(traj_right,      ["arm_ctrl"])
     Orocos.conf.apply(traj_left,       ["arm_ctrl"])
     Orocos.conf.apply(hyrodyn,         ["rh5v2"])
+    Orocos.conf.apply(joint_ctrl,      ["rh5v2_hybrid"])
 
     # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
     wbc.configure
@@ -36,6 +38,7 @@ Orocos.run "wbc_controllers", "trajectories",
     traj_right.configure
     traj_left.configure
     hyrodyn.configure
+    joint_ctrl.configure
 
     # Priority 0: Cartesian Position control
     constraint_name = "cart_position_ctrl_right"
@@ -50,9 +53,14 @@ Orocos.run "wbc_controllers", "trajectories",
     traj_left.port("command").connect_to cart_ctrl_left.port("setpoint")
     cart_ctrl_left.port("current_feedback").connect_to traj_left.port("cartesian_state")
 
+    constraint_name = "joint_ctrl"
+    joint_ctrl.port("control_output").connect_to wbc.port("ref_" + constraint_name)
+    wbc.port("status_" + constraint_name).connect_to joint_ctrl.port("feedback")
+
     raisim.port("status_samples").connect_to wbc.port("joint_state")
     wbc.port("solver_output").connect_to hyrodyn.port("actuator_status")
     hyrodyn.port("independent_joint_status").connect_to raisim.port("command")
+
     # Run
     wbc.start
     raisim.start
@@ -60,6 +68,7 @@ Orocos.run "wbc_controllers", "trajectories",
     cart_ctrl_left.start
     traj_right.start
     traj_left.start
+    joint_ctrl.start
     hyrodyn.start
 
     # Set target pose for Cartesian Controller: Fixed pose for left arm, waypoints for right arm
@@ -79,6 +88,14 @@ Orocos.run "wbc_controllers", "trajectories",
     target_pose_right.angular_velocity = Types.base.Vector3d.new(0,0,0)
     pose_writer_right = traj_right.port("target").writer
     pose_writer_right.write(target_pose_right)
+
+    start_pos = nil
+    reader = wbc.port("full_joint_state").reader
+    while start_pos == nil
+        start_pos = reader.read_new
+    end
+    joint_pos_writer = joint_ctrl.port("setpoint").writer
+    joint_pos_writer.write(start_pos)
 
     timer = Qt::Timer.new
     sample_time = 2000.0 # ms
