@@ -175,6 +175,9 @@ task_context "WbcAccelerationTask", subclasses: "WbcTask" do
     property("qp_solver", "std/string", "qpoases")
        .doc("Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']")
 
+    property("reduced", "bool", false)
+       .doc("Use reduced QP. If true, torques will be eliminated from the QP by expressing them as function of qdd and f_ext.")
+
     output_port("estimated_contact_wrenches", "base/samples/Wrenches").
        doc("Estimated contact wrenches")
 

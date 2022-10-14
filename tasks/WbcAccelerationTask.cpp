@@ -1,6 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "WbcAccelerationTask.hpp"
+#include <wbc/scenes/AccelerationSceneReducedTSID.hpp>
 #include <wbc/scenes/AccelerationSceneTSID.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/core/RobotModelFactory.hpp>
@@ -27,8 +28,15 @@ bool WbcAccelerationTask::configureHook(){
     PluginLoader::loadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
     solver = std::shared_ptr<QPSolver>(QPSolverFactory::createInstance(_qp_solver.get()));
 
-    wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver, this->getPeriod());
-    std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
+    reduced = _reduced.get();
+
+    if(reduced){
+        wbc_scene = std::make_shared<AccelerationSceneReducedTSID>(robot_model, solver, this->getPeriod());
+        std::dynamic_pointer_cast<AccelerationSceneReducedTSID>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
+    }else{
+        wbc_scene = std::make_shared<AccelerationSceneTSID>(robot_model, solver, this->getPeriod());
+        std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene)->setHessianRegularizer(_hessian_regularizer.get());
+    }
 
     if (! WbcAccelerationTaskBase::configureHook())
         return false;
@@ -46,8 +54,13 @@ void WbcAccelerationTask::updateHook(){
     WbcAccelerationTaskBase::updateHook();
 
     if(solver_output_joints.size() > 0){
-        std::shared_ptr<AccelerationSceneTSID> wbc_acc_scene  = std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene);
-        _estimated_contact_wrenches.write(wbc_acc_scene->getContactWrenches());
+        if(reduced){
+            std::shared_ptr<AccelerationSceneReducedTSID> wbc_acc_scene  = std::dynamic_pointer_cast<AccelerationSceneReducedTSID>(wbc_scene);
+            _estimated_contact_wrenches.write(wbc_acc_scene->getContactWrenches());
+        }else{
+            std::shared_ptr<AccelerationSceneTSID> wbc_acc_scene  = std::dynamic_pointer_cast<AccelerationSceneTSID>(wbc_scene);
+            _estimated_contact_wrenches.write(wbc_acc_scene->getContactWrenches());
+        }
     }
 }
 

@@ -15,6 +15,7 @@ class WbcAccelerationTask : public WbcAccelerationTaskBase
 {
     friend class WbcAccelerationTaskBase;
 protected:
+    bool reduced;
 public:
     WbcAccelerationTask(std::string const& name = "wbc::WbcAccelerationTask");
     WbcAccelerationTask(std::string const& name, RTT::ExecutionEngine* engine);
