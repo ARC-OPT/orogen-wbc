@@ -3,12 +3,18 @@
 integrate: true
 # Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
 qp_solver: qpoases
+# This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility
+hessian_regularizer: 1e-4
+# Use reduced QP. If true, torques will be eliminated from the QP by expressing them as function of qdd and f_ext.
+reduced: true
 
 --- name:rh5_single_leg
 # Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
 robot_model:
   file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5_single_leg.urdf" %>
+  submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5_single_leg.yml" %>
   floating_base: false
+  type: hyrodyn
 
 --- name:rh5_legs
 # Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
@@ -19,7 +25,26 @@ robot_model:
     type: pinocchio
     contact_points:
         names: ["FL_SupportCenter", "FR_SupportCenter"]
-        elements: [1,1]
+        elements:
+            - mu: 0.5
+              active: 1
+            - mu: 0.5
+              active: 1
+
+--- name:rh5
+# Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5.urdf" %>
+    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5.yml" %>
+    floating_base: true
+    type: pinocchio
+    contact_points:
+        names: ["FL_SupportCenter", "FR_SupportCenter"]
+        elements:
+            - mu: 0.6
+              active: 1
+            - mu: 0.6
+              active: 1
 
 --- name:single_leg_ctrl
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
@@ -68,3 +93,11 @@ wbc_config:
   ref_frame: "world"
   activation: 1.0
   weights: [1,1,1,1,1,1]
+# - name: "joint_ctrl"
+#   priority: 0
+#   activation: 1.0
+#   type: jnt
+#   joint_names: ["LLHip1", "LLHip2", "LLHip3", "LLKnee", "LLAnkleRoll", "LLAnklePitch",
+#                 "LRHip1", "LRHip2", "LRHip3", "LRKnee", "LRAnkleRoll", "LRAnklePitch"]
+#   weights: [1e-4,1e-4,1e-4,1e-4,1e-4,1e-4,
+#             1e-4,1e-4,1e-4,1e-4,1e-4,1e-4]

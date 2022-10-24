@@ -75,19 +75,39 @@ p_gain:
 ff_gain:
     data: [0,0,0,0,0,0]
 
+
 --- name:com_ctrl_tsid
+# Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
 dead_zone:
   data: [0,0,0,0,0,0]
-# Feed Forward gain. Size has to be the same as size of field_names.
+# Derivative gain. Size has to be the same as size of field_names.
 d_gain:
-  data: [1, 1, 1, 1, 1, 1]
+  data: [3,3,3,3,3,3]
+# Feed Forward gain. Size has to be the same as size of field_names.
+ff_gain:
+  data: [1,1,1,1,1,1]
 # Maximum control output (saturation). If one output value exceeds maximum, all
 # other values will be scaled accordingly. Size has to be the same as size of field_names.
 max_control_output:
-    data: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+  data: [100, 100, 100, 100, 100, 100]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
-  data: [1, 1, 1, 1, 1, 1]
+  data: [10, 10, 10, 10, 10, 10]
+
+--- name:com_ctrl_tsid_force_control
+# Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
+dead_zone:
+  data: [0,0,0,0,0,0]
+# Derivative gain. Size has to be the same as size of field_names.
+d_gain:
+  data: [200,200,200,200,200,200]
 # Feed Forward gain. Size has to be the same as size of field_names.
 ff_gain:
-    data: [1,1,1,1,1,1]
+  data: [1,1,1,1,1,1]
+# Maximum control output (saturation). If one output value exceeds maximum, all
+# other values will be scaled accordingly. Size has to be the same as size of field_names.
+max_control_output:
+  data: [100, 100, 100, 100, 100, 100]
+# Proportional gain. Size has to be the same as size of field_names.
+p_gain:
+  data: [1000, 1000, 1000, 1000, 1000, 1000]

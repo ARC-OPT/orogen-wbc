@@ -27,9 +27,9 @@ self_collision: false
 realtime_calc: true
 step_size: 0.001
 control_mode: :PD_PLUS_FEEDFORWARD_TORQUE
-p_gains_global: 1000
+p_gains_global: 2000
 d_gains_global: 50
-damping_global: 1
+damping_global: 10.0
 urdf_path: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5_legs.urdf"  %>
 imu_name: "IMU"
 ft_sensor_names: ["LRAnkle_FT", "LLAnkle_FT"]
@@ -45,25 +45,58 @@ initial_state:
   elements: [{position: 0.0,   speed: 0.0, effort: 0.6},   # LLHip1
              {position: 0.0,   speed: 0.0, effort: 0.0},   # LLHip2
              {position: -0.35, speed: 0.0, effort: -0.7}, # LLHip3
-             {position: 0.64,  speed: 0.0, effort: -9.7},  # LLKnee
+             {position: 0.64,  speed: 0.0, effort: -10},  # LLKnee
              {position: 0.0,   speed: 0.0, effort: 0.3},   # LLAnkleRoll
-             {position: -0.27, speed: 0.0, effort: 0.9}, # LLAnklePitch
+             {position: -0.27, speed: 0.0, effort: 1}, # LLAnklePitch
              {position: 0.0,   speed: 0.0, effort: 0.6},   # LRHip1
              {position: 0.0,   speed: 0.0, effort: 0.0},   # LRHip2
              {position: -0.35, speed: 0.0, effort: -0.7}, # LRHip3
-             {position: 0.64,  speed: 0.0, effort: -9.7},  # LRKnee
+             {position: 0.64,  speed: 0.0, effort: -10},  # LRKnee
              {position: 0.0,   speed: 0.0, effort: 0.3},   # LRAnkleRoll
-             {position: -0.27, speed: 0.0, effort: 0.9}] # LRAnklePitch
+             {position: -0.27, speed: 0.0, effort: 1}] # LRAnklePitch
+
+--- name:rh5_legs_force_control
+self_collision: false
+realtime_calc: true
+step_size: 0.001
+control_mode: :FORCE_AND_TORQUE
+p_gains_global: 2000
+d_gains_global: 50
+damping_global: 10
+urdf_path: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5_legs.urdf"  %>
+imu_name: "IMU"
+ft_sensor_names: ["LRAnkle_FT", "LLAnkle_FT"]
+initial_pose:
+  position:
+    data: [0,0,0.89]
+  orientation:
+    re: 1.0
+    im: [0,0,0]
+initial_state:
+  names: ["LLHip1", "LLHip2", "LLHip3", "LLKnee", "LLAnkleRoll", "LLAnklePitch",
+          "LRHip1", "LRHip2", "LRHip3", "LRKnee", "LRAnkleRoll", "LRAnklePitch"]
+  elements: [{position: 0.0,   speed: 0.0, effort: 0.6},   # LLHip1
+             {position: 0.0,   speed: 0.0, effort: 0.0},   # LLHip2
+             {position: -0.35, speed: 0.0, effort: -0.7}, # LLHip3
+             {position: 0.64,  speed: 0.0, effort: -10},  # LLKnee
+             {position: 0.0,   speed: 0.0, effort: 0.3},   # LLAnkleRoll
+             {position: -0.27, speed: 0.0, effort: 1}, # LLAnklePitch
+             {position: 0.0,   speed: 0.0, effort: 0.6},   # LRHip1
+             {position: 0.0,   speed: 0.0, effort: 0.0},   # LRHip2
+             {position: -0.35, speed: 0.0, effort: -0.7}, # LRHip3
+             {position: 0.64,  speed: 0.0, effort: -10},  # LRKnee
+             {position: 0.0,   speed: 0.0, effort: 0.3},   # LRAnkleRoll
+             {position: -0.27, speed: 0.0, effort: 1}] # LRAnklePitch
 
 --- name:rh5
 self_collision: false
 realtime_calc: true
 step_size: 0.001
 control_mode: :PD_PLUS_FEEDFORWARD_TORQUE
-p_gains_global: 1000
+p_gains_global: 2000
 d_gains_global: 50
-damping_global: 1.0
-urdf_path:  <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/models/robots/rh5/urdf/RH5.urdf" %>
+damping_global: 10.0
+urdf_path: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5.urdf" %>
 imu_name: "IMU"
 ft_sensor_names: ["LRAnkle_FT", "LLAnkle_FT"]
 initial_pose:
@@ -80,13 +113,13 @@ initial_state:
   elements: [{position: 0.0,   speed: 0.0, effort: 0.0},   # LLHip1
              {position: 0.0,   speed: 0.0, effort: 0.0},   # LLHip2
              {position: -0.33, speed: 0.0, effort: -0.0}, # LLHip3
-             {position: 0.63,  speed: 0.0, effort: -10.00},  # LLKnee
+             {position: 0.63,  speed: 0.0, effort: 0.00},  # LLKnee
              {position: 0.0,   speed: 0.0, effort: 0.0},   # LLAnkleRoll
              {position: -0.3, speed: 0.0, effort: 0.0}, # LLAnklePitch
              {position: 0.0,   speed: 0.0, effort: 0.0},   # LRHip1
              {position: 0.0,   speed: 0.0, effort: 0.0},   # LRHip2
              {position: -0.33, speed: 0.0, effort: -0.00}, # LRHip3
-             {position: 0.63,  speed: 0.0, effort: -10.0},  # LRKnee
+             {position: 0.63,  speed: 0.0, effort: 0.0},  # LRKnee
              {position: 0.0,   speed: 0.0, effort: 0.0},   # LRAnkleRoll
              {position: -0.3, speed: 0.0, effort: 0.0}, # LRAnklePitch
              {position: 0.2, speed: 0.0, effort: 0.0}, # BodyPitch
