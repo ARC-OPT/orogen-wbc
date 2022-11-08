@@ -58,6 +58,13 @@ bool WbcTask::configureHook(){
     compute_constraint_status = _compute_constraint_status.get();
     integrate = _integrate.get();
 
+    use_ankle_admittance = _use_ankle_admittance.get();
+    _ankle_admittance_cop_threshold_x = _aa_cop_x_threshold.get();
+    _ankle_admittance_cop_threshold_y = _aa_cop_y_threshold.get();
+    _ankle_admittance_gain_roll = _aa_gain_roll.get();
+    _ankle_admittance_gain_pitch = _aa_gain_pitch.get();
+    _ankle_admittance_max_speed = _aa_max_speed.get();
+
     return true;
 }
 
@@ -72,6 +79,90 @@ bool WbcTask::startHook(){
     timing_stats.desired_period = this->getPeriod();
 
     return true;
+}
+
+
+Eigen::Matrix4d f1_transform_f2(const wbc::RobotModelPtr robot_model, const std::string& f1_name, const std::string& f2_name){
+
+    static Eigen::Matrix4d T1 = Eigen::Matrix4d::Identity();
+    static Eigen::Matrix4d T2 = Eigen::Matrix4d::Identity();
+    static Eigen::Matrix4d T3;
+
+    auto f1 = robot_model->rigidBodyState("world", f1_name);
+    auto f2 = robot_model->rigidBodyState("world", f2_name);
+
+    T1.topLeftCorner<3,3>() = f1.pose.orientation.toRotationMatrix();
+    T1.col(3).head<3>() = f1.pose.position;
+
+    T2.topLeftCorner<3,3>() = f2.pose.orientation.toRotationMatrix();
+    T2.col(3).head<3>() = f2.pose.position;
+
+    T3 = T1.inverse() * T2;
+
+    return T3;
+}
+
+base::Matrix3d cross_mtx(const base::Vector3d& vec)
+{
+    base::Matrix3d mtx;
+    mtx.setZero();
+    mtx <<  0.0, -vec(2), vec(1),
+            vec(2), 0.0, -vec(0),
+            -vec(1), vec(0), 0.0;
+    return mtx;
+}
+
+base::MatrixXd toDualActionMatrix(const base::Matrix4d& transform){ // considering force, torque ordering
+    
+    base::MatrixXd dual_action_mtx = base::MatrixXd::Zero(6,6);
+    dual_action_mtx.topLeftCorner<3,3>() = transform.topLeftCorner<3,3>();
+    dual_action_mtx.bottomRightCorner<3,3>() = transform.topLeftCorner<3,3>();
+    dual_action_mtx.bottomLeftCorner<3,3>() = cross_mtx(transform.col(3).head<3>()) * transform.topLeftCorner<3,3>();
+    return dual_action_mtx;
+}
+
+void WbcTask::apply_ankle_stabilization(const wbc::RobotModelPtr robot_model, base::samples::Joints& output_joints, const base::Wrench& wrench, 
+                const std::string& force_frame, const std::string& support_frame, 
+                const std::string& joint_name_roll, const std::string& joint_name_pitch, double dt)
+{
+    // step 1 -> wrenches are local oriented in ft frame
+    base::VectorXd sc_wrench(6), e_wrench(6);
+    e_wrench << wrench.force, wrench.torque;
+    
+    // step 2 -> transform forces in support center frames
+    base::Matrix4d ft_to_fsc = f1_transform_f2(robot_model, support_frame, force_frame); // compute {f1}^T_{f2}
+    sc_wrench = toDualActionMatrix(ft_to_fsc) * e_wrench;
+
+    // std::cerr << "period " << dt << std::endl;
+    // std::cerr << "transform\n" << ft_to_fsc << std::endl;
+    // std::cerr << "dual matrix\n" << toDualActionMatrix(ft_to_fsc) << std::endl;
+
+    // step 2 special ->  get minimu torque threshold based on cop offset threashold
+    base::Vector3d cop_th(_ankle_admittance_cop_threshold_x, _ankle_admittance_cop_threshold_y, 0.0);
+    base::Vector2d torque_th = cop_th.cross(sc_wrench.head<3>()).head<2>().cwiseAbs();
+
+    // get the torque we can remove as it is under threshold
+    base::Vector2d rp_torques_intra = sc_wrench.segment<2>(3);
+    rp_torques_intra = rp_torques_intra.cwiseMin(torque_th);
+    rp_torques_intra = rp_torques_intra.cwiseMax(-torque_th);
+
+    // remove under threshold torque from overall torque
+    base::Vector2d rp_torques = sc_wrench.segment<2>(3) - rp_torques_intra;
+
+    // step 3 -> compute roll and pitch offset and rotate it in world frame (to be used as task reference)
+    double roll = _ankle_admittance_gain_roll * rp_torques(0);
+    double pitch = _ankle_admittance_gain_pitch * rp_torques(1);
+
+    // step 3 special -> cut output
+    double max_displacement = _ankle_admittance_max_speed * dt; // not over 0.2 rad/s
+    roll = std::max(std::min(max_displacement, roll), -max_displacement); //
+    pitch = std::max(std::min(max_displacement, pitch), -max_displacement);
+
+    output_joints[joint_name_roll].position += roll;
+    output_joints[joint_name_roll].speed += roll / dt;
+
+    output_joints[joint_name_pitch].position += pitch;
+    output_joints[joint_name_pitch].speed += pitch / dt;
 }
 
 void WbcTask::updateHook(){
@@ -135,6 +226,15 @@ void WbcTask::updateHook(){
         integrator.integrate(robot_model->jointState(robot_model->jointNames()), solver_output_joints, this->getPeriod());
     if(compute_id)
         robot_model->computeInverseDynamics(solver_output_joints);
+
+    if(use_ankle_admittance) {
+        double dt = this->getPeriod();
+        base::Wrench left_ankle_wrench = contact_wrenches[ "LLAnkle_ft"];
+        base::Wrench right_ankle_wrench = contact_wrenches[ "LRAnkle_ft"];
+        apply_ankle_stabilization(robot_model, solver_output_joints, left_ankle_wrench, "LLAnkle_FT", "FL_SupportCenter", "LLAnkleRoll", "LLAnklePitch", dt);
+        apply_ankle_stabilization(robot_model, solver_output_joints, right_ankle_wrench, "LRAnkle_FT", "FR_SupportCenter", "LRAnkleRoll", "LRAnklePitch", dt);
+    }
+
     _solver_output.write(solver_output_joints);
     timing_stats.time_solve = (base::Time::now()-cur_time).toSeconds();
 

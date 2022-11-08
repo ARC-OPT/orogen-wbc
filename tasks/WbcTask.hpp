@@ -70,6 +70,17 @@ protected:
     base::samples::Wrenches contact_wrenches;             /** Measured contact wrenches*/
     bool compute_id;                                      /** Compute inverse dynamics on top of the kinematic solution (only for the velocity-based solvers)*/
 
+    bool use_ankle_admittance;
+    double _ankle_admittance_cop_threshold_x;
+    double _ankle_admittance_cop_threshold_y;
+    double _ankle_admittance_gain_roll;
+    double _ankle_admittance_gain_pitch;
+    double _ankle_admittance_max_speed;
+
+    void apply_ankle_stabilization(const wbc::RobotModelPtr robot_model, base::samples::Joints& output_joints, const base::Wrench& wrench, 
+                const std::string& force_frame, const std::string& support_frame, 
+                const std::string& joint_name_roll, const std::string& joint_name_pitch, double dt);
+
 public:
     WbcTask(std::string const& name = "wbc::WbcTask");
     WbcTask(std::string const& name, RTT::ExecutionEngine* engine);

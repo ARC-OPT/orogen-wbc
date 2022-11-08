@@ -66,6 +66,19 @@ task_context "WbcTask" do abstract
     property("integrate", "bool", true).
         doc("Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration")
 
+   property("use_ankle_admittance", "bool", false)
+      .doc("update ankle roll and pitch reference to force cop in the foot center")
+   property("aa_cop_x_threshold","double", 0.0).
+      doc("ankle admittance cop threshold offset from center on x axis")
+   property("aa_cop_y_threshold","double", 0.0).
+      doc("ankle admittance cop threshold offset from center on y axis")
+   property("aa_gain_roll","double", 0.0).
+      doc("ankle admittance roll gain")
+   property("aa_gain_pitch","double", 0.0).
+      doc("ankle admittance pitch gain")
+   property("aa_max_speed", "double", 0.0).
+      doc("maximum speed for the ankle admittance update")
+
     # These dynamic ports are created according to the 'wbc_config' (see above)
 
     dynamic_input_port /.*/, "/base/samples/Joints"
