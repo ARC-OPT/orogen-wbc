@@ -32,28 +32,57 @@ p_gain:
   data: [10,10,10,10,10,10,
          10,10,10,10,10,10]
 
+--- name:rh5_body
+# Feed Forward gain. Size has to be the same as size of field_names.
+d_gain:
+  data: [10,10,10]
+# Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
+dead_zone:
+  data: [0,0,0]
+# Feed Forward gain. Size has to be the same as size of field_names.
+ff_gain:
+  data: [1,1,1]
+# Unique name for each variable, e.g. joint names in case of a joint space controller.
+field_names: ["BodyPitch", "BodyRoll", "BodyYaw"]
+# Maximum control output (saturation). If one output value exceeds maximum, all
+# other values will be scaled accordingly. Size has to be the same as size of field_names.
+max_control_output:
+  data: [100,100,100]
+# Proportional gain. Size has to be the same as size of field_names.
+p_gain:
+  data: [100,100,100]
+
+
 --- name:rh5
 # Feed Forward gain. Size has to be the same as size of field_names.
 d_gain:
-  data: [1,1,1,
-         1,1,1,
-         1,1,1,1,1,1,1,
-         1,1,1,1,1,1,1]
+  data: [10,10,10,
+         10,10,10,
+         10,10,10,10,10,10,
+         10,10,10,10,10,10,
+         10,10,10,10,10,10,10,
+         10,10,10,10,10,10,10]
 # Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
 dead_zone:
   data: [0,0,0,
          0,0,0,
+         0,0,0,0,0,0,
+         0,0,0,0,0,0,
          0,0,0,0,0,0,0,
          0,0,0,0,0,0,0,]
 # Feed Forward gain. Size has to be the same as size of field_names.
 ff_gain:
   data: [1,1,1,
          1,1,1,
+         1,1,1,1,1,1,
+         1,1,1,1,1,1,
          1,1,1,1,1,1,1,
          1,1,1,1,1,1,1]
 # Unique name for each variable, e.g. joint names in case of a joint space controller.
 field_names: ["HeadPitch", "HeadRoll", "HeadYaw",
               "BodyPitch", "BodyRoll", "BodyYaw",
+              "LLHip1", "LLHip2", "LLHip3", "LLKnee", "LLAnkleRoll", "LLAnklePitch",
+              "LRHip1", "LRHip2", "LRHip3", "LRKnee", "LRAnkleRoll", "LRAnklePitch",
               "ALShoulder1", "ALShoulder2", "ALShoulder3", "ALElbow", "ALWristRoll", "ALWristPitch", "ALWristYaw",
               "ARShoulder1", "ARShoulder2", "ARShoulder3", "ARElbow", "ARWristRoll", "ARWristPitch", "ARWristYaw"]
 # Maximum control output (saturation). If one output value exceeds maximum, all
@@ -61,11 +90,15 @@ field_names: ["HeadPitch", "HeadRoll", "HeadYaw",
 max_control_output:
   data: [100,100,100,
          100,100,100,
+         100,100,100,100,100,100,
+         100,100,100,100,100,100,
          100,100,100,100,100,100,100,
          100,100,100,100,100,100,100]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
-  data: [3,3,3,
-         3,3,3,
-         3,3,3,3,3,3,3,
-         3,3,3,3,3,3,3]
+  data: [100,100,100,
+         100,100,100,
+         100,100,100,100,100,100,
+         100,100,100,100,100,100,
+         100,100,100,100,100,100,100,
+         100,100,100,100,100,100,100]

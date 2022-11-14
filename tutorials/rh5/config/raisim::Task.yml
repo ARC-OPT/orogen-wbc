@@ -93,6 +93,49 @@ self_collision: false
 realtime_calc: true
 step_size: 0.001
 control_mode: :PD_PLUS_FEEDFORWARD_TORQUE
+p_gains_global: 5000
+d_gains_global: 500
+damping_global: 10.0
+urdf_path: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5.urdf" %>
+imu_name: "IMU"
+ft_sensor_names: ["LRAnkle_FT", "LLAnkle_FT"]
+initial_pose:
+  position:
+    data: [0,0,0.89]
+  orientation:
+    re: 1.0
+    im: [0,0,0]
+initial_state:
+  names: ["LLHip1", "LLHip2", "LLHip3", "LLKnee", "LLAnkleRoll", "LLAnklePitch",
+          "LRHip1", "LRHip2", "LRHip3", "LRKnee", "LRAnkleRoll", "LRAnklePitch",
+          "BodyPitch",
+          "ALShoulder1", "ALShoulder2", "ARShoulder1", "ARShoulder2", "ALElbow", "ARElbow"]
+  elements: [{position: 0.0,   speed: 0.0, effort: 0.0},   # LLHip1
+             {position: 0.0,   speed: 0.0, effort: 0.0},   # LLHip2
+             {position: -0.33, speed: 0.0, effort: -0.0}, # LLHip3
+             {position: 0.63,  speed: 0.0, effort: 0.00},  # LLKnee
+             {position: 0.0,   speed: 0.0, effort: 0.0},   # LLAnkleRoll
+             {position: -0.3, speed: 0.0, effort: 0.0}, # LLAnklePitch
+             {position: 0.0,   speed: 0.0, effort: 0.0},   # LRHip1
+             {position: 0.0,   speed: 0.0, effort: 0.0},   # LRHip2
+             {position: -0.33, speed: 0.0, effort: -0.00}, # LRHip3
+             {position: 0.63,  speed: 0.0, effort: 0.0},  # LRKnee
+             {position: 0.0,   speed: 0.0, effort: 0.0},   # LRAnkleRoll
+             {position: -0.3, speed: 0.0, effort: 0.0}, # LRAnklePitch
+             {position: 0.2, speed: 0.0, effort: 0.0}, # BodyPitch
+             {position: -0.3, speed: 0.0, effort: 0}, # ALShoulder1
+             {position: 0.5, speed: 0.0, effort: 0.0}, # ALShoulder2
+             {position: 0.3, speed: 0.0, effort: 0.0}, # ARShoulder1
+             {position: -0.5, speed: 0.0, effort: -0.0}, # ARShoulder2
+             {position: -0.3, speed: 0.0, effort: -0.0}, # ALElbow
+             {position: 0.3, speed: 0.0, effort: 0.0}] # ARElbow
+
+
+--- name:rh5_force_control
+self_collision: false
+realtime_calc: true
+step_size: 0.001
+control_mode: :FORCE_AND_TORQUE
 p_gains_global: 2000
 d_gains_global: 50
 damping_global: 10.0

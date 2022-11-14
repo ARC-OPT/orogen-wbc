@@ -13,23 +13,23 @@ Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
            "raisim::Task"                                    => "rh5_raisim",
            "ctrl_lib::CartesianPositionController"           => "rh5_com_ctrl",
            "trajectory_generation::RMLCartesianPositionTask" => "rh5_trajectory",
-           "ctrl_lib::JointPositionController"               => "rh5_joint_ctrl" do
+           "ctrl_lib::JointPositionController"               => "rh5_joint_ctrl", :output => nil do
 
     controller   = Orocos::TaskContext.get "rh5_com_ctrl"
     wbc          = Orocos::TaskContext.get "rh5_wbc"
     raisim       = Orocos::TaskContext.get "rh5_raisim"
     trajectory   = Orocos::TaskContext.get "rh5_trajectory"
     joint_ctrl   = Orocos::TaskContext.get "rh5_joint_ctrl"
-    Orocos.conf.apply(wbc,         ["default", "rh5_legs", "com_ctrl"])
+    Orocos.conf.apply(wbc,         ["default", "rh5", "com_ctrl"])
     if use_force_control
         Orocos.conf.apply(controller,  ["default", "com_ctrl_tsid_force_control"])
-        Orocos.conf.apply(raisim,      ["default", "rh5_legs_force_control"])
+        Orocos.conf.apply(raisim,      ["default", "rh5_force_control"])
     else
         Orocos.conf.apply(controller,  ["default", "com_ctrl_tsid"])
-        Orocos.conf.apply(raisim,      ["default", "rh5_legs"])
+        Orocos.conf.apply(raisim,      ["default", "rh5"])
     end
     Orocos.conf.apply(trajectory,  ["default", "com_ctrl"])
-    Orocos.conf.apply(joint_ctrl,  ["default", "rh5_legs"])
+    Orocos.conf.apply(joint_ctrl,  ["default", "rh5"])
 
     # Note: WBC will create dynamic ports for the constraints at configuration time, so configure already here
     wbc.configure
@@ -45,20 +45,21 @@ Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
     controller.port("current_feedback").connect_to trajectory.port("cartesian_state")
     trajectory.port("command").connect_to controller.port("setpoint")
 
-    # constraint_name = "joint_ctrl"
-    # joint_ctrl.port("control_output").connect_to wbc.port("ref_" + constraint_name)
-    # wbc.port("status_" + constraint_name).connect_to joint_ctrl.port("feedback")
+    constraint_name = "joint_ctrl"
+    joint_ctrl.port("control_output").connect_to wbc.port("ref_" + constraint_name)
+    wbc.port("status_" + constraint_name).connect_to joint_ctrl.port("feedback")
 
     # Connect to driver
     raisim.port("status_samples").connect_to wbc.port("joint_state")
-    #wbc.port("solver_output").connect_to raisim.port("command")
+    wbc.port("solver_output").connect_to raisim.port("command")
     raisim.port("base_pose").connect_to wbc.port("floating_base_state_deprecated")
 
     # Run
     controller.start
     raisim.start
+
     trajectory.start
-    wbc.start
+    #wbc.start
     joint_ctrl.start
 
     # Set target pose for Cartesian Controller
@@ -70,37 +71,48 @@ Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
     pose_writer = trajectory.port("target").writer
     timer = Qt::Timer.new
     sigma = 1
-    #
-    # start_pos = nil
-    # reader = raisim.port("status_samples").reader
-    # while true
-    #     start_pos = reader.read_new
-    #     if start_pos != nil
-    #         start_pos.elements.each do |e|
-    #             e.speed = 0
-    #             e.acceleration = 0
-    #         end
-    #         break
-    #     end
-    # end
-    # joint_pos_writer = joint_ctrl.port("setpoint").writer
-    # joint_pos_writer.write(start_pos)
 
+    start_pos = nil
+    reader = raisim.port("status_samples").reader
+    while true
+        start_pos = reader.read_new
+        if start_pos != nil
+            start_pos.elements.each do |e|
+                e.speed = 0
+                e.acceleration = 0
+            end
+            break
+        end
+    end
+    joint_pos_writer = joint_ctrl.port("setpoint").writer
+    joint_pos_writer.write(start_pos)
+
+    target_pose.position = Types.base.Vector3d.new(0.12,0,1.0+0.05*sigma)
+    pose_writer.write(target_pose)
     timer.connect(SIGNAL('timeout()')) do
         target_pose.time = Types.base.Time.now
-        target_pose.position = Types.base.Vector3d.new(0.0,0,0.87+0.02*sigma)
+        #target_pose.position = Types.base.Vector3d.new(0.12,0,1.0+0.05*sigma)
         pose_writer.write(target_pose)
         sigma *= -1
     end
-    timer.start(2000)
+    timer.start(3000)
 
     # visualization
     proxy = Orocos::Async.proxy "rh5_wbc"
     vis_gui = Vizkit.default_loader.RobotVisualization
-    vis_gui.modelFile = ENV["AUTOPROJ_CURRENT_ROOT"] + "/control/wbc/models/rh5/urdf/rh5_legs_floating_base.urdf"
+    vis_gui.modelFile = ENV["AUTOPROJ_CURRENT_ROOT"] + "/control/wbc/models/rh5/urdf/rh5_floating_base.urdf"
     start_time = Types.base.Time.now
     proxy.port("full_joint_state").on_data do |sample|
         vis_gui.updateData(sample)
+    end
+
+    rbs_gui = Vizkit.default_loader.RigidBodyStateVisualization
+    rbs_gui.size=0.1
+    proxy.port("com").on_data do |sample|
+        rbs = Types.base.samples.RigidBodyState.new
+        rbs.position = sample.pose.position
+        rbs.position[2] = 0
+        rbs_gui.updateData(rbs)
     end
 
     Vizkit.exec
