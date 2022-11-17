@@ -17,7 +17,7 @@ Orocos.run "wbc_controllers", "trajectories",
     raisim           = Orocos::TaskContext.get "rh5v2_raisim"
     traj_right       = Orocos::TaskContext.get "trajectory_right"
     traj_left        = Orocos::TaskContext.get "trajectory_left"
-    joint_ctrl         = Orocos::TaskContext.get "joint_ctrl"
+    joint_ctrl       = Orocos::TaskContext.get "joint_ctrl"
 
     Orocos.conf.apply(wbc,             ["default", "rh5v2"])
     Orocos.conf.apply(raisim,          ["rh5v2"])
@@ -101,7 +101,7 @@ Orocos.run "wbc_controllers", "trajectories",
         sign *= -1
     end
     timer.start(sample_time)
-    
+
     # visualization
     vis_gui = Vizkit.default_loader.RobotVisualization
     vis_gui.modelFile = wbc.robot_model.file

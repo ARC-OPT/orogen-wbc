@@ -24,7 +24,11 @@ robot_model:
   floating_base: true
   contact_points:
       names: ["LLAnkle_FT", "LRAnkle_FT"]
-      elements: [1,1]
+      elements:
+          - mu: 0.6
+            active: 1
+          - mu: 0.6
+            active: 1
 
 --- name:rh5
 # Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
@@ -35,7 +39,11 @@ robot_model:
   type: pinocchio
   contact_points:
       names: ["LLAnkle_FT", "LRAnkle_FT"]
-      elements: [1,1]
+      elements:
+          - mu: 0.6
+            active: 1
+          - mu: 0.6
+            active: 1
 
 initial_joint_weights:
     names: ["HeadPitch", "HeadRoll", "HeadYaw",
