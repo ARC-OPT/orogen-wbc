@@ -3,7 +3,6 @@
 #include "WbcAccelerationTask.hpp"
 #include <wbc/scenes/AccelerationSceneReducedTSID.hpp>
 #include <wbc/scenes/AccelerationSceneTSID.hpp>
-#include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/core/RobotModelFactory.hpp>
 #include <wbc/core/QPSolverFactory.hpp>
 #include <wbc/core/PluginLoader.hpp>
