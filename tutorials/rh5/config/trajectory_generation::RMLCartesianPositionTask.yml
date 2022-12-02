@@ -29,9 +29,9 @@ motion_constraints:
 # (derivative of acceleration, only Reflexxes TypeIV).
 motion_constraints:
   names: ["x", "y", "z", "rot_z", "rot_y", "rot_x"]
-  elements: [{max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.05},
-             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.05},
-             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.05},
-             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.05},
-             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.05},
-             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.05}]
+  elements: [{max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.01},
+             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.01},
+             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.01},
+             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.01},
+             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.01},
+             {max: {position: 1.0, speed: 0.25, acceleration: 0.1}, min: {position: -1.0}, max_jerk: 0.01}]

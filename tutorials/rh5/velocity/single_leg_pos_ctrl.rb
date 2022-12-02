@@ -3,7 +3,7 @@ require 'vizkit'
 
 Orocos.initialize
 Orocos.conf.load_dir('../config')
-log_dir = "../logs"
+log_dir = "../../logs"
 Dir.mkdir log_dir  unless File.exists?(log_dir)
 Orocos.default_working_directory = log_dir
 

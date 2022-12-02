@@ -56,12 +56,12 @@ p_gain:
 --- name:rh5
 # Feed Forward gain. Size has to be the same as size of field_names.
 d_gain:
-  data: [10,10,10,
-         10,10,10,
-         10,10,10,10,10,10,
-         10,10,10,10,10,10,
-         10,10,10,10,10,10,10,
-         10,10,10,10,10,10,10]
+  data: [1,1,1,
+         1,1,1,
+         1,1,1,1,1,1,
+         1,1,1,1,1,1,
+         1,1,1,1,1,1,1,
+         1,1,1,1,1,1,1]
 # Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
 dead_zone:
   data: [0,0,0,
@@ -96,9 +96,9 @@ max_control_output:
          100,100,100,100,100,100,100]
 # Proportional gain. Size has to be the same as size of field_names.
 p_gain:
-  data: [100,100,100,
-         100,100,100,
-         100,100,100,100,100,100,
-         100,100,100,100,100,100,
-         100,100,100,100,100,100,100,
-         100,100,100,100,100,100,100]
+  data: [5,5,5,
+         5,5,5,
+         5,5,5,5,5,5,
+         5,5,5,5,5,5,
+         5,5,5,5,5,5,5,
+         5,5,5,5,5,5,5]

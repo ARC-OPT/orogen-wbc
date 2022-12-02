@@ -2,9 +2,9 @@
 # Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
 integrate: true
 # Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
-qp_solver: qpoases
+qp_solver: eiquadprog
 # This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility
-hessian_regularizer: 1e-4
+hessian_regularizer: 1e-8
 # Use reduced QP. If true, torques will be eliminated from the QP by expressing them as function of qdd and f_ext.
 reduced: true
 
@@ -37,7 +37,7 @@ robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5.urdf" %>
     submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5.yml" %>
     floating_base: true
-    type: rbdl
+    type: hyrodyn
     contact_points:
         names: ["FL_SupportCenter", "FR_SupportCenter"]
         elements:
@@ -94,6 +94,9 @@ wbc_config:
   type: com
   activation: 1.0
   weights: [1,1,1]
+  # root: "world"
+  # tip:  "RH5_Root_Link"
+  # ref_frame: "world"
 - name: "joint_ctrl"
   priority: 0
   activation: 1.0
@@ -104,8 +107,8 @@ wbc_config:
                 "LRHip1", "LRHip2", "LRHip3", "LRKnee", "LRAnkleRoll", "LRAnklePitch",
                 "ALShoulder1", "ALShoulder2", "ALShoulder3", "ALElbow", "ALWristRoll", "ALWristPitch", "ALWristYaw",
                 "ARShoulder1", "ARShoulder2", "ARShoulder3", "ARElbow", "ARWristRoll", "ARWristPitch", "ARWristYaw"]
-  weights: [1e-8,1e-8,1e-8,
-            1e-8,1e-8,1e-8,
+  weights: [1-2,1-2,1-2,
+            1-2,1-2,1-2,
             1e-8,1e-8,1e-8,1e-8,1e-8,1e-8,
             1e-8,1e-8,1e-8,1e-8,1e-8,1e-8,
             1e-8,1e-8,1e-8,1e-8,1e-8,1e-8,1e-8,

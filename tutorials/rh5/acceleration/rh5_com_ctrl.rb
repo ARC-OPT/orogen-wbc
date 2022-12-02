@@ -59,7 +59,7 @@ Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
     raisim.start
 
     trajectory.start
-    #wbc.start
+    wbc.start
     joint_ctrl.start
 
     # Set target pose for Cartesian Controller
@@ -91,7 +91,7 @@ Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
     pose_writer.write(target_pose)
     timer.connect(SIGNAL('timeout()')) do
         target_pose.time = Types.base.Time.now
-        #target_pose.position = Types.base.Vector3d.new(0.12,0,1.0+0.05*sigma)
+        target_pose.position = Types.base.Vector3d.new(0.12,0,1.0+0.05*sigma)
         pose_writer.write(target_pose)
         sigma *= -1
     end

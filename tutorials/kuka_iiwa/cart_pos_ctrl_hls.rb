@@ -58,7 +58,7 @@ Orocos.run "wbc::WbcVelocityTask"                  => "kuka_iiwa_wbc",
         target_pose.pose.position = Types.base.Vector3d.new(0,0,0.9+0.1*Math.sin(delta)) # Position
         target_pose.twist.linear  = Types.base.Vector3d.new(0,0,0.1*Math.cos(delta))     # Feed forward velocity. This will improve trajectory tracking
         pose_writer.write(target_pose)
-        delta += 0.2
+        delta += 0.1
     end
     timer.start(10)
 
