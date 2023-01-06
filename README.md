@@ -28,7 +28,7 @@ The online solution of this problem is the robot joint control signal that compl
 
 ## Requirements / Dependencies
 
-Currently supported OS: Ubuntu18.04, Ubuntu20.04
+Currently supported OS: Ubuntu20.04, Ubuntu22.04
 
 This task library is for sole use within the [Rock framework](https://www.rock-robotics.org/). I.e., you require a full Rock installation to use it. In addition, it has the following 1st order dependencies:
 
