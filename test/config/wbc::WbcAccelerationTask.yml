@@ -1,10 +1,10 @@
 --- name:default
-compute_constraint_status: true
+compute_task_status: true
 initial_joint_weights:
   names: []
   elements: []
 integrate: true
-qp_solver: qpswift
+qp_solver: qpoases
 
 --- name:configure_success
 robot_model:

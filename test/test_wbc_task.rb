@@ -18,7 +18,7 @@ class TestWbcTask < Test::Unit::TestCase
             assert_equal(task.has_port?("weight_" + task_config.name), true)
             assert_equal(task.has_port?("activation_" + task_config.name), true)
             assert_equal(task.has_port?("status_" + task_config.name), true)
-            assert_equal(task.has_port?("constraint_" + task_config.name), true)
+            assert_equal(task.has_port?("task_" + task_config.name), true)
         end
     end
 
@@ -35,13 +35,13 @@ class TestWbcTask < Test::Unit::TestCase
             port_writer_weight     = task.weight_cart_pos_ctrl.writer
             port_writer_activation = task.activation_cart_pos_ctrl.writer
             port_reader_status     = task.status_cart_pos_ctrl.reader
-            port_reader_constraint = task.constraint_cart_pos_ctrl.reader
+            port_reader_task = task.task_cart_pos_ctrl.reader
 
             assert_equal(port_writer_reference.write(Types.base.samples.RigidBodyStateSE3.new), true)
             assert_equal(port_writer_weight.write(Types.base.VectorXd.new(6)), true)
             assert_equal(port_writer_activation.write(1), true)
             assert_equal(port_reader_status.read, nil)
-            assert_equal(port_reader_constraint.read, nil)
+            assert_equal(port_reader_task.read, nil)
 
             assert_nothing_raised(Orocos::StateTransitionFailed){task.stop}
             assert_nothing_raised(Orocos::StateTransitionFailed){task.cleanup}
@@ -52,7 +52,7 @@ class TestWbcTask < Test::Unit::TestCase
             assert_equal(port_writer_weight.write(Types.base.VectorXd.new(6)), true)
             assert_equal(port_writer_activation.write(1), true)
             assert_equal(port_reader_status.read, nil)
-            assert_equal(port_reader_constraint.read, nil)
+            assert_equal(port_reader_task.read, nil)
         end
     end
 
@@ -70,7 +70,7 @@ class TestWbcTask < Test::Unit::TestCase
             assert_equal(task.has_port?("weight_" + task_config.name), true)
             assert_equal(task.has_port?("activation_" + task_config.name), true)
             assert_equal(task.has_port?("status_" + task_config.name), true)
-            assert_equal(task.has_port?("constraint_" + task_config.name), true)
+            assert_equal(task.has_port?("task_" + task_config.name), true)
 
             assert_nothing_raised(Orocos::StateTransitionFailed){task.stop}
             assert_nothing_raised(Orocos::StateTransitionFailed){task.cleanup}
@@ -82,14 +82,14 @@ class TestWbcTask < Test::Unit::TestCase
             assert_equal(task.has_port?("weight_" + task_config.name), false)
             assert_equal(task.has_port?("activation_" + task_config.name), false)
             assert_equal(task.has_port?("status_" + task_config.name), false)
-            assert_equal(task.has_port?("constraint_" + task_config.name), false)
+            assert_equal(task.has_port?("task_" + task_config.name), false)
 
             task_config_new = task.wbc_config[0]
             assert_equal(task.has_port?("ref_" + task_config_new.name), true)
             assert_equal(task.has_port?("weight_" + task_config_new.name), true)
             assert_equal(task.has_port?("activation_" + task_config_new.name), true)
             assert_equal(task.has_port?("status_" + task_config_new.name), true)
-            assert_equal(task.has_port?("constraint_" + task_config_new.name), true)
+            assert_equal(task.has_port?("task_" + task_config_new.name), true)
         end
     end
 
@@ -139,7 +139,7 @@ class TestWbcTask < Test::Unit::TestCase
             writer_joint_state = task.joint_state.writer
             writer_joint_state.write joint_state
 
-            assert_nothing_raised(){task.activateConstraint("cart_pos_ctrl", 1.0)}
+            assert_nothing_raised(){task.activateTask("cart_pos_ctrl", 1.0)}
 
             reference = Types.base.samples.RigidBodyStateSE3.new
             reference.twist.linear  = reference.acceleration.linear = Types.base.Vector3d.new(rand()/10,rand()/10,rand()/10)
@@ -149,15 +149,15 @@ class TestWbcTask < Test::Unit::TestCase
             writer_ref = task.ref_cart_pos_ctrl.writer
             writer_ref.write reference
 
-            constraint_status = nil
-            reader_constraint_status = task.constraint_cart_pos_ctrl.reader
-            while constraint_status == nil
-                constraint_status = reader_constraint_status.read_new
+            task_status = nil
+            reader_task_status = task.task_cart_pos_ctrl.reader
+            while task_status == nil
+                task_status = reader_task_status.read_new
             end
 
             (0..2).each do |i|
-                assert_in_delta(reference.acceleration.linear[i],  constraint_status.y_solution[i],   1e-4)
-                assert_in_delta(reference.acceleration.angular[i], constraint_status.y_solution[i+3], 1e-4)
+                assert_in_delta(reference.acceleration.linear[i],  task_status.y_solution[i],   1e-4)
+                assert_in_delta(reference.acceleration.angular[i], task_status.y_solution[i+3], 1e-4)
             end
 
         end
