@@ -55,4 +55,5 @@ void WbcVelocityTask::stopHook(){
 void WbcVelocityTask::cleanupHook(){
     WbcVelocityTaskBase::cleanupHook();
     PluginLoader::unloadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    RobotModelFactory::clear();
 }

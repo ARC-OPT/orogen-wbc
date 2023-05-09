@@ -48,4 +48,7 @@ void WbcVelocityQuadraticCostTask::stopHook(){
 void WbcVelocityQuadraticCostTask::cleanupHook(){
     WbcVelocityQuadraticCostTaskBase::cleanupHook();
     PluginLoader::unloadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    PluginLoader::unloadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
+    RobotModelFactory::clear();
+    QPSolverFactory::clear();
 }

@@ -74,4 +74,7 @@ void WbcAccelerationTask::stopHook(){
 void WbcAccelerationTask::cleanupHook(){
     WbcAccelerationTaskBase::cleanupHook();
     PluginLoader::unloadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    PluginLoader::unloadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
+    RobotModelFactory::clear();
+    QPSolverFactory::clear();
 }
