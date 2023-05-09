@@ -36,7 +36,6 @@ robot_model:
   file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5.urdf" %>
   submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5.yml" %>
   floating_base: true
-  type: pinocchio
   contact_points:
       names: ["LLAnkle_FT", "LRAnkle_FT"]
       elements:
