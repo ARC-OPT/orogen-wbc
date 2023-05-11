@@ -24,20 +24,6 @@ robot_model:
     submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5_single_leg_hybrid.yml" %>
     type: hyrodyn
 
---- name:rh5_legs
-# Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
-robot_model:
-  file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/urdf/rh5_legs.urdf" %>
-  submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/rh5/hyrodyn/rh5_legs.yml" %>
-  floating_base: true
-  contact_points:
-      names: ["LLAnkle_FT", "LRAnkle_FT"]
-      elements:
-          - mu: 0.6
-            active: 1
-          - mu: 0.6
-            active: 1
-
 --- name:rh5
 # Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.
 robot_model:
