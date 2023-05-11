@@ -7,7 +7,7 @@ log_dir = "../logs"
 Dir.mkdir log_dir  unless File.exists?(log_dir)
 Orocos.default_working_directory = log_dir
 
-Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "rh5_wbc",
+Orocos.run "wbc::WbcTask"                          => "rh5_wbc",
            "wbc::LoopBackDriver"                   => "rh5_joints",
            "ctrl_lib::CartesianPositionController" => "rh5_leg_ctrl",
            "hyrodyn::ForwardTask"                  => "rh5_hyrodyn_fk" do
@@ -17,7 +17,7 @@ Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "rh5_wbc",
     joints       = Orocos::TaskContext.get "rh5_joints"
     hyrodyn      = Orocos::TaskContext.get "rh5_hyrodyn_fk"
 
-    Orocos.conf.apply(wbc,         ["default", "rh5_single_leg_hybrid", "single_leg_ctrl"])
+    Orocos.conf.apply(wbc,         ["default", "velocity", "rh5_single_leg_hybrid", "single_leg_ctrl"])
     Orocos.conf.apply(controller,  ["single_leg_cart_ctrl"])
     Orocos.conf.apply(joints,      ["rh5_single_leg_hybrid"])
     Orocos.conf.apply(hyrodyn,     ["rh5_single_leg_hybrid"])

@@ -11,10 +11,10 @@ namespace wbc{
 
 class TaskStatus;
 class RobotModel;
-class WbcScene;
+class Scene;
 
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
-typedef std::shared_ptr<WbcScene> WbcScenePtr;
+typedef std::shared_ptr<Scene> ScenePtr;
 
 typedef RTT::InputPort<base::samples::RigidBodyStateSE3> CartRefPort;
 typedef RTT::InputPort<base::samples::Joints> JntRefPort;
@@ -39,14 +39,14 @@ class TaskInterface
 {
 public:
     TaskInterface(TaskConfig _cfg,
-                        WbcScenePtr _scene,
+                        ScenePtr _scene,
                         RobotModelPtr _robot_model,
                         RTT::TaskContext* _task_context);
     ~TaskInterface();
 
     TaskConfig cfg;
     RobotModelPtr robot_model;
-    WbcScenePtr scene;
+    ScenePtr scene;
 
     base::samples::RigidBodyStateSE3 task_cart_state;
     base::samples::Joints task_jnt_state;

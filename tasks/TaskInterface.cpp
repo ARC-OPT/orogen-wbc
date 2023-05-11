@@ -6,7 +6,7 @@
 namespace wbc{
 
 TaskInterface::TaskInterface(TaskConfig _cfg,
-                                         WbcScenePtr _scene,
+                                         ScenePtr _scene,
                                          RobotModelPtr _robot_model,
                                          RTT::TaskContext* _task_context){
 

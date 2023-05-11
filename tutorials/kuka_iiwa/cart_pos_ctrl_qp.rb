@@ -13,7 +13,7 @@ log_dir = "../logs"
 Dir.mkdir log_dir  unless File.exists?(log_dir)
 Orocos.default_working_directory = log_dir
 
-Orocos.run "wbc::WbcVelocityQuadraticCostTask"     => "kuka_iiwa_wbc",
+Orocos.run "wbc::WbcTask"                          => "kuka_iiwa_wbc",
            "wbc::LoopBackDriver"                   => "kuka_iiwa_joints",
            "ctrl_lib::CartesianPositionController" => "kuka_iiwa_controller", :output => nil do
 

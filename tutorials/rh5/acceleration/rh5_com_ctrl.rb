@@ -9,7 +9,7 @@ Orocos.default_working_directory = log_dir
 
 use_force_control = false
 
-Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
+Orocos.run "wbc::WbcTask"                                    => "rh5_wbc",
            "raisim::Task"                                    => "rh5_raisim",
            "ctrl_lib::CartesianPositionController"           => "rh5_com_ctrl",
            "trajectory_generation::RMLCartesianPositionTask" => "rh5_trajectory",
@@ -20,7 +20,7 @@ Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
     raisim       = Orocos::TaskContext.get "rh5_raisim"
     trajectory   = Orocos::TaskContext.get "rh5_trajectory"
     joint_ctrl   = Orocos::TaskContext.get "rh5_joint_ctrl"
-    Orocos.conf.apply(wbc,         ["default", "rh5", "com_ctrl"])
+    Orocos.conf.apply(wbc,         ["default", "acceleration", "rh5", "com_ctrl"])
     if use_force_control
         Orocos.conf.apply(controller,  ["default", "com_ctrl_tsid_force_control"])
         Orocos.conf.apply(raisim,      ["default", "rh5_force_control"])

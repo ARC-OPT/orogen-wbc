@@ -1,14 +1,16 @@
 --- name:default
 compute_task_status: true
+integrate: true
 initial_joint_weights:
   names: []
   elements: []
-integrate: true
+wbc_type: velocity_qp
 qp_solver: qpoases
 
 --- name:configure_success
 robot_model:
-  file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
+    type: rbdl
 wbc_config:
    - name: "cart_pos_ctrl"
      priority: 0
@@ -22,6 +24,7 @@ wbc_config:
 --- name:configure_success_2
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
+    type: rbdl
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
@@ -36,6 +39,7 @@ wbc_config:
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
     floating_base: true
+    type: rbdl
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0
@@ -49,6 +53,7 @@ wbc_config:
 --- name:configure_fail_invalid_urdf_file
 robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urd" %>
+    type: rbdl
 wbc_config:
    - name: "cart_pos_ctrl_2"
      priority: 0

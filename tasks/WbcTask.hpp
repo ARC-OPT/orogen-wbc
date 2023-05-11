@@ -13,13 +13,13 @@
 
 namespace wbc {
 
-class WbcScene;
+class Scene;
 class RobotModel;
 class QPSolver;
 class TaskInterface;
 class HierarchicalQP;
 
-typedef std::shared_ptr<WbcScene> WbcScenePtr;
+typedef std::shared_ptr<Scene> ScenePtr;
 typedef std::shared_ptr<RobotModel> RobotModelPtr;
 typedef std::shared_ptr<QPSolver> QPSolverPtr;
 typedef std::shared_ptr<TaskInterface> TaskInterfacePtr;
@@ -47,7 +47,7 @@ class WbcTask : public WbcTaskBase
     friend class WbcBase;
 protected:
 
-    WbcScenePtr wbc_scene;
+    ScenePtr wbc_scene;
     RobotModelPtr robot_model;
     QPSolverPtr solver;
     JointIntegrator integrator;
@@ -68,7 +68,6 @@ protected:
     TimingStats timing_stats;                             /** statistics on compuation time*/
     ActiveContacts active_contacts;                       /** Names of the active contact points*/
     base::samples::Wrenches contact_wrenches;             /** Measured contact wrenches*/
-    bool compute_id;                                      /** Compute inverse dynamics on top of the kinematic solution (only for the velocity-based solvers)*/
     bool has_floating_base_state;                         /** Is floating base state available on inpurt port?*/
 
 public:
