@@ -1,0 +1,33 @@
+name: Ubuntu 20.04
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build_and_test_20_04:
+    runs-on: ubuntu-20.04
+
+    steps:
+    # Check out repository under $GITHUB_WORKSPACE
+    - uses: actions/checkout@v2
+    # Build and install
+    - name: install
+      run: |
+        sudo apt-get install ruby-dev git build-essential cmake -y
+        mkdir ~/rock && cd ~/rock
+        export CONFIG_SEED_FROM_BUILDCONF=config_seed.yml
+        wget http://rock-robotics.org/autoproj_bootstrap
+        ruby autoproj_bootstrap git https://github.com/ARC-OPT/buildconf.git --no-interactive
+        source ~/rock/env.sh
+        aup orogen/wbc
+        aup orogen/ctrl_lib
+        amake orogen/wbc
+        amake orogen/ctrl_lib
+    # Run all tests
+    - name: test
+      run: |
+        cd ~/rock/control/orogen/wbc/test
+        ruby test_wbc_velocity_task.rb
