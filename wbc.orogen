@@ -2,8 +2,6 @@ name "wbc"
 
 using_library "base-types"
 using_library "wbc-core"
-using_library "wbc-scenes"
-using_library "wbc-solvers-hls"
 
 import_types_from "base"
 import_types_from "wbc/core/TaskConfig.hpp"
@@ -28,13 +26,19 @@ import_types_from "wbcTypes.hpp"
 #  2. Update robot models
 #  3. Update Tasks and send them to the solver
 #
-task_context "WbcTask" do abstract
+task_context "WbcTask" do
     needs_configuration
 
     runtime_states "NO_JOINT_STATE", "NO_FLOATING_BASE_STATE"
 
     property("robot_model", "wbc/RobotModelConfig").
         doc("Configuration of the robot model. See wbc/core/RobotModelConfig.hpp for details.")
+
+    property("qp_solver", "std/string", "qpoases").
+        doc("Type of QP solver used. Can be one of ['hls','qpoases','qpswift','eiquadprog','proxqp']")
+
+    property("wbc_type", "std/string", "velocity_qp").
+        doc("Type of WBC scene used. Can be one of ['velocity','velocity_qp','acceleration','acceleration_tsid','acceleration_reduced_tsid']")
 
     property("wbc_config", "std/vector<wbc/TaskConfig>").
         doc("Configuration of Tasks. The WbcTask will dynamically create the following ports for each task:
@@ -106,6 +110,9 @@ task_context "WbcTask" do abstract
     output_port("full_joint_state", "base/samples/Joints").
         doc("Debug: Complete joint state including virtual joints as used by the solver.")
 
+    output_port("estimated_contact_wrenches", "base/samples/Wrenches").
+        doc("Estimated contact wrenches")
+
     operation("activateTask").
        argument("task_name", "std/string").
        argument("activation", "double")
@@ -115,66 +122,6 @@ task_context "WbcTask" do abstract
        argument("activation", "double")
 
     operation("deactivateAllTasks")
-
-    periodic 0.001
-end
-
-#
-# Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
-# The tasks are modeled as linear equalities Ax=y to a simplified QP with H=I and g=0
-#
-task_context "WbcVelocityTask", subclasses: "WbcTask" do
-    needs_configuration
-
-    property("norm_max", "double", 10.0).
-       doc("Maximum allowed norm of the solution. An infinite value will provide the most accurate, but eventually unbounded solution. A lower value will prevent unbounded control velocities near singular configurations.")
-
-    property("epsilon", "double", 1e-9).
-       doc("Precision for eigenvalue inversion. Required to ensure numerical stability. Inverse of an Eigenvalue smaller than this will be set to zero")
-
-    property("compute_id", "bool", false)
-       .doc("Optionally compute the inverse dynamics solution given the solver output")
-
-    periodic 0.001
-end
-
-
-#
-# Velocity based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
-# The tasks are embedded in the cost function here
-#
-task_context "WbcVelocityQuadraticCostTask", subclasses: "WbcTask" do
-    needs_configuration
-
-    property("hessian_regularizer", "double", 1e-8)
-       .doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility")
-
-    property("qp_solver", "std/string", "qpoases")
-       .doc("Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']")
-
-    property("compute_id", "bool", false)
-       .doc("Optionally compute the inverse dynamics solution given the solver output")
-
-    periodic 0.001
-end
-
-#
-# Acceleration based implementation of the WBC Scene. This implementation uses KDL for kinematics computation and URDF for model parsing.
-#
-task_context "WbcAccelerationTask", subclasses: "WbcTask" do
-    needs_configuration
-
-    property("hessian_regularizer", "double", 1e-6)
-       .doc("This value is added to the diagonal of the Hessian matrix inside the QP to reduce the risk of infeasibility")
-
-    property("qp_solver", "std/string", "qpoases")
-       .doc("Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']")
-
-    property("reduced", "bool", false)
-       .doc("Use reduced QP. If true, torques will be eliminated from the QP by expressing them as function of qdd and f_ext.")
-
-    output_port("estimated_contact_wrenches", "base/samples/Wrenches").
-       doc("Estimated contact wrenches")
 
     periodic 0.001
 end

@@ -7,7 +7,7 @@ log_dir = "../../logs"
 Dir.mkdir log_dir  unless File.exists?(log_dir)
 Orocos.default_working_directory = log_dir
 
-Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
+Orocos.run "wbc::WbcTask"                                   => "rh5_wbc",
            "raisim::Task"                                    => "rh5_raisim",
            "ctrl_lib::CartesianPositionController"           => "rh5_leg_ctrl",
            "trajectory_generation::RMLCartesianPositionTask" => "rh5_trajectory" do
@@ -17,7 +17,7 @@ Orocos.run "wbc::WbcAccelerationTask"                        => "rh5_wbc",
     raisim       = Orocos::TaskContext.get "rh5_raisim"
     trajectory   = Orocos::TaskContext.get "rh5_trajectory"
 
-    Orocos.conf.apply(wbc,         ["default", "rh5_single_leg", "single_leg_ctrl"])
+    Orocos.conf.apply(wbc,         ["default", "acceleration", "rh5_single_leg", "single_leg_ctrl"])
     Orocos.conf.apply(controller,  ["default", "single_leg_cart_ctrl_tsid"])
     Orocos.conf.apply(raisim,      ["default", "rh5_single_leg"])
     Orocos.conf.apply(trajectory,  ["default", "single_leg_ctrl"])

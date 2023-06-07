@@ -1,13 +1,15 @@
 require "orocos"
 require "test/unit"
 
-$tc_name = nil
+log_dir = "logs"
+Dir.mkdir log_dir  unless File.exists?(log_dir)
+Orocos.default_working_directory = log_dir
 
 class TestWbcTask < Test::Unit::TestCase
 
     # Test successful configuration, check that all dynamic ports exist
     def testConfigureSuccess
-        Orocos.run $tc_name => "task" do
+        Orocos.run "wbc::WbcTask" => "task" do
             task = Orocos::TaskContext.get "task"
             Orocos.conf.load_dir("./config")
             Orocos.conf.apply(task, ["default", "configure_success"])
@@ -24,7 +26,7 @@ class TestWbcTask < Test::Unit::TestCase
 
     # Test reconfiguration; ensure dynamic ports are not cleared if configuration does not change
     def testReconfigure
-        Orocos.run $tc_name => "task" do
+        Orocos.run "wbc::WbcTask" => "task" do
             task = Orocos::TaskContext.get "task"
             Orocos.conf.load_dir("./config")
             Orocos.conf.apply(task, ["default", "configure_success"])
@@ -53,12 +55,15 @@ class TestWbcTask < Test::Unit::TestCase
             assert_equal(port_writer_activation.write(1), true)
             assert_equal(port_reader_status.read, nil)
             assert_equal(port_reader_task.read, nil)
+
+            assert_nothing_raised(Orocos::StateTransitionFailed){task.stop}
+            assert_nothing_raised(Orocos::StateTransitionFailed){task.cleanup}
         end
     end
 
     # Test reconfiguration with different config; ensure unused dynamic ports are cleared
     def testReconfigure2
-        Orocos.run $tc_name => "task" do
+        Orocos.run "wbc::WbcTask" => "task" do
             task = Orocos::TaskContext.get "task"
             Orocos.conf.load_dir("./config")
             Orocos.conf.apply(task, ["default", "configure_success"])
@@ -90,11 +95,14 @@ class TestWbcTask < Test::Unit::TestCase
             assert_equal(task.has_port?("activation_" + task_config_new.name), true)
             assert_equal(task.has_port?("status_" + task_config_new.name), true)
             assert_equal(task.has_port?("task_" + task_config_new.name), true)
+
+            assert_nothing_raised(Orocos::StateTransitionFailed){task.stop}
+            assert_nothing_raised(Orocos::StateTransitionFailed){task.cleanup}
         end
     end
 
     def testConfigureSuccessFloatingBase
-        Orocos.run $tc_name => "task" do
+        Orocos.run "wbc::WbcTask" => "task" do
             task = Orocos::TaskContext.get "task"
             Orocos.conf.load_dir("./config")
             Orocos.conf.apply(task, ["default", "configure_success_floating_base"])
@@ -103,7 +111,7 @@ class TestWbcTask < Test::Unit::TestCase
     end
 
     def testConfigureFail
-        Orocos.run $tc_name => "task" do
+        Orocos.run "wbc::WbcTask" => "task" do
             task = Orocos::TaskContext.get "task"
             Orocos.conf.load_dir("./config")
 
@@ -113,7 +121,7 @@ class TestWbcTask < Test::Unit::TestCase
     end
 
     def testSingleTask
-        Orocos.run $tc_name => "task" do
+        Orocos.run "wbc::WbcTask" => "task" do
             task = Orocos::TaskContext.get "task"
             Orocos.conf.load_dir("./config")
             Orocos.conf.apply(task, ["default", "configure_success"])

@@ -6,17 +6,16 @@
 #include <wbc/core/QPSolver.hpp>
 #include "TaskInterface.hpp"
 #include <base-logging/Logging.hpp>
+#include <wbc/core/PluginLoader.hpp>
 
 using namespace wbc;
 
 WbcTask::WbcTask(std::string const& name)
-    : WbcTaskBase(name),
-      compute_id(false){
+    : WbcTaskBase(name){
 }
 
 WbcTask::WbcTask(std::string const& name, RTT::ExecutionEngine* engine)
-    : WbcTaskBase(name, engine),
-      compute_id(false){
+    : WbcTaskBase(name, engine){
 }
 
 WbcTask::~WbcTask(){
@@ -25,6 +24,16 @@ WbcTask::~WbcTask(){
 bool WbcTask::configureHook(){
     if (! WbcTaskBase::configureHook())
         return false;
+
+    PluginLoader::loadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    robot_model =  std::shared_ptr<RobotModel>(RobotModelFactory::createInstance(_robot_model.get().type));
+
+    PluginLoader::loadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
+    solver = std::shared_ptr<QPSolver>(QPSolverFactory::createInstance(_qp_solver.get()));
+
+    PluginLoader::loadPlugin("libwbc-scenes-" + _wbc_type.get() + ".so");
+    wbc_scene = std::shared_ptr<Scene>(SceneFactory::createInstance(_wbc_type.get(), robot_model, solver, this->getPeriod()));
+
     if(!robot_model->configure(_robot_model.get()))
             return false;
 
@@ -147,8 +156,6 @@ void WbcTask::updateHook(){
     solver_output_joints = wbc_scene->solve(hierarchical_qp);
     if(integrate)
         integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output_joints, this->getPeriod());
-    if(compute_id)
-        robot_model->computeInverseDynamics(solver_output_joints);
     _solver_output.write(solver_output_joints);
     timing_stats.time_solve = (base::Time::now()-cur_time).toSeconds();
 
@@ -180,6 +187,14 @@ void WbcTask::cleanupHook(){
     solver_output_joints.clear();
     full_joint_state.clear();
     integrator.reinit();
+
+    PluginLoader::unloadPlugin("libwbc-robot_models-" + _robot_model.get().type + ".so");
+    PluginLoader::unloadPlugin("libwbc-solvers-" + _qp_solver.get() + ".so");
+    PluginLoader::unloadPlugin("libwbc-scenes-" + _wbc_type.get() + ".so");
+
+    RobotModelFactory::clear();
+    QPSolverFactory::clear();
+    SceneFactory::clear();
 }
 
 void WbcTask::activateTask(const std::string& task_name, double activation){

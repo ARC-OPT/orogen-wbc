@@ -6,6 +6,10 @@ robot_model:
     file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/control/wbc/models/kuka/urdf/kuka_iiwa.urdf" %>
 
 --- name:cart_pos_ctrl_hls
+# Type of WBC scene used. Can be one of ['velocity','velocity_qp','acceleration','acceleration_tsid','acceleration_reduced_tsid']
+wbc_type: velocity
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: hls
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
@@ -30,6 +34,10 @@ wbc_config:
       weights: [1,1,1,1,1,1]
 
 --- name:cart_pos_ctrl_weights
+# Type of WBC scene used. Can be one of ['velocity','velocity_qp','acceleration','acceleration_tsid','acceleration_reduced_tsid']
+wbc_type: velocity
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: hls
 # The joint weights control the contribution of each individual joint to the task solution. Values have to be within (0 <= wq <= 1).
 # A zero means here that the joint is not used at all. Size has to be same as number of robot joints or empty, in which case each joint weight is set to 1.
 initial_joint_weights:
@@ -60,6 +68,10 @@ wbc_config:
       weights: [1,1,1,0,0,0]
 
 --- name:cart_pos_ctrl_hierarchies
+# Type of WBC scene used. Can be one of ['velocity','velocity_qp','acceleration','acceleration_tsid','acceleration_reduced_tsid']
+wbc_type: velocity
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: hls
 # Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
 #              Cartesian constraints:
 #                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
@@ -82,6 +94,35 @@ wbc_config:
       weights: [1]
     - name: "cart_pos_ctrl"
       priority: 1
+      type: cart
+      root: "kuka_lbr_l_link_0"
+      tip:  "kuka_lbr_l_tcp"
+      ref_frame: "kuka_lbr_l_link_0"
+      activation: 1.0
+      weights: [1,1,1,1,1,1]
+
+
+--- name:cart_pos_ctrl_qpoases
+# Type of WBC scene used. Can be one of ['velocity','velocity_qp','acceleration','acceleration_tsid','acceleration_reduced_tsid']
+wbc_type: velocity_qp
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: qpoases
+# Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
+#              Cartesian constraints:
+#                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
+#                  Weights (/base/VectorXd):                               weight_<constraint_name>
+#                  Activation function (double):                           activation_<constraint_name>
+#                  Constraint pose output (/base/samples/RigidBodyState):  state_<constraint_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+#              Joint Space constraints:
+#                  Reference Input (/base/samples/Joints):                 ref_<task_name>
+#                  Weights (/base/VectorXd):                               weight_<task_name>
+#                  Activation function (double):                           activation_<task_name>
+#                  Current joint state output (base/samples/Joints):       state_<task_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+wbc_config:
+    - name: "cart_pos_ctrl"
+      priority: 0
       type: cart
       root: "kuka_lbr_l_link_0"
       tip:  "kuka_lbr_l_tcp"
