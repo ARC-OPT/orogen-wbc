@@ -96,8 +96,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a9b00fb3f513528593c44194e5e9e8b1b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewbc.html#a9bc5bfb4523f59a46f6b2c513eb23df4">WbcScenePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcTask.html#a9b00fb3f513528593c44194e5e9e8b1b">wbc_scene</a></td></tr>
-<tr class="separator:a9b00fb3f513528593c44194e5e9e8b1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99d0af14de0d957184b24287b0cb2c98"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewbc.html#a77a5e5986952d9341fa024b4798cc1c6">ScenePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcTask.html#a99d0af14de0d957184b24287b0cb2c98">wbc_scene</a></td></tr>
+<tr class="separator:a99d0af14de0d957184b24287b0cb2c98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a421a9901d1c05aec93da6bc3fb0285b6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewbc.html#af84e81dd38839e42582b04bdb77ff0e0">RobotModelPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcTask.html#a421a9901d1c05aec93da6bc3fb0285b6">robot_model</a></td></tr>
 <tr class="separator:a421a9901d1c05aec93da6bc3fb0285b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d18a8db524104e4bbe72fc5bd5b62d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacewbc.html#a6902c325ae9865d95481fa98c9bf8f85">QPSolverPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcTask.html#a0d18a8db524104e4bbe72fc5bd5b62d6">solver</a></td></tr>
@@ -136,8 +136,6 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a70c864019ed6beaeb0219858eec9fafa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b0b63d796373fc596730db9d82c9f19"><td class="memItemLeft" align="right" valign="top">base::samples::Wrenches&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcTask.html#a8b0b63d796373fc596730db9d82c9f19">contact_wrenches</a></td></tr>
 <tr class="separator:a8b0b63d796373fc596730db9d82c9f19"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a041677e1f1865d521896ccba21c6a064"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcTask.html#a041677e1f1865d521896ccba21c6a064">compute_id</a></td></tr>
-<tr class="separator:a041677e1f1865d521896ccba21c6a064"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4539dfd71d0d6953d4ec4df8c031cd7f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc_1_1WbcTask.html#a4539dfd71d0d6953d4ec4df8c031cd7f">has_floating_base_state</a></td></tr>
 <tr class="separator:a4539dfd71d0d6953d4ec4df8c031cd7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -472,29 +470,6 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a041677e1f1865d521896ccba21c6a064" name="a041677e1f1865d521896ccba21c6a064"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a041677e1f1865d521896ccba21c6a064">&#9670;&#160;</a></span>compute_id</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool wbc::WbcTask::compute_id</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Measured contact wrenches </p>
-
-</div>
-</div>
 <a id="a5d8ebd088ca8af3de371c5d6f6d80975" name="a5d8ebd088ca8af3de371c5d6f6d80975"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5d8ebd088ca8af3de371c5d6f6d80975">&#9670;&#160;</a></span>compute_task_status</h2>
 
@@ -629,7 +604,7 @@ Friends</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Compute inverse dynamics on top of the kinematic solution (only for the velocity-based solvers) </p>
+<p>Measured contact wrenches </p>
 
 </div>
 </div>
@@ -927,8 +902,8 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a9b00fb3f513528593c44194e5e9e8b1b" name="a9b00fb3f513528593c44194e5e9e8b1b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9b00fb3f513528593c44194e5e9e8b1b">&#9670;&#160;</a></span>wbc_scene</h2>
+<a id="a99d0af14de0d957184b24287b0cb2c98" name="a99d0af14de0d957184b24287b0cb2c98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99d0af14de0d957184b24287b0cb2c98">&#9670;&#160;</a></span>wbc_scene</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -937,7 +912,7 @@ Friends</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacewbc.html#a9bc5bfb4523f59a46f6b2c513eb23df4">WbcScenePtr</a> wbc::WbcTask::wbc_scene</td>
+          <td class="memname"><a class="el" href="namespacewbc.html#a77a5e5986952d9341fa024b4798cc1c6">ScenePtr</a> wbc::WbcTask::wbc_scene</td>
         </tr>
       </table>
   </td>
