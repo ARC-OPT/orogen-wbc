@@ -1,0 +1,5 @@
+--- name:recupera_exo
+# no documentation available for this property
+submechanisms_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/models/robots/recupera_lower_body-motion_traj/lower_body/smurf/recupera_full_leg_submechanisms.yml" %>
+# no documentation available for this property
+urdf_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/models/robots/recupera_lower_body-motion_traj/lower_body/urdf/recupera_full_leg.urdf" %>

@@ -1,0 +1,25 @@
+--- name:default
+# Unique name for each variable, e.g. joint names in case of a joint space controller.
+field_names: ["X", "Y", "Z", "rotZ", "rotY", "rotX"]
+
+--- name:single_leg_cart_ctrl
+# Type of activation function used. See ctrl_lib/ActivationFunction.hpp for details.
+activation_function:
+  threshold: 0
+  type: :NO_ACTIVATION
+# Minimum control error (dead zone). If one control error value falls below this minimum, it will be set to zero.
+dead_zone:
+  data: [0,0,0,0,0,0]
+# Derivative gain. Size has to be the same as size of field_names.
+d_gain:
+  data: [1,1,1,1,1,1]
+# Feed Forward gain. Size has to be the same as size of field_names.
+ff_gain:
+  data: [0,0,0,0,0,0]
+# Maximum control output (saturation). If one output value exceeds maximum, all
+# other values will be scaled accordingly. Size has to be the same as size of field_names.
+max_control_output:
+  data: [10, 10, 10, 10, 10, 10]
+# Proportional gain. Size has to be the same as size of field_names.
+p_gain:
+  data: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0]

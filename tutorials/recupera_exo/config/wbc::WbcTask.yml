@@ -1,0 +1,45 @@
+--- name:default
+# Perform numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and acceleration
+integrate: True
+# Type of QP solver used. Can be one of ['qpoases','qpswift','eiquadprog']
+qp_solver: qpoases
+
+--- name:velocity
+# Type of WBC scene used. Can be one of ['velocity','velocity_qp','acceleration','acceleration_tsid','acceleration_reduced_tsid']
+wbc_type: velocity_qp
+
+--- name:recupera_exo
+# Add multiple robot and/or object models.
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/models/robots/recupera_lower_body-motion_traj/lowerBdy_abstract/urdf/recupera_abstract_leg.urdf" %>
+
+--- name:recupera_exo_hybrid
+# Add multiple robot and/or object models.
+robot_model:
+    file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/models/robots/recupera_lower_body-motion_traj/lower_body/urdf/recupera_full_leg.urdf" %>
+    submechanism_file: <%= "#{ENV['AUTOPROJ_CURRENT_ROOT']}/models/robots/recupera_lower_body-motion_traj/lower_body/smurf/recupera_full_leg_submechanisms.yml" %>
+    type: hyrodyn
+
+--- name:single_leg_ctrl
+# Configuration of constraints. The WbcVelocityTask will dynamically create the following input ports for each constraint:
+#              Cartesian constraints:
+#                  Reference Input (/base/samples/RigidBodyState):         ref_<constraint_name>
+#                  Weights (/base/VectorXd):                               weight_<constraint_name>
+#                  Activation function (double):                           activation_<constraint_name>
+#                  Constraint pose output (/base/samples/RigidBodyState):  state_<constraint_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+#              Joint Space constraints:
+#                  Reference Input (/base/samples/Joints):                 ref_<task_name>
+#                  Weights (/base/VectorXd):                               weight_<task_name>
+#                  Activation function (double):                           activation_<task_name>
+#                  Current joint state output (base/samples/Joints):       state_<task_name>
+#                  Constraint output port (wbc/Constraint)                 constraint_<constraint_name>
+wbc_config:
+    - name: "cart_position_ctrl"
+      priority: 0
+      type: cart
+      root: "root_link_hexapod"
+      tip:  "left_leg_feet_feet_contact_base_link"
+      ref_frame: "root_link_hexapod"
+      activation: 1.0
+      weights: [1,1,1,1,1,1]
