@@ -50,7 +50,7 @@ Orocos.run "wbc::WbcTask"                          => "recupera_exo_wbc",
         target_pose.pose.position = Types.base.Vector3d.new(0.1*Math.sin(delta),0.12,-0.82) # Position
         target_pose.twist.linear  = Types.base.Vector3d.new(0.1*Math.cos(delta),0,0)     # Feed forward velocity. This will improve trajectory tracking
         pose_writer.write(target_pose)
-        delta += 0.05
+        delta += 0.02
     end
     timer.start(10)
 
