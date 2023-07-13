@@ -44,7 +44,8 @@ This task library is for sole use within the [Rock framework](https://www.rock-r
     package_sets:
     - github: ARC-OPT/package_set
     ```    
-  followed by `aup control/orogen/wbc` and then `amake control/orogen/wbc`
+  followed by `aup control/orogen/wbc` and then `amake control/orogen/wbc`.
+  To install the control library, you can do `aup control/orogen/ctrl_lib` and then `amake control/orogen/ctrl_lib`.
 
 ## Testing
 
