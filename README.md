@@ -1,3 +1,5 @@
+# DEPRECATED!!! This repository is not maintained anymore!
+
 # WBC - Whole-Body Control
 
 [Code API](https://arc-opt.github.io/orogen-wbc/)  | [Full Documentation](https://arc-opt.github.io/Documentation/)
